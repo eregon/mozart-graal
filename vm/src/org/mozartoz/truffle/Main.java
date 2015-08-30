@@ -1,4 +1,4 @@
-package org.mozart.oz;
+package org.mozartoz.truffle;
 
 public class Main {
 	public static void main(String[] args) {
