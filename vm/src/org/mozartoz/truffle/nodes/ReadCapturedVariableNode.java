@@ -8,16 +8,16 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ReadCapturedVariableNode extends OzNode {
 
-	private final FrameSlot slot;
+	@Child ReadFrameSlotNode readFrameSlotNode;
 
 	public ReadCapturedVariableNode(FrameSlot slot) {
-		this.slot = slot;
+		this.readFrameSlotNode = ReadFrameSlotNodeGen.create(slot);
 	}
 
 	@Override
 	public Object execute(VirtualFrame frame) {
 		MaterializedFrame parentFrame = OzArguments.getParentFrame(frame);
-		return parentFrame.getValue(slot);
+		return readFrameSlotNode.executeRead(parentFrame);
 	}
 
 }

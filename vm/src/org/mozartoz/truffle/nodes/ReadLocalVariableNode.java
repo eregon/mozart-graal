@@ -5,15 +5,15 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ReadLocalVariableNode extends OzNode {
 
-	private final FrameSlot slot;
+	@Child ReadFrameSlotNode readFrameSlotNode;
 
 	public ReadLocalVariableNode(FrameSlot slot) {
-		this.slot = slot;
+		this.readFrameSlotNode = ReadFrameSlotNodeGen.create(slot);
 	}
 
 	@Override
 	public Object execute(VirtualFrame frame) {
-		return frame.getValue(slot);
+		return readFrameSlotNode.executeRead(frame);
 	}
 
 }

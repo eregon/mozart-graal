@@ -15,7 +15,7 @@ import org.mozartoz.truffle.nodes.ReadLocalVariableNode;
 import org.mozartoz.truffle.nodes.SequenceNode;
 import org.mozartoz.truffle.nodes.ShowNodeGen;
 import org.mozartoz.truffle.nodes.SubNodeGen;
-import org.mozartoz.truffle.nodes.WriteLocalVariableNodeGen;
+import org.mozartoz.truffle.nodes.WriteLocalVariableNode;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -69,7 +69,7 @@ public class Main {
 		FrameDescriptor factDescriptor = new FrameDescriptor();
 		FrameSlot n = factDescriptor.addFrameSlot("N");
 
-		OzNode factPrelude = WriteLocalVariableNodeGen.create(n, new ReadArgumentNode());
+		OzNode factPrelude = new WriteLocalVariableNode(n, new ReadArgumentNode());
 		OzNode condition = EqualNodeGen.create(new ReadLocalVariableNode(n), new LongLiteralNode(0));
 		OzNode thenExpr = new LongLiteralNode(1);
 		OzNode nSub1 = SubNodeGen.create(new ReadLocalVariableNode(n), new LongLiteralNode(1));
@@ -78,7 +78,7 @@ public class Main {
 		OzNode ifNode = new IfNode(condition, thenExpr, elseExpr);
 		OzNode factBody = new SequenceNode(factPrelude, ifNode);
 		OzNode factDecl = new FunctionDeclarationNode(factDescriptor, factBody);
-		OzNode declareFact = WriteLocalVariableNodeGen.create(fact, factDecl);
+		OzNode declareFact = new WriteLocalVariableNode(fact, factDecl);
 
 		OzNode callFact = CallFunctionNodeGen.create(new ReadLocalVariableNode(fact), new LongLiteralNode(30));
 		OzNode showNode = ShowNodeGen.create(callFact);

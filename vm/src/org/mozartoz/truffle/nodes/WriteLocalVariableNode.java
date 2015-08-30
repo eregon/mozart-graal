@@ -1,29 +1,21 @@
 package org.mozartoz.truffle.nodes;
 
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-@NodeChild("value")
-public abstract class WriteLocalVariableNode extends OzNode {
+public class WriteLocalVariableNode extends OzNode {
 
-	private final FrameSlot slot;
+	@Child WriteFrameSlotNode writeFrameSlotNode;
+	@Child OzNode value;
 
-	public WriteLocalVariableNode(FrameSlot slot) {
-		this.slot = slot;
+	public WriteLocalVariableNode(FrameSlot slot, OzNode value) {
+		this.writeFrameSlotNode = WriteFrameSlotNodeGen.create(slot);
+		this.value = value;
 	}
 
-	@Specialization
-	public long writeLong(VirtualFrame frame, long value) {
-		frame.setLong(slot, value);
-		return value;
-	}
-
-	@Specialization
-	public Object writeObject(VirtualFrame frame, Object value) {
-		frame.setObject(slot, value);
-		return value;
+	@Override
+	public Object execute(VirtualFrame frame) {
+		return writeFrameSlotNode.executeWrite(frame, value.execute(frame));
 	}
 
 }
