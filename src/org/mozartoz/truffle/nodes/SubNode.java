@@ -8,16 +8,16 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @NodeChildren({ @NodeChild("left"), @NodeChild("right") })
-public abstract class AddNode extends OzNode {
+public abstract class SubNode extends OzNode {
 
 	@Specialization(rewriteOn = ArithmeticException.class)
-	protected long add(long a, long b) {
-		return ExactMath.addExact(a, b);
+	protected long sub(long a, long b) {
+		return ExactMath.subtractExact(a, b);
 	}
 
 	@Specialization
-	protected BigInteger add(BigInteger a, BigInteger b) {
-		return a.add(b);
+	protected BigInteger sub(BigInteger a, BigInteger b) {
+		return a.subtract(b);
 	}
 
 }
