@@ -50,17 +50,6 @@ public class Main {
 		 *    end
 		 * end
 		 * {Show {Fact 5}}
-		 *
-		 * local Fact in
-		 *   Fact = proc {$ N}
-		 *      if N == 0 then
-		 *         1
-		 *      else
-		 *         N * {Fact N-1}
-		 *      end
-		 *   end
-		 *   {Show {Fact 5}}
-		 * end
 		 */
 
 		FrameDescriptor topDescritor = new FrameDescriptor();
