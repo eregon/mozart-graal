@@ -8,7 +8,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class EqualNode extends OzNode {
 
 	@Specialization
-	protected boolean add(long a, long b) {
+	protected boolean equal(long a, long b) {
 		return a == b;
 	}
 
