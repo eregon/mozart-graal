@@ -9,6 +9,7 @@ public class WriteLocalVariableNode extends OzNode {
 	@Child OzNode value;
 
 	public WriteLocalVariableNode(FrameSlot slot, OzNode value) {
+		assert slot != null;
 		this.writeFrameSlotNode = WriteFrameSlotNodeGen.create(slot);
 		this.value = value;
 	}

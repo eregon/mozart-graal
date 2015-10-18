@@ -9,5 +9,8 @@
 			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/bootcompiler"/>
+	<classpathentry kind="lib" path="/home/eregon/.ivy2/cache/org.scala-lang.modules/scala-parser-combinators_2.11/bundles/scala-parser-combinators_2.11-1.0.2.jar"/>
+	<classpathentry kind="lib" path="/home/eregon/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

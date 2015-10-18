@@ -3,6 +3,7 @@
 	<name>mozart-graal</name>
 	<comment></comment>
 	<projects>
+		<project>bootcompiler</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
