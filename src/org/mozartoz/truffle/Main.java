@@ -5,6 +5,7 @@ import org.mozartoz.truffle.nodes.CallFunctionNodeGen;
 import org.mozartoz.truffle.nodes.EqualNodeGen;
 import org.mozartoz.truffle.nodes.FunctionDeclarationNode;
 import org.mozartoz.truffle.nodes.IfNode;
+import org.mozartoz.truffle.nodes.ListLiteralNode;
 import org.mozartoz.truffle.nodes.LongLiteralNode;
 import org.mozartoz.truffle.nodes.MulNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
@@ -17,16 +18,15 @@ import org.mozartoz.truffle.nodes.ShowNodeGen;
 import org.mozartoz.truffle.nodes.SubNodeGen;
 import org.mozartoz.truffle.nodes.WriteLocalVariableNode;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 
 public class Main {
 	public static void main(String[] args) {
-		OzRootNode rootNode = fib(); // simpleAdd();
-		CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-		callTarget.call();
+		Truffle.getRuntime().createCallTarget(simpleAdd()).call();
+		Truffle.getRuntime().createCallTarget(fib()).call();
+		Truffle.getRuntime().createCallTarget(list()).call();
 	}
 
 	static OzRootNode simpleAdd() {
@@ -73,5 +73,22 @@ public class Main {
 		OzNode showNode = ShowNodeGen.create(callFact);
 
 		return new OzRootNode(topDescritor, new SequenceNode(declareFact, showNode));
+	}
+
+	static OzRootNode list() {
+		/*
+		 * L = [1 2 3]
+		 * {Show L}
+		 * {Show {Head L}}
+		 * {Show {Tail L}}
+		 */
+		FrameDescriptor topDescritor = new FrameDescriptor();
+		FrameSlot L = topDescritor.addFrameSlot("L");
+
+		OzNode list = new ListLiteralNode(new OzNode[] { new LongLiteralNode(1), new LongLiteralNode(2), new LongLiteralNode(3) });
+		OzNode writeL = new WriteLocalVariableNode(L, list);
+		OzNode showL = ShowNodeGen.create(new ReadLocalVariableNode(L));
+
+		return new OzRootNode(topDescritor, new SequenceNode(writeL, showL));
 	}
 }
