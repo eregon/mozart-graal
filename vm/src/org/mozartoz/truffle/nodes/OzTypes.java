@@ -6,7 +6,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.TypeSystem;
 
-@TypeSystem({ long.class, BigInteger.class })
+@TypeSystem({ long.class, BigInteger.class, Object[].class })
 public abstract class OzTypes {
 
 	@ImplicitCast
