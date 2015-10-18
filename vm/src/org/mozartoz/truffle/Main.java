@@ -17,6 +17,7 @@ import org.mozartoz.truffle.nodes.SequenceNode;
 import org.mozartoz.truffle.nodes.ShowNodeGen;
 import org.mozartoz.truffle.nodes.SubNodeGen;
 import org.mozartoz.truffle.nodes.WriteLocalVariableNode;
+import org.mozartoz.truffle.translator.Translator;
 
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -24,9 +25,21 @@ import com.oracle.truffle.api.frame.FrameSlot;
 
 public class Main {
 	public static void main(String[] args) {
-		Truffle.getRuntime().createCallTarget(simpleAdd()).call();
-		Truffle.getRuntime().createCallTarget(fib()).call();
-		Truffle.getRuntime().createCallTarget(list()).call();
+		execute(simpleAdd());
+		execute(fib());
+		execute(list());
+
+		parseAndExecute("{Show 3 + 2}");
+		parseAndExecute("local Fact in\nfun {Fact N} if N == 0 then 1 else N * {Fact N-1} end end\n{Show {Fact 30}}\nend");
+		parseAndExecute("local L in L = [1 2 3] {Show L} end");
+	}
+
+	private static void parseAndExecute(String code) {
+		execute(new Translator().parseAndTranslate(code));
+	}
+
+	private static Object execute(OzRootNode rootNode) {
+		return Truffle.getRuntime().createCallTarget(rootNode).call();
 	}
 
 	static OzRootNode simpleAdd() {
