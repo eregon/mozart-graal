@@ -1,4 +1,4 @@
-package org.mozartoz.truffle.nodes;
+package org.mozartoz.truffle.nodes.local;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.ImportStatic;

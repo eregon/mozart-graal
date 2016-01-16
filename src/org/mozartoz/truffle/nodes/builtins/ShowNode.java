@@ -1,7 +1,8 @@
-package org.mozartoz.truffle.nodes;
+package org.mozartoz.truffle.nodes.builtins;
 
 import java.math.BigInteger;
 
+import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
 
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -25,6 +26,12 @@ public abstract class ShowNode extends OzNode {
 	@Specialization
 	protected Object show(OzCons list) {
 		System.out.println(list);
+		return unit;
+	}
+
+	@Specialization(guards = "undefined == null")
+	protected Object show(Object undefined) {
+		System.out.println("null");
 		return unit;
 	}
 

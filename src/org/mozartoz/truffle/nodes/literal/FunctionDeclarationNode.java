@@ -1,5 +1,7 @@
-package org.mozartoz.truffle.nodes;
+package org.mozartoz.truffle.nodes.literal;
 
+import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.runtime.OzFunction;
 
 import com.oracle.truffle.api.CallTarget;

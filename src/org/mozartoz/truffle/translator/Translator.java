@@ -33,31 +33,31 @@ import org.mozartoz.bootcompiler.transform.DesugarClass;
 import org.mozartoz.bootcompiler.transform.DesugarFunctor;
 import org.mozartoz.bootcompiler.transform.Namer;
 import org.mozartoz.bootcompiler.transform.PatternMatcher;
-import org.mozartoz.truffle.nodes.AddNodeGen;
-import org.mozartoz.truffle.nodes.CallFunctionNodeGen;
-import org.mozartoz.truffle.nodes.ConsLiteralNode;
-import org.mozartoz.truffle.nodes.DotNodeGen;
-import org.mozartoz.truffle.nodes.EqualNodeGen;
-import org.mozartoz.truffle.nodes.FunctionDeclarationNode;
 import org.mozartoz.truffle.nodes.IfNode;
-import org.mozartoz.truffle.nodes.LiteralNode;
-import org.mozartoz.truffle.nodes.LongLiteralNode;
-import org.mozartoz.truffle.nodes.MulNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
-import org.mozartoz.truffle.nodes.ReadArgumentNode;
-import org.mozartoz.truffle.nodes.ReadCapturedVariableNode;
-import org.mozartoz.truffle.nodes.ReadLocalVariableNode;
 import org.mozartoz.truffle.nodes.SequenceNode;
-import org.mozartoz.truffle.nodes.ShowNodeGen;
-import org.mozartoz.truffle.nodes.SubNodeGen;
-import org.mozartoz.truffle.nodes.WriteLocalVariableNode;
+import org.mozartoz.truffle.nodes.builtins.AddNodeGen;
+import org.mozartoz.truffle.nodes.builtins.DotNodeGen;
+import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
+import org.mozartoz.truffle.nodes.builtins.MulNodeGen;
+import org.mozartoz.truffle.nodes.builtins.ShowNodeGen;
+import org.mozartoz.truffle.nodes.builtins.SubNodeGen;
+import org.mozartoz.truffle.nodes.literal.ConsLiteralNode;
+import org.mozartoz.truffle.nodes.literal.FunctionDeclarationNode;
+import org.mozartoz.truffle.nodes.literal.LiteralNode;
+import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
+import org.mozartoz.truffle.nodes.local.BindVariablesNode;
+import org.mozartoz.truffle.nodes.local.InitializeVarNode;
+import org.mozartoz.truffle.nodes.local.WriteLocalVariableNode;
 import org.mozartoz.truffle.runtime.Nil;
 
 import scala.collection.JavaConversions;
 import scala.collection.immutable.HashSet;
 import scala.util.parsing.combinator.Parsers.ParseResult;
 import scala.util.parsing.input.CharSequenceReader;
+import call.CallFunctionNodeGen;
+import call.ReadArgumentNode;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
@@ -71,16 +71,6 @@ public class Translator {
 		public Environment(Environment parent, FrameDescriptor frameDescriptor) {
 			this.parent = parent;
 			this.frameDescriptor = frameDescriptor;
-		}
-	}
-
-	static class FrameSlotAndDepth {
-		private FrameSlot slot;
-		private int depth;
-
-		public FrameSlotAndDepth(FrameSlot frameSlot, int depth) {
-			this.slot = frameSlot;
-			this.depth = depth;
 		}
 	}
 
@@ -163,26 +153,32 @@ public class Translator {
 		} else if (statement instanceof LocalStatement) {
 			LocalStatement localStatement = (LocalStatement) statement;
 			FrameDescriptor frameDescriptor = environment.frameDescriptor;
-			for (Variable variable : JavaConversions.asJavaCollection(localStatement.declarations())) {
-				frameDescriptor.addFrameSlot(variable.symbol().name());
-			}
 
-			// What if the variable is declared again later?
-			// pushEnvironment(frameDescriptor);
-			try {
-				return translate(localStatement.statement());
-			} finally {
-				// popEnvironment();
+			OzNode[] localNodes = new OzNode[localStatement.declarations().size() + 1];
+			int i = 0;
+			for (Variable variable : JavaConversions.asJavaCollection(localStatement.declarations())) {
+				FrameSlot slot = frameDescriptor.addFrameSlot(variable.symbol().name());
+				localNodes[i++] = new InitializeVarNode(slot);
 			}
+			
+			localNodes[i] = translate(localStatement.statement());
+
+			return new SequenceNode(localNodes);
 		} else if (statement instanceof BindStatement) {
 			BindStatement bindStatement = (BindStatement) statement;
 			Expression left = bindStatement.left();
+			Expression right = bindStatement.right();
 			if (left instanceof Variable) {
-				FrameSlotAndDepth frameSlotAndDepth = findVariable(((Variable) left).symbol().name());
-				if (frameSlotAndDepth.depth == 0) {
-					return new WriteLocalVariableNode(frameSlotAndDepth.slot, translate(bindStatement.right()));
+				final FrameSlotAndDepth leftSlot = findVariable(((Variable) left).symbol().name());
+				if (right instanceof Variable) {
+					final FrameSlotAndDepth rightSlot = findVariable(((Variable) right).symbol().name());
+					return new BindVariablesNode(leftSlot, rightSlot);
 				} else {
-					throw new RuntimeException("" + frameSlotAndDepth.depth);
+					if (leftSlot.depth == 0) {
+						return new WriteLocalVariableNode(leftSlot.slot, translate(right));
+					} else {
+						throw new RuntimeException("" + leftSlot.depth);
+					}
 				}
 			}
 		} else if (statement instanceof CallStatement) {
@@ -213,14 +209,9 @@ public class Translator {
 				return buildCons(translate(fields.get(0).value()), translate(fields.get(1).value()));
 			}
 		} else if (expression instanceof Variable) {
-			FrameSlotAndDepth frameSlotAndDepth = findVariable(((Variable) expression).symbol().name());
-			if (frameSlotAndDepth.depth == 0) {
-				return new ReadLocalVariableNode(frameSlotAndDepth.slot);
-			} else if (frameSlotAndDepth.depth == 1) {
-				return new ReadCapturedVariableNode(frameSlotAndDepth.slot);
-			} else {
-				throw new RuntimeException("" + frameSlotAndDepth.depth);
-			}
+			String name = ((Variable) expression).symbol().name();
+			FrameSlotAndDepth frameSlotAndDepth = findVariable(name);
+			return frameSlotAndDepth.createReadNode();
 		} else if (expression instanceof BinaryOp) {
 			BinaryOp binaryOp = (BinaryOp) expression;
 			OzNode left = translate(binaryOp.left());
