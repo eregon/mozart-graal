@@ -6,12 +6,12 @@ import org.mozartoz.truffle.runtime.OzVar;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class WriteLocalVariableNode extends OzNode {
+public class BindVariableValueNode extends OzNode {
 
 	@Child ReadFrameSlotNode readFrameSlotNode;
 	@Child OzNode valueNode;
 
-	public WriteLocalVariableNode(FrameSlot slot, OzNode value) {
+	public BindVariableValueNode(FrameSlot slot, OzNode value) {
 		assert slot != null;
 		this.readFrameSlotNode = ReadFrameSlotNodeGen.create(slot);
 		this.valueNode = value;
@@ -22,7 +22,7 @@ public class WriteLocalVariableNode extends OzNode {
 		OzVar var = (OzVar) readFrameSlotNode.executeRead(frame);
 		Object value = valueNode.execute(frame);
 		var.bind(value);
-		return value;
+		return var;
 	}
 
 }

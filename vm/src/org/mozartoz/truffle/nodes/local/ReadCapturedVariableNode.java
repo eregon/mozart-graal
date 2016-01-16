@@ -1,7 +1,6 @@
 package org.mozartoz.truffle.nodes.local;
 
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.local.ReadFrameSlotNodeGen;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzVar;
 
@@ -20,8 +19,7 @@ public class ReadCapturedVariableNode extends OzNode {
 	@Override
 	public Object execute(VirtualFrame frame) {
 		MaterializedFrame parentFrame = OzArguments.getParentFrame(frame);
-		OzVar var = (OzVar) readFrameSlotNode.executeRead(parentFrame);
-		return var.getValue();
+		return (OzVar) readFrameSlotNode.executeRead(parentFrame);
 	}
 
 }

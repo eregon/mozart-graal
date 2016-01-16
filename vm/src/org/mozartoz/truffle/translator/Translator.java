@@ -48,9 +48,10 @@ import org.mozartoz.truffle.nodes.literal.ConsLiteralNode;
 import org.mozartoz.truffle.nodes.literal.FunctionDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
+import org.mozartoz.truffle.nodes.local.BindVariableValueNode;
 import org.mozartoz.truffle.nodes.local.BindVariablesNode;
+import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
-import org.mozartoz.truffle.nodes.local.WriteLocalVariableNode;
 import org.mozartoz.truffle.runtime.Nil;
 
 import scala.collection.JavaConversions;
@@ -176,7 +177,7 @@ public class Translator {
 					return new BindVariablesNode(leftSlot, rightSlot);
 				} else {
 					if (leftSlot.depth == 0) {
-						return new WriteLocalVariableNode(leftSlot.slot, translate(right));
+						return new BindVariableValueNode(leftSlot.slot, translate(right));
 					} else {
 						throw new RuntimeException("" + leftSlot.depth);
 					}
@@ -241,7 +242,8 @@ public class Translator {
 				popEnvironment();
 			}
 
-			OzNode setArgs = new WriteLocalVariableNode(frameDescriptor.getSlots().get(0), new ReadArgumentNode());
+			FrameSlot argSlot = frameDescriptor.getSlots().get(0);
+			OzNode setArgs = InitializeArgNodeGen.create(argSlot, new ReadArgumentNode());
 			OzNode funBody = new SequenceNode(setArgs, body);
 			return new FunctionDeclarationNode(frameDescriptor, funBody);
 		} else if (expression instanceof CallExpression) {

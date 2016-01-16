@@ -12,9 +12,9 @@ import org.mozartoz.truffle.nodes.builtins.SubNodeGen;
 import org.mozartoz.truffle.nodes.literal.FunctionDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.ListLiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
+import org.mozartoz.truffle.nodes.local.BindVariableValueNode;
 import org.mozartoz.truffle.nodes.local.ReadCapturedVariableNode;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
-import org.mozartoz.truffle.nodes.local.WriteLocalVariableNode;
 import org.mozartoz.truffle.translator.Translator;
 
 import call.CallFunctionNodeGen;
@@ -30,9 +30,11 @@ public class Main {
 		// execute(fib());
 		// execute(list());
 
-		// parseAndExecute("{Show 3 + 2}");
-		// parseAndExecute("local Fact in\nfun {Fact N} if N == 0 then 1 else N * {Fact N-1} end end\n{Show {Fact 30}}\nend");
-		// parseAndExecute("local L in L = [1 2 3] {Show L} {Show L.1} {Show L.2} end");
+		parseAndExecute("{Show 3 + 2}");
+		parseAndExecute("local A=3 B=2 in {Show A + B} end");
+		parseAndExecute("local fun {Inc Arg} Arg + 1 end in {Show {Inc 1}} end");
+		parseAndExecute("local Fact in\nfun {Fact N} if N == 0 then 1 else N * {Fact N-1} end end\n{Show {Fact 30}}\nend");
+		parseAndExecute("local L in L = [1 2 3] {Show L} {Show L.1} {Show L.2} end");
 		parseAndExecute("local A in A=1+2 {Show A} end");
 		parseAndExecute("local A B in A=B B=42 {Show B} {Show A} end");
 	}
@@ -74,7 +76,7 @@ public class Main {
 		FrameDescriptor factDescriptor = new FrameDescriptor();
 		FrameSlot n = factDescriptor.addFrameSlot("N");
 
-		OzNode factPrelude = new WriteLocalVariableNode(n, new ReadArgumentNode());
+		OzNode factPrelude = new BindVariableValueNode(n, new ReadArgumentNode());
 		OzNode condition = EqualNodeGen.create(new ReadLocalVariableNode(n), new LongLiteralNode(0));
 		OzNode thenExpr = new LongLiteralNode(1);
 		OzNode nSub1 = SubNodeGen.create(new ReadLocalVariableNode(n), new LongLiteralNode(1));
@@ -83,7 +85,7 @@ public class Main {
 		OzNode ifNode = new IfNode(condition, thenExpr, elseExpr);
 		OzNode factBody = new SequenceNode(factPrelude, ifNode);
 		OzNode factDecl = new FunctionDeclarationNode(factDescriptor, factBody);
-		OzNode declareFact = new WriteLocalVariableNode(fact, factDecl);
+		OzNode declareFact = new BindVariableValueNode(fact, factDecl);
 
 		OzNode callFact = CallFunctionNodeGen.create(new ReadLocalVariableNode(fact), new LongLiteralNode(30));
 		OzNode showNode = ShowNodeGen.create(callFact);
@@ -102,7 +104,7 @@ public class Main {
 		FrameSlot L = topDescritor.addFrameSlot("L");
 
 		OzNode list = new ListLiteralNode(new OzNode[] { new LongLiteralNode(1), new LongLiteralNode(2), new LongLiteralNode(3) });
-		OzNode writeL = new WriteLocalVariableNode(L, list);
+		OzNode writeL = new BindVariableValueNode(L, list);
 		OzNode showL = ShowNodeGen.create(new ReadLocalVariableNode(L));
 
 		return new OzRootNode(topDescritor, new SequenceNode(writeL, showL));

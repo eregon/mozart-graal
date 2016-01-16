@@ -6,7 +6,7 @@ import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.nodes.local.ReadOzVarNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNodeGen;
-import org.mozartoz.truffle.nodes.local.WriteLocalVariableNode;
+import org.mozartoz.truffle.nodes.local.BindVariableValueNode;
 
 import com.oracle.truffle.api.frame.FrameSlot;
 
@@ -31,7 +31,7 @@ public class FrameSlotAndDepth {
 
 	public OzNode createWriteNode(OzNode value) {
 		if (depth == 0) {
-			return new WriteLocalVariableNode(slot, value);
+			return new BindVariableValueNode(slot, value);
 		} else {
 			throw new RuntimeException("" + depth);
 		}
