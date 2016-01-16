@@ -44,7 +44,7 @@ import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
 import org.mozartoz.truffle.nodes.builtins.MulNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ShowNodeGen;
 import org.mozartoz.truffle.nodes.builtins.SubNodeGen;
-import org.mozartoz.truffle.nodes.literal.ConsLiteralNode;
+import org.mozartoz.truffle.nodes.literal.ConsLiteralNodeGen;
 import org.mozartoz.truffle.nodes.literal.FunctionDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
@@ -291,7 +291,7 @@ public class Translator {
 	}
 
 	private OzNode buildCons(OzNode head, OzNode tail) {
-		return new ConsLiteralNode(head, tail);
+		return ConsLiteralNodeGen.create(head, tail);
 	}
 
 	private OzNode translateBinaryOp(String operator, OzNode left, OzNode right) {
