@@ -28,10 +28,10 @@ public class BindVariablesNode extends OzNode {
 
 		if (!leftVar.isBound()) {
 			writeLeft.executeWrite(frame, rightVar);
-			return rightVar.getValue();
+			return rightVar;
 		} else if (!rightVar.isBound()) {
 			writeRight.executeWrite(frame, leftVar);
-			return leftVar.getValue();
+			return leftVar;
 		} else {
 			throw new RuntimeException("bind bound-bound");
 		}
