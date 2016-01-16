@@ -31,7 +31,8 @@ public class Main {
 
 		parseAndExecute("{Show 3 + 2}");
 		parseAndExecute("local Fact in\nfun {Fact N} if N == 0 then 1 else N * {Fact N-1} end end\n{Show {Fact 30}}\nend");
-		parseAndExecute("local L in L = [1 2 3] {Show L} end");
+		parseAndExecute("local L in L = [1 2 3] {Show L} {Show L.1} {Show L.2} end");
+		// parseAndExecute("local L in {Show L} end");
 	}
 
 	private static void parseAndExecute(String code) {
