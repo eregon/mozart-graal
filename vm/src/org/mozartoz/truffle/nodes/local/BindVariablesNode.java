@@ -15,8 +15,8 @@ public class BindVariablesNode extends OzNode {
 	@Child WriteFrameSlotNode writeRight;
 
 	public BindVariablesNode(FrameSlotAndDepth leftSlot, FrameSlotAndDepth rightSlot) {
-		readLeft = leftSlot.createGetOzVarNode();
-		readRight = rightSlot.createGetOzVarNode();
+		readLeft = leftSlot.createReadNode();
+		readRight = rightSlot.createReadNode();
 		writeLeft = leftSlot.createSetOzVarNode();
 		writeRight = rightSlot.createSetOzVarNode();
 	}

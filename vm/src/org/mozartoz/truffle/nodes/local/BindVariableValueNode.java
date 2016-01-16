@@ -3,24 +3,17 @@ package org.mozartoz.truffle.nodes.local;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzVar;
 
-import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeChildren;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class BindVariableValueNode extends OzNode {
+@NodeChildren({ @NodeChild("var"), @NodeChild("value") })
+public abstract class BindVariableValueNode extends OzNode {
 
-	@Child ReadFrameSlotNode readFrameSlotNode;
-	@Child OzNode valueNode;
-
-	public BindVariableValueNode(FrameSlot slot, OzNode value) {
-		assert slot != null;
-		this.readFrameSlotNode = ReadFrameSlotNodeGen.create(slot);
-		this.valueNode = value;
-	}
-
-	@Override
-	public Object execute(VirtualFrame frame) {
-		OzVar var = (OzVar) readFrameSlotNode.executeRead(frame);
-		Object value = valueNode.execute(frame);
+	@Specialization
+	public Object bind(VirtualFrame frame, OzVar var, Object value) {
+		assert !(value instanceof OzVar);
 		var.bind(value);
 		return var;
 	}
