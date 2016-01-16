@@ -14,6 +14,8 @@ public class Main {
 		parseAndExecute("local L in L = [1 2 3] {Show L} {Show L.1} {Show L.2} end");
 		parseAndExecute("local A in A=1+2 {Show A} end");
 		parseAndExecute("local A B in A=B B=42 {Show B} {Show A} end");
+
+		parseAndExecute("local Add in fun {Add A B} A + B end {Show {Add 2 4}} end");
 	}
 
 	private static void parseAndExecute(String code) {

@@ -13,9 +13,16 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 
-@NodeChildren({ @NodeChild("function"), @NodeChild("argument") })
+@NodeChildren({ @NodeChild("function") })
 public abstract class CallFunctionNode extends OzNode {
+
+	@Children final OzNode[] argumentNodes;
+
+	public CallFunctionNode(OzNode[] argumentNodes) {
+		this.argumentNodes = argumentNodes;
+	}
 
 	@CreateCast("function")
 	protected OzNode derefFunction(OzNode var) {
@@ -23,9 +30,19 @@ public abstract class CallFunctionNode extends OzNode {
 	}
 
 	@Specialization(guards = "function.callTarget == cachedCallTarget")
-	protected Object call(VirtualFrame frame, OzFunction function, Object argument,
+	protected Object call(VirtualFrame frame, OzFunction function,
 			@Cached("function.callTarget") CallTarget cachedCallTarget,
 			@Cached("create(cachedCallTarget)") DirectCallNode callNode) {
-		return callNode.call(frame, OzArguments.pack(function.declarationFrame, argument));
+		final Object[] arguments = evaluateArguments(frame);
+		return callNode.call(frame, OzArguments.pack(function.declarationFrame, arguments));
+	}
+
+	@ExplodeLoop
+	private Object[] evaluateArguments(VirtualFrame frame) {
+		Object[] arguments = new Object[argumentNodes.length];
+		for (int i = 0; i < argumentNodes.length; i++) {
+			arguments[i] = argumentNodes[i].execute(frame);
+		}
+		return arguments;
 	}
 }
