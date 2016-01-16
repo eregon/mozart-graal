@@ -48,7 +48,6 @@ import org.mozartoz.truffle.nodes.literal.ConsLiteralNode;
 import org.mozartoz.truffle.nodes.literal.FunctionDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
-import org.mozartoz.truffle.nodes.local.BindVariableValueNode;
 import org.mozartoz.truffle.nodes.local.BindVariablesNode;
 import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
@@ -156,16 +155,14 @@ public class Translator {
 			LocalStatement localStatement = (LocalStatement) statement;
 			FrameDescriptor frameDescriptor = environment.frameDescriptor;
 
-			OzNode[] localNodes = new OzNode[localStatement.declarations().size() + 1];
+			OzNode[] nodes = new OzNode[localStatement.declarations().size() + 1];
 			int i = 0;
 			for (Variable variable : JavaConversions.asJavaCollection(localStatement.declarations())) {
 				FrameSlot slot = frameDescriptor.addFrameSlot(variable.symbol());
-				localNodes[i++] = new InitializeVarNode(slot);
+				nodes[i++] = new InitializeVarNode(slot);
 			}
-			
-			localNodes[i] = translate(localStatement.statement());
-
-			return new SequenceNode(localNodes);
+			nodes[i] = translate(localStatement.statement());
+			return new SequenceNode(nodes);
 		} else if (statement instanceof BindStatement) {
 			BindStatement bindStatement = (BindStatement) statement;
 			Expression left = bindStatement.left();
@@ -176,11 +173,7 @@ public class Translator {
 					final FrameSlotAndDepth rightSlot = findVariable(((Variable) right).symbol());
 					return new BindVariablesNode(leftSlot, rightSlot);
 				} else {
-					if (leftSlot.depth == 0) {
-						return new BindVariableValueNode(leftSlot.slot, translate(right));
-					} else {
-						throw new RuntimeException("" + leftSlot.depth);
-					}
+					return leftSlot.createWriteNode(translate(right));
 				}
 			}
 		} else if (statement instanceof CallStatement) {

@@ -1,12 +1,11 @@
 package org.mozartoz.truffle.translator;
 
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.local.BindVariableValueNodeGen;
 import org.mozartoz.truffle.nodes.local.ReadCapturedVariableNode;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
-import org.mozartoz.truffle.nodes.local.ReadOzVarNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNodeGen;
-import org.mozartoz.truffle.nodes.local.BindVariableValueNode;
 
 import com.oracle.truffle.api.frame.FrameSlot;
 
@@ -30,19 +29,7 @@ public class FrameSlotAndDepth {
 	}
 
 	public OzNode createWriteNode(OzNode value) {
-		if (depth == 0) {
-			return new BindVariableValueNode(slot, value);
-		} else {
-			throw new RuntimeException("" + depth);
-		}
-	}
-
-	public OzNode createGetOzVarNode() {
-		if (depth == 0) {
-			return new ReadOzVarNode(slot);
-		} else {
-			throw new RuntimeException("" + depth);
-		}
+		return BindVariableValueNodeGen.create(createReadNode(), value);
 	}
 
 	public WriteFrameSlotNode createSetOzVarNode() {
