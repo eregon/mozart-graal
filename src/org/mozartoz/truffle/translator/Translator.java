@@ -28,6 +28,7 @@ import org.mozartoz.bootcompiler.oz.OzRecord;
 import org.mozartoz.bootcompiler.oz.OzValue;
 import org.mozartoz.bootcompiler.parser.OzParser;
 import org.mozartoz.bootcompiler.symtab.Program;
+import org.mozartoz.bootcompiler.symtab.Symbol;
 import org.mozartoz.bootcompiler.transform.Desugar;
 import org.mozartoz.bootcompiler.transform.DesugarClass;
 import org.mozartoz.bootcompiler.transform.DesugarFunctor;
@@ -87,12 +88,12 @@ public class Translator {
 		environment = environment.parent;
 	}
 
-	public FrameSlotAndDepth findVariable(String name) {
+	public FrameSlotAndDepth findVariable(Symbol symbol) {
 		int depth = 0;
 		Environment environment = this.environment;
 
 		while (environment != null) {
-			FrameSlot slot = environment.frameDescriptor.findFrameSlot(name);
+			FrameSlot slot = environment.frameDescriptor.findFrameSlot(symbol);
 			if (slot != null) {
 				return new FrameSlotAndDepth(slot, depth);
 			} else {
@@ -101,7 +102,7 @@ public class Translator {
 			}
 		}
 
-		throw new RuntimeException(name);
+		throw new RuntimeException(symbol.fullName());
 	}
 
 	public OzRootNode parseAndTranslate(String code) {
@@ -157,7 +158,7 @@ public class Translator {
 			OzNode[] localNodes = new OzNode[localStatement.declarations().size() + 1];
 			int i = 0;
 			for (Variable variable : JavaConversions.asJavaCollection(localStatement.declarations())) {
-				FrameSlot slot = frameDescriptor.addFrameSlot(variable.symbol().name());
+				FrameSlot slot = frameDescriptor.addFrameSlot(variable.symbol());
 				localNodes[i++] = new InitializeVarNode(slot);
 			}
 			
@@ -169,9 +170,9 @@ public class Translator {
 			Expression left = bindStatement.left();
 			Expression right = bindStatement.right();
 			if (left instanceof Variable) {
-				final FrameSlotAndDepth leftSlot = findVariable(((Variable) left).symbol().name());
+				final FrameSlotAndDepth leftSlot = findVariable(((Variable) left).symbol());
 				if (right instanceof Variable) {
-					final FrameSlotAndDepth rightSlot = findVariable(((Variable) right).symbol().name());
+					final FrameSlotAndDepth rightSlot = findVariable(((Variable) right).symbol());
 					return new BindVariablesNode(leftSlot, rightSlot);
 				} else {
 					if (leftSlot.depth == 0) {
@@ -209,8 +210,7 @@ public class Translator {
 				return buildCons(translate(fields.get(0).value()), translate(fields.get(1).value()));
 			}
 		} else if (expression instanceof Variable) {
-			String name = ((Variable) expression).symbol().name();
-			FrameSlotAndDepth frameSlotAndDepth = findVariable(name);
+			FrameSlotAndDepth frameSlotAndDepth = findVariable(((Variable) expression).symbol());
 			return frameSlotAndDepth.createReadNode();
 		} else if (expression instanceof BinaryOp) {
 			BinaryOp binaryOp = (BinaryOp) expression;
@@ -227,7 +227,7 @@ public class Translator {
 			FrameDescriptor frameDescriptor = new FrameDescriptor();
 			for (VariableOrRaw variable : JavaConversions.asJavaCollection(funExpression.args())) {
 				if (variable instanceof Variable) {
-					frameDescriptor.addFrameSlot(((Variable) variable).symbol().name());
+					frameDescriptor.addFrameSlot(((Variable) variable).symbol());
 				} else {
 					throw new RuntimeException();
 				}
