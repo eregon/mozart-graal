@@ -36,6 +36,7 @@ import org.mozartoz.bootcompiler.transform.PatternMatcher;
 import org.mozartoz.truffle.nodes.AddNodeGen;
 import org.mozartoz.truffle.nodes.CallFunctionNodeGen;
 import org.mozartoz.truffle.nodes.ConsLiteralNode;
+import org.mozartoz.truffle.nodes.DotNodeGen;
 import org.mozartoz.truffle.nodes.EqualNodeGen;
 import org.mozartoz.truffle.nodes.FunctionDeclarationNode;
 import org.mozartoz.truffle.nodes.IfNode;
@@ -311,6 +312,8 @@ public class Translator {
 			return MulNodeGen.create(left, right);
 		case "==":
 			return EqualNodeGen.create(left, right);
+		case ".":
+			return DotNodeGen.create(left, right);
 		default:
 			throw new RuntimeException(operator);
 		}
