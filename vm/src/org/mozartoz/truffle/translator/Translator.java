@@ -219,9 +219,14 @@ public class Translator {
 		} else if (expression instanceof FunExpression) {
 			FunExpression funExpression = (FunExpression) expression;
 			FrameDescriptor frameDescriptor = new FrameDescriptor();
+
+			OzNode[] nodes = new OzNode[funExpression.args().size() + 1];
+			int i = 0;
 			for (VariableOrRaw variable : JavaConversions.asJavaCollection(funExpression.args())) {
 				if (variable instanceof Variable) {
-					frameDescriptor.addFrameSlot(((Variable) variable).symbol());
+					FrameSlot argSlot = frameDescriptor.addFrameSlot(((Variable) variable).symbol());
+					nodes[i] = InitializeArgNodeGen.create(argSlot, new ReadArgumentNode(i));
+					i++;
 				} else {
 					throw new RuntimeException();
 				}
@@ -235,9 +240,9 @@ public class Translator {
 				popEnvironment();
 			}
 
-			FrameSlot argSlot = frameDescriptor.getSlots().get(0);
-			OzNode setArgs = InitializeArgNodeGen.create(argSlot, new ReadArgumentNode());
-			OzNode funBody = new SequenceNode(setArgs, body);
+			nodes[i] = body;
+
+			OzNode funBody = new SequenceNode(nodes);
 			return new FunctionDeclarationNode(frameDescriptor, funBody);
 		} else if (expression instanceof CallExpression) {
 			CallExpression callExpression = (CallExpression) expression;
@@ -255,11 +260,12 @@ public class Translator {
 				}
 			}
 
-			if (args.size() != 1) {
-				throw new RuntimeException();
+			OzNode[] argsNodes = new OzNode[args.size()];
+			for (int i = 0; i < argsNodes.length; i++) {
+				argsNodes[i] = translate(args.get(i));
 			}
 
-			return CallFunctionNodeGen.create(translate(callable), translate(args.get(0)));
+			return CallFunctionNodeGen.create(argsNodes, translate(callable));
 		}
 
 		throw new RuntimeException("Unknown expression: " + expression.getClass() + ": " + expression);
