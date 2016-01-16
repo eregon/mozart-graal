@@ -1,23 +1,24 @@
 package org.mozartoz.truffle;
 
-import org.mozartoz.truffle.nodes.AddNodeGen;
-import org.mozartoz.truffle.nodes.CallFunctionNodeGen;
-import org.mozartoz.truffle.nodes.EqualNodeGen;
-import org.mozartoz.truffle.nodes.FunctionDeclarationNode;
 import org.mozartoz.truffle.nodes.IfNode;
-import org.mozartoz.truffle.nodes.ListLiteralNode;
-import org.mozartoz.truffle.nodes.LongLiteralNode;
-import org.mozartoz.truffle.nodes.MulNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
-import org.mozartoz.truffle.nodes.ReadArgumentNode;
-import org.mozartoz.truffle.nodes.ReadCapturedVariableNode;
-import org.mozartoz.truffle.nodes.ReadLocalVariableNode;
 import org.mozartoz.truffle.nodes.SequenceNode;
-import org.mozartoz.truffle.nodes.ShowNodeGen;
-import org.mozartoz.truffle.nodes.SubNodeGen;
-import org.mozartoz.truffle.nodes.WriteLocalVariableNode;
+import org.mozartoz.truffle.nodes.builtins.AddNodeGen;
+import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
+import org.mozartoz.truffle.nodes.builtins.MulNodeGen;
+import org.mozartoz.truffle.nodes.builtins.ShowNodeGen;
+import org.mozartoz.truffle.nodes.builtins.SubNodeGen;
+import org.mozartoz.truffle.nodes.literal.FunctionDeclarationNode;
+import org.mozartoz.truffle.nodes.literal.ListLiteralNode;
+import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
+import org.mozartoz.truffle.nodes.local.ReadCapturedVariableNode;
+import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
+import org.mozartoz.truffle.nodes.local.WriteLocalVariableNode;
 import org.mozartoz.truffle.translator.Translator;
+
+import call.CallFunctionNodeGen;
+import call.ReadArgumentNode;
 
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -25,14 +26,15 @@ import com.oracle.truffle.api.frame.FrameSlot;
 
 public class Main {
 	public static void main(String[] args) {
-		execute(simpleAdd());
-		execute(fib());
-		execute(list());
+		// execute(simpleAdd());
+		// execute(fib());
+		// execute(list());
 
-		parseAndExecute("{Show 3 + 2}");
-		parseAndExecute("local Fact in\nfun {Fact N} if N == 0 then 1 else N * {Fact N-1} end end\n{Show {Fact 30}}\nend");
-		parseAndExecute("local L in L = [1 2 3] {Show L} {Show L.1} {Show L.2} end");
-		// parseAndExecute("local L in {Show L} end");
+		// parseAndExecute("{Show 3 + 2}");
+		// parseAndExecute("local Fact in\nfun {Fact N} if N == 0 then 1 else N * {Fact N-1} end end\n{Show {Fact 30}}\nend");
+		// parseAndExecute("local L in L = [1 2 3] {Show L} {Show L.1} {Show L.2} end");
+		parseAndExecute("local A in A=1+2 {Show A} end");
+		parseAndExecute("local A B in A=B B=42 {Show B} {Show A} end");
 	}
 
 	private static void parseAndExecute(String code) {

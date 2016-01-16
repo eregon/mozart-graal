@@ -1,19 +1,22 @@
-package org.mozartoz.truffle.nodes;
+package org.mozartoz.truffle.nodes.local;
+
+import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class ReadLocalVariableNode extends OzNode {
+public class ReadOzVarNode extends OzNode {
 
 	@Child ReadFrameSlotNode readFrameSlotNode;
 
-	public ReadLocalVariableNode(FrameSlot slot) {
+	public ReadOzVarNode(FrameSlot slot) {
 		this.readFrameSlotNode = ReadFrameSlotNodeGen.create(slot);
 	}
 
 	@Override
 	public Object execute(VirtualFrame frame) {
-		return readFrameSlotNode.executeRead(frame);
+		return (OzVar) readFrameSlotNode.executeRead(frame);
 	}
 
 }

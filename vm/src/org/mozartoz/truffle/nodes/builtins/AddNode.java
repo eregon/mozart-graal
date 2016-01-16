@@ -1,6 +1,8 @@
-package org.mozartoz.truffle.nodes;
+package org.mozartoz.truffle.nodes.builtins;
 
 import java.math.BigInteger;
+
+import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.ExactMath;
 import com.oracle.truffle.api.dsl.NodeChild;

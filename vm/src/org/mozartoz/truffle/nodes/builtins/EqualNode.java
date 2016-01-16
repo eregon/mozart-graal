@@ -1,4 +1,6 @@
-package org.mozartoz.truffle.nodes;
+package org.mozartoz.truffle.nodes.builtins;
+
+import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;

@@ -1,5 +1,6 @@
-package org.mozartoz.truffle.nodes;
+package org.mozartoz.truffle.nodes.literal;
 
+import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Nil;
 import org.mozartoz.truffle.runtime.OzCons;
 

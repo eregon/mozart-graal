@@ -1,5 +1,6 @@
-package org.mozartoz.truffle.nodes;
+package org.mozartoz.truffle.nodes.literal;
 
+import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
