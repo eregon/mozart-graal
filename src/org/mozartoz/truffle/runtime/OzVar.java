@@ -24,6 +24,7 @@ public class OzVar {
 	}
 
 	public void bind(Object value) {
+		assert this.value == null;
 		this.value = value;
 
 	}

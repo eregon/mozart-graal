@@ -1,11 +1,13 @@
 package call;
 
+import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzFunction;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -14,6 +16,11 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 
 @NodeChildren({ @NodeChild("function"), @NodeChild("argument") })
 public abstract class CallFunctionNode extends OzNode {
+
+	@CreateCast("function")
+	protected OzNode derefFunction(OzNode var) {
+		return DerefNodeGen.create(var);
+	}
 
 	@Specialization(guards = "function.callTarget == cachedCallTarget")
 	protected Object call(VirtualFrame frame, OzFunction function, Object argument,
