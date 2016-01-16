@@ -11,10 +11,20 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 @NodeChildren({ @NodeChild("var"), @NodeChild("value") })
 public abstract class BindVariableValueNode extends OzNode {
 
+	@Child WriteFrameSlotNode writeFrameSlotNode;
+
+	public BindVariableValueNode(WriteFrameSlotNode writeFrameSlotNode) {
+		this.writeFrameSlotNode = writeFrameSlotNode;
+	}
+
 	@Specialization
 	public Object bind(VirtualFrame frame, OzVar var, Object value) {
 		assert !(value instanceof OzVar);
+		// Write to the OzVar in the store, in case there is another reference
+		// to it
 		var.bind(value);
+		// Also write the value directly to the frame slot
+		writeFrameSlotNode.write(frame, value);
 		return var;
 	}
 

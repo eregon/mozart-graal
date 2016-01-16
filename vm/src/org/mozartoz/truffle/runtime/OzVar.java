@@ -17,7 +17,7 @@ public class OzVar {
 	public Object getBoundValue() {
 		final Object value = this.value;
 		if (!isBound()) {
-			CompilerDirectives.transferToInterpreter();
+			CompilerDirectives.transferToInterpreterAndInvalidate();
 			throw new RuntimeException("unbound var");
 		}
 		return value;
@@ -26,6 +26,15 @@ public class OzVar {
 	public void bind(Object value) {
 		assert this.value == null;
 		this.value = value;
-
 	}
+
+	@Override
+	public String toString() {
+		if (isBound()) {
+			return "<" + value.toString() + ">";
+		} else {
+			return "_";
+		}
+	}
+
 }

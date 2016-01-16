@@ -1,22 +1,30 @@
 package org.mozartoz.truffle.nodes.literal;
 
+import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeChildren;
+import com.oracle.truffle.api.dsl.Specialization;
 
-public class ConsLiteralNode extends OzNode {
+@NodeChildren({ @NodeChild("head"), @NodeChild("tail") })
+public abstract class ConsLiteralNode extends OzNode {
 
-	@Child OzNode head;
-	@Child OzNode tail;
-
-	public ConsLiteralNode(OzNode head, OzNode tail) {
-		this.head = head;
-		this.tail = tail;
+	@CreateCast("head")
+	protected OzNode derefHead(OzNode var) {
+		return DerefIfBoundNodeGen.create(var);
 	}
 
-	public Object execute(VirtualFrame frame) {
-		return new OzCons(head.execute(frame), tail.execute(frame));
+	@CreateCast("tail")
+	protected OzNode derefTail(OzNode var) {
+		return DerefIfBoundNodeGen.create(var);
+	}
+
+	@Specialization
+	public Object execute(Object head, Object tail) {
+		return new OzCons(head, tail);
 	}
 
 }

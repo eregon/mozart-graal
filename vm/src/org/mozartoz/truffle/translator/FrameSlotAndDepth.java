@@ -29,7 +29,11 @@ public class FrameSlotAndDepth {
 	}
 
 	public OzNode createWriteNode(OzNode value) {
-		return BindVariableValueNodeGen.create(createReadNode(), value);
+		if (depth != 0) {
+			throw new RuntimeException("" + depth);
+		}
+		WriteFrameSlotNode writeFrameSlotNode = WriteFrameSlotNodeGen.create(slot);
+		return BindVariableValueNodeGen.create(writeFrameSlotNode, createReadNode(), value);
 	}
 
 	public WriteFrameSlotNode createSetOzVarNode() {

@@ -32,11 +32,7 @@ public abstract class ShowNode extends OzNode {
 
 	@Specialization
 	protected Object show(OzVar var) {
-		if (var.isBound()) {
-			System.out.println(var.getBoundValue());
-		} else {
-			System.out.println("_");
-		}
+		System.out.println(var);
 		return unit;
 	}
 
