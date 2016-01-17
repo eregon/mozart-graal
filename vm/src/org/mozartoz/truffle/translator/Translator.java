@@ -18,6 +18,7 @@ import org.mozartoz.bootcompiler.ast.LocalExpression;
 import org.mozartoz.bootcompiler.ast.LocalStatement;
 import org.mozartoz.bootcompiler.ast.Record;
 import org.mozartoz.bootcompiler.ast.RecordField;
+import org.mozartoz.bootcompiler.ast.StatAndExpression;
 import org.mozartoz.bootcompiler.ast.Statement;
 import org.mozartoz.bootcompiler.ast.Variable;
 import org.mozartoz.bootcompiler.ast.VariableOrRaw;
@@ -26,6 +27,7 @@ import org.mozartoz.bootcompiler.oz.OzBuiltin;
 import org.mozartoz.bootcompiler.oz.OzInt;
 import org.mozartoz.bootcompiler.oz.OzRecord;
 import org.mozartoz.bootcompiler.oz.OzValue;
+import org.mozartoz.bootcompiler.oz.UnitVal;
 import org.mozartoz.bootcompiler.parser.OzParser;
 import org.mozartoz.bootcompiler.symtab.Program;
 import org.mozartoz.bootcompiler.symtab.Symbol;
@@ -52,6 +54,7 @@ import org.mozartoz.truffle.nodes.local.BindVariablesNode;
 import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.runtime.Nil;
+import org.mozartoz.truffle.runtime.Unit;
 
 import scala.collection.JavaConversions;
 import scala.collection.immutable.HashSet;
@@ -266,6 +269,9 @@ public class Translator {
 			}
 
 			return CallFunctionNodeGen.create(argsNodes, translate(callable));
+		} else if (expression instanceof StatAndExpression) {
+			StatAndExpression statAndExpression = (StatAndExpression) expression;
+			return new SequenceNode(translate(statAndExpression.statement()), translate(statAndExpression.expression()));
 		}
 
 		throw new RuntimeException("Unknown expression: " + expression.getClass() + ": " + expression);
@@ -274,6 +280,8 @@ public class Translator {
 	private OzNode translateValue(OzValue ozValue) {
 		if (ozValue instanceof OzInt) {
 			return new LongLiteralNode(((OzInt) ozValue).value());
+		} else if (ozValue instanceof UnitVal) {
+			return new LiteralNode(Unit.INSTANCE);
 		} else if (ozValue instanceof OzAtom) {
 			String atom = ((OzAtom) ozValue).value();
 			if (atom.equals("nil")) {

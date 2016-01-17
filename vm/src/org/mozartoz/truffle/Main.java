@@ -18,6 +18,7 @@ public class Main {
 		parseAndExecute("local Add in fun {Add A B} A + B end {Show {Add 2 4}} end");
 		parseAndExecute("local H=5 V T in T=V V=[6 7 8] {Show H|T} end");
 		parseAndExecute("local H=5 V T in V=T {Show H|T} V=[6 7 8] {Show H|T} end");
+		parseAndExecute("local fun {Binder A} A=43 unit end X R in R={Binder X} {Show X} end");
 	}
 
 	private static void parseAndExecute(String code) {
