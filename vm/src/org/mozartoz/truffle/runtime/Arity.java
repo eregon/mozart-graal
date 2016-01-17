@@ -10,7 +10,7 @@ import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.object.Shape.Allocator;
 
-public class OzArity {
+public class Arity {
 
 	private static final Shape EMPTY = Layout.createLayout().createShape(RecordObjectType.INSTANCE);
 	private static final Allocator ALLOCATOR = EMPTY.getLayout().createAllocator();
@@ -24,7 +24,7 @@ public class OzArity {
 	private final Object label;
 	private final Shape shape;
 
-	public OzArity(Object label, Shape shape) {
+	public Arity(Object label, Shape shape) {
 		this.label = label;
 		this.shape = shape;
 	}
