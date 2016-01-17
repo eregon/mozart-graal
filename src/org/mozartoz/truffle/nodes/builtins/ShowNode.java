@@ -8,6 +8,7 @@ import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 @NodeChild("value")
 public abstract class ShowNode extends OzNode {
@@ -33,6 +34,12 @@ public abstract class ShowNode extends OzNode {
 	@Specialization
 	protected Object show(OzVar var) {
 		System.out.println(var);
+		return unit;
+	}
+
+	@Specialization
+	protected Object show(DynamicObject record) {
+		System.out.println(record);
 		return unit;
 	}
 

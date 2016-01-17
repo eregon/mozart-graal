@@ -22,8 +22,10 @@ import org.mozartoz.bootcompiler.ast.StatAndExpression;
 import org.mozartoz.bootcompiler.ast.Statement;
 import org.mozartoz.bootcompiler.ast.Variable;
 import org.mozartoz.bootcompiler.ast.VariableOrRaw;
+import org.mozartoz.bootcompiler.oz.OzArity;
 import org.mozartoz.bootcompiler.oz.OzAtom;
 import org.mozartoz.bootcompiler.oz.OzBuiltin;
+import org.mozartoz.bootcompiler.oz.OzFeature;
 import org.mozartoz.bootcompiler.oz.OzInt;
 import org.mozartoz.bootcompiler.oz.OzRecord;
 import org.mozartoz.bootcompiler.oz.OzValue;
@@ -46,10 +48,13 @@ import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
 import org.mozartoz.truffle.nodes.builtins.MulNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ShowNodeGen;
 import org.mozartoz.truffle.nodes.builtins.SubNodeGen;
+import org.mozartoz.truffle.nodes.call.CallFunctionNodeGen;
+import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.literal.ConsLiteralNodeGen;
 import org.mozartoz.truffle.nodes.literal.FunctionDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
+import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindVariablesNode;
 import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
@@ -60,11 +65,10 @@ import scala.collection.JavaConversions;
 import scala.collection.immutable.HashSet;
 import scala.util.parsing.combinator.Parsers.ParseResult;
 import scala.util.parsing.input.CharSequenceReader;
-import call.CallFunctionNodeGen;
-import call.ReadArgumentNode;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.object.Shape;
 
 public class Translator {
 
@@ -205,6 +209,16 @@ public class Translator {
 			List<RecordField> fields = new ArrayList<>(JavaConversions.asJavaCollection(record.fields()));
 			if (record.isCons()) {
 				return buildCons(translate(fields.get(0).value()), translate(fields.get(1).value()));
+			} else if (record.isTuple()) {
+
+			} else {
+				if (record.hasConstantArity()) {
+					OzNode[] values = new OzNode[fields.size()];
+					for (int i = 0; i < values.length; i++) {
+						values[i] = translate(fields.get(i).value());
+					}
+					return new RecordLiteralNode(buildArity(record.getConstantArity()), values);
+				}
 			}
 		} else if (expression instanceof Variable) {
 			FrameSlotAndDepth frameSlotAndDepth = findVariable(((Variable) expression).symbol());
@@ -300,6 +314,19 @@ public class Translator {
 
 	private OzNode buildCons(OzNode head, OzNode tail) {
 		return ConsLiteralNodeGen.create(head, tail);
+	}
+
+	private org.mozartoz.truffle.runtime.OzArity buildArity(OzArity arity) {
+		return new org.mozartoz.truffle.runtime.OzArity(arity.label(), arity2Shape(arity));
+	}
+
+	private static Object SOME_OBJECT = new Object();
+	private static Shape arity2Shape(OzArity arity) {
+		Shape shape = org.mozartoz.truffle.runtime.OzArity.BASE;
+		for (OzFeature feature : JavaConversions.asJavaCollection(arity.features())) {
+			shape = shape.defineProperty(feature, SOME_OBJECT, 0);
+		}
+		return shape;
 	}
 
 	private OzNode translateBinaryOp(String operator, OzNode left, OzNode right) {
