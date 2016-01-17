@@ -10,7 +10,7 @@ public class RecordObjectType extends ObjectType {
 
 	@Override
 	public String toString(DynamicObject record) {
-		Object label = OzArity.LABEL_LOCATION.get(record);
+		Object label = Arity.LABEL_LOCATION.get(record);
 		StringBuilder builder = new StringBuilder();
 		builder.append(label).append('(');
 		for (Property property : record.getShape().getProperties()) {

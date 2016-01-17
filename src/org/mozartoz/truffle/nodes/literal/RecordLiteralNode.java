@@ -4,18 +4,18 @@ import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.call.ExecuteValuesNode;
 import org.mozartoz.truffle.runtime.ArrayUtils;
-import org.mozartoz.truffle.runtime.OzArity;
+import org.mozartoz.truffle.runtime.Arity;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 
 public class RecordLiteralNode extends OzNode {
 
-	final OzArity arity;
+	final Arity arity;
 	final DynamicObjectFactory factory;
 	@Child ExecuteValuesNode executeValuesNode;
 
-	public RecordLiteralNode(OzArity arity, OzNode[] values) {
+	public RecordLiteralNode(Arity arity, OzNode[] values) {
 		this.arity = arity;
 		this.factory = arity.getShape().createFactory();
 		this.executeValuesNode = new ExecuteValuesNode(derefIfBound(values));

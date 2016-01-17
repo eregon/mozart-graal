@@ -58,6 +58,7 @@ import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindVariablesNode;
 import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
+import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.Nil;
 import org.mozartoz.truffle.runtime.Unit;
 
@@ -316,13 +317,14 @@ public class Translator {
 		return ConsLiteralNodeGen.create(head, tail);
 	}
 
-	private org.mozartoz.truffle.runtime.OzArity buildArity(OzArity arity) {
-		return new org.mozartoz.truffle.runtime.OzArity(arity.label(), arity2Shape(arity));
+	private Arity buildArity(OzArity arity) {
+		return new Arity(arity.label(), arity2Shape(arity));
 	}
 
 	private static Object SOME_OBJECT = new Object();
+
 	private static Shape arity2Shape(OzArity arity) {
-		Shape shape = org.mozartoz.truffle.runtime.OzArity.BASE;
+		Shape shape = Arity.BASE;
 		for (OzFeature feature : JavaConversions.asJavaCollection(arity.features())) {
 			shape = shape.defineProperty(feature, SOME_OBJECT, 0);
 		}
