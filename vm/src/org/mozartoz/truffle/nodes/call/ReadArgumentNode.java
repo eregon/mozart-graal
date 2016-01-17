@@ -1,4 +1,4 @@
-package call;
+package org.mozartoz.truffle.nodes.call;
 
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzArguments;

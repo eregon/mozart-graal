@@ -1,7 +1,7 @@
 package org.mozartoz.truffle.nodes;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.utilities.ConditionProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class IfNode extends OzNode {
 
