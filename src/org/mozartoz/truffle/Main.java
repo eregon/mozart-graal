@@ -28,7 +28,7 @@ public class Main {
 		eval("local H=5 V T in V=T {Show H|T} V=[6 7 8] {Show H|T} end");
 		eval("local fun {Binder A} A=43 unit end X R in R={Binder X} {Show X} end");
 
-		eval("local Tree=tree(left:1 right:2) in {Show Tree} end");
+		eval("local Tree=tree(left:1 right:2) in {Show Tree} {Show Tree.left} end");
 	}
 
 	private static void eval(String code) {
@@ -46,6 +46,5 @@ public class Main {
 	private static Object execute(OzRootNode rootNode) {
 		return Truffle.getRuntime().createCallTarget(rootNode).call();
 	}
-
 
 }

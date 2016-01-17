@@ -36,6 +36,4 @@ public class RecordLiteralNode extends OzNode {
 		return factory.newInstance(initialValues);
 	}
 
-
-
 }

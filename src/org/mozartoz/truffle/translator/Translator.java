@@ -27,6 +27,7 @@ import org.mozartoz.bootcompiler.oz.OzAtom;
 import org.mozartoz.bootcompiler.oz.OzBuiltin;
 import org.mozartoz.bootcompiler.oz.OzFeature;
 import org.mozartoz.bootcompiler.oz.OzInt;
+import org.mozartoz.bootcompiler.oz.OzLiteral;
 import org.mozartoz.bootcompiler.oz.OzRecord;
 import org.mozartoz.bootcompiler.oz.OzValue;
 import org.mozartoz.bootcompiler.oz.UnitVal;
@@ -301,6 +302,8 @@ public class Translator {
 			String atom = ((OzAtom) ozValue).value();
 			if (atom.equals("nil")) {
 				return new LiteralNode(Nil.INSTANCE);
+			} else {
+				return new LiteralNode(atom.intern());
 			}
 		} else if (ozValue instanceof OzRecord) {
 			OzRecord ozRecord = (OzRecord) ozValue;
@@ -313,12 +316,30 @@ public class Translator {
 		return null;
 	}
 
+	private static Object translateFeature(OzFeature feature) {
+		if (feature instanceof OzInt) {
+			return ((OzInt) feature).value();
+		} else if (feature instanceof OzAtom) {
+			return ((OzAtom) feature).value().intern();
+		} else {
+			throw new RuntimeException();
+		}
+	}
+
+	private static Object translateLiteral(OzLiteral literal) {
+		if (literal instanceof OzAtom) {
+			return ((OzAtom) literal).value().intern();
+		} else {
+			throw new RuntimeException();
+		}
+	}
+
 	private OzNode buildCons(OzNode head, OzNode tail) {
 		return ConsLiteralNodeGen.create(head, tail);
 	}
 
 	private Arity buildArity(OzArity arity) {
-		return new Arity(arity.label(), arity2Shape(arity));
+		return new Arity(translateLiteral(arity.label()), arity2Shape(arity));
 	}
 
 	private static Object SOME_OBJECT = new Object();
@@ -326,7 +347,7 @@ public class Translator {
 	private static Shape arity2Shape(OzArity arity) {
 		Shape shape = Arity.BASE;
 		for (OzFeature feature : JavaConversions.asJavaCollection(arity.features())) {
-			shape = shape.defineProperty(feature, SOME_OBJECT, 0);
+			shape = shape.defineProperty(translateFeature(feature), SOME_OBJECT, 0);
 		}
 		return shape;
 	}
