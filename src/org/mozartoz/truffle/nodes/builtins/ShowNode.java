@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.runtime.Unit;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -40,6 +41,12 @@ public abstract class ShowNode extends OzNode {
 	@Specialization
 	protected Object show(DynamicObject record) {
 		System.out.println(record);
+		return unit;
+	}
+
+	@Specialization
+	protected Object show(Unit unit) {
+		System.out.println(unit);
 		return unit;
 	}
 
