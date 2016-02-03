@@ -18,6 +18,7 @@ import org.mozartoz.bootcompiler.ast.LocalExpression;
 import org.mozartoz.bootcompiler.ast.LocalStatement;
 import org.mozartoz.bootcompiler.ast.Record;
 import org.mozartoz.bootcompiler.ast.RecordField;
+import org.mozartoz.bootcompiler.ast.SkipStatement;
 import org.mozartoz.bootcompiler.ast.StatAndExpression;
 import org.mozartoz.bootcompiler.ast.Statement;
 import org.mozartoz.bootcompiler.ast.Variable;
@@ -43,6 +44,7 @@ import org.mozartoz.truffle.nodes.IfNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.SequenceNode;
+import org.mozartoz.truffle.nodes.SkipNode;
 import org.mozartoz.truffle.nodes.builtins.AddNodeGen;
 import org.mozartoz.truffle.nodes.builtins.DotNodeGen;
 import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
@@ -85,6 +87,7 @@ public class Translator {
 	}
 
 	private Environment environment = new Environment(null, new FrameDescriptor());
+	private final Environment rootEnvironment = environment;
 
 	public Translator() {
 	}
@@ -111,6 +114,12 @@ public class Translator {
 			}
 		}
 
+		if (symbol.name().equals("<Base>")) {
+			return new FrameSlotAndDepth(
+					rootEnvironment.frameDescriptor.findOrAddFrameSlot(symbol),
+					depth - 1);
+		}
+
 		throw new RuntimeException(symbol.fullName());
 	}
 
@@ -126,6 +135,9 @@ public class Translator {
 			builtins.add("/home/eregon/code/mozart-graal/bootcompiler/Mod" + buitinType + "-builtin.json");
 		}
 		Main.loadModuleDefs(program, JavaConversions.asScalaBuffer(builtins).toList());
+
+		// Add base defs
+		code = "local Base Show in " + code + " end";
 
 		CharSequenceReader reader = new CharSequenceReader(code);
 		HashSet<String> defines = new HashSet<String>();// .$plus("Show");
@@ -148,12 +160,15 @@ public class Translator {
 
 		Statement ast = program.rawCode();
 		// System.out.println(ast);
+
 		OzNode translated = translate(ast);
 		return new OzRootNode(environment.frameDescriptor, translated);
 	}
 
 	OzNode translate(Statement statement) {
-		if (statement instanceof CompoundStatement) {
+		if (statement instanceof SkipStatement) {
+			return new SkipNode();
+		} else if (statement instanceof CompoundStatement) {
 			CompoundStatement compoundStatement = (CompoundStatement) statement;
 			List<OzNode> stmts = new ArrayList<>();
 			for (Statement sub : JavaConversions.asJavaCollection(compoundStatement.statements())) {
@@ -190,7 +205,7 @@ public class Translator {
 			Expression callable = callStatement.callable();
 			List<Expression> args = new ArrayList<>(JavaConversions.asJavaCollection(callStatement.args()));
 
-			if (callable instanceof LocalExpression && ((LocalExpression) callable).declarations().head().symbol().name().equals("Show")) {
+			if (callable instanceof Variable && ((Variable) callable).symbol().name().equals("Show")) {
 				return ShowNodeGen.create(translate(args.get(0)));
 			}
 		}
@@ -223,7 +238,8 @@ public class Translator {
 				}
 			}
 		} else if (expression instanceof Variable) {
-			FrameSlotAndDepth frameSlotAndDepth = findVariable(((Variable) expression).symbol());
+			Variable variable = (Variable) expression;
+			FrameSlotAndDepth frameSlotAndDepth = findVariable(variable.symbol());
 			return frameSlotAndDepth.createReadNode();
 		} else if (expression instanceof BinaryOp) {
 			BinaryOp binaryOp = (BinaryOp) expression;
@@ -235,6 +251,18 @@ public class Translator {
 			return new IfNode(translate(ifExpression.condition()),
 					translate(ifExpression.trueExpression()),
 					translate(ifExpression.falseExpression()));
+		} else if (expression instanceof LocalExpression) {
+			LocalExpression localExpression = (LocalExpression) expression;
+			FrameDescriptor frameDescriptor = environment.frameDescriptor;
+
+			OzNode[] nodes = new OzNode[localExpression.declarations().size() + 1];
+			int i = 0;
+			for (Variable variable : JavaConversions.asJavaCollection(localExpression.declarations())) {
+				FrameSlot slot = frameDescriptor.addFrameSlot(variable.symbol());
+				nodes[i++] = new InitializeVarNode(slot);
+			}
+			nodes[i] = translate(localExpression.expression());
+			return new SequenceNode(nodes);
 		} else if (expression instanceof FunExpression) {
 			FunExpression funExpression = (FunExpression) expression;
 			FrameDescriptor frameDescriptor = new FrameDescriptor();
