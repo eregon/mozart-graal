@@ -21,6 +21,7 @@ import org.mozartoz.bootcompiler.ast.RecordField;
 import org.mozartoz.bootcompiler.ast.SkipStatement;
 import org.mozartoz.bootcompiler.ast.StatAndExpression;
 import org.mozartoz.bootcompiler.ast.Statement;
+import org.mozartoz.bootcompiler.ast.UnboundExpression;
 import org.mozartoz.bootcompiler.ast.Variable;
 import org.mozartoz.bootcompiler.ast.VariableOrRaw;
 import org.mozartoz.bootcompiler.oz.OzArity;
@@ -48,6 +49,7 @@ import org.mozartoz.truffle.nodes.SkipNode;
 import org.mozartoz.truffle.nodes.builtins.AddNodeGen;
 import org.mozartoz.truffle.nodes.builtins.DotNodeGen;
 import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
+import org.mozartoz.truffle.nodes.builtins.LargerThanNodeGen;
 import org.mozartoz.truffle.nodes.builtins.MulNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ShowNodeGen;
 import org.mozartoz.truffle.nodes.builtins.SubNodeGen;
@@ -58,6 +60,7 @@ import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
 import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
+import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindVariablesNode;
 import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
@@ -248,6 +251,8 @@ public class Translator {
 			Variable variable = (Variable) expression;
 			FrameSlotAndDepth frameSlotAndDepth = findVariable(variable.symbol());
 			return frameSlotAndDepth.createReadNode();
+		} else if (expression instanceof UnboundExpression) {
+			return new UnboundLiteralNode();
 		} else if (expression instanceof BinaryOp) {
 			BinaryOp binaryOp = (BinaryOp) expression;
 			OzNode left = translate(binaryOp.left());
@@ -414,6 +419,8 @@ public class Translator {
 			return MulNodeGen.create(left, right);
 		case "==":
 			return EqualNodeGen.create(left, right);
+		case ">":
+			return LargerThanNodeGen.create(left, right);
 		case ".":
 			return DotNodeGen.create(left, right);
 		default:
