@@ -1,8 +1,10 @@
 package org.mozartoz.truffle.nodes.local;
 
+import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzVar;
 
+import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -15,6 +17,11 @@ public abstract class BindVariableValueNode extends OzNode {
 
 	public BindVariableValueNode(WriteFrameSlotNode writeFrameSlotNode) {
 		this.writeFrameSlotNode = writeFrameSlotNode;
+	}
+
+	@CreateCast("value")
+	protected OzNode derefValue(OzNode value) {
+		return DerefNodeGen.create(value);
 	}
 
 	@Specialization
