@@ -9,11 +9,11 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class FunctionDeclarationNode extends OzNode {
+public class ProcDeclarationNode extends OzNode {
 
 	private final CallTarget callTarget;
 
-	public FunctionDeclarationNode(FrameDescriptor frameDescriptor, OzNode body) {
+	public ProcDeclarationNode(FrameDescriptor frameDescriptor, OzNode body) {
 		OzRootNode rootNode = new OzRootNode(frameDescriptor, body);
 		this.callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 	}
