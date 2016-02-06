@@ -31,6 +31,8 @@ public class Main {
 		eval("local Tree=tree(left:1 right:2) in {Show Tree} {Show Tree.left} end");
 
 		eval("local F=functor\n import\n Property(get)\n export\n Return\n define\n Return=42\n end in {Show F} end");
+
+		eval("local fun {MakeList N} if N>0 then _|{MakeList N-1} else nil end end in {Show {MakeList 3}} end");
 	}
 
 	private static void eval(String code) {
