@@ -12,10 +12,10 @@ import org.mozartoz.bootcompiler.ast.CallStatement;
 import org.mozartoz.bootcompiler.ast.CompoundStatement;
 import org.mozartoz.bootcompiler.ast.Constant;
 import org.mozartoz.bootcompiler.ast.Expression;
-import org.mozartoz.bootcompiler.ast.FunExpression;
 import org.mozartoz.bootcompiler.ast.IfExpression;
 import org.mozartoz.bootcompiler.ast.LocalExpression;
 import org.mozartoz.bootcompiler.ast.LocalStatement;
+import org.mozartoz.bootcompiler.ast.ProcExpression;
 import org.mozartoz.bootcompiler.ast.Record;
 import org.mozartoz.bootcompiler.ast.RecordField;
 import org.mozartoz.bootcompiler.ast.SkipStatement;
@@ -51,16 +51,17 @@ import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
 import org.mozartoz.truffle.nodes.builtins.MulNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ShowNodeGen;
 import org.mozartoz.truffle.nodes.builtins.SubNodeGen;
-import org.mozartoz.truffle.nodes.call.CallFunctionNodeGen;
+import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.literal.ConsLiteralNodeGen;
-import org.mozartoz.truffle.nodes.literal.FunctionDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
+import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindVariablesNode;
 import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
+import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.Nil;
 import org.mozartoz.truffle.runtime.Unit;
@@ -89,6 +90,8 @@ public class Translator {
 	private Environment environment = new Environment(null, new FrameDescriptor());
 	private final Environment rootEnvironment = environment;
 
+	private static long id = 0;
+
 	public Translator() {
 	}
 
@@ -98,6 +101,10 @@ public class Translator {
 
 	private void popEnvironment() {
 		environment = environment.parent;
+	}
+
+	private long nextID() {
+		return id++;
 	}
 
 	public FrameSlotAndDepth findVariable(Symbol symbol) {
@@ -263,13 +270,13 @@ public class Translator {
 			}
 			nodes[i] = translate(localExpression.expression());
 			return new SequenceNode(nodes);
-		} else if (expression instanceof FunExpression) {
-			FunExpression funExpression = (FunExpression) expression;
+		} else if (expression instanceof ProcExpression) {
+			ProcExpression procExpression = (ProcExpression) expression;
 			FrameDescriptor frameDescriptor = new FrameDescriptor();
 
-			OzNode[] nodes = new OzNode[funExpression.args().size() + 1];
+			OzNode[] nodes = new OzNode[procExpression.args().size() + 1];
 			int i = 0;
-			for (VariableOrRaw variable : JavaConversions.asJavaCollection(funExpression.args())) {
+			for (VariableOrRaw variable : JavaConversions.asJavaCollection(procExpression.args())) {
 				if (variable instanceof Variable) {
 					FrameSlot argSlot = frameDescriptor.addFrameSlot(((Variable) variable).symbol());
 					nodes[i] = InitializeArgNodeGen.create(argSlot, new ReadArgumentNode(i));
@@ -282,15 +289,15 @@ public class Translator {
 			OzNode body;
 			pushEnvironment(frameDescriptor);
 			try {
-				body = translate(funExpression.body());
+				body = translate(procExpression.body());
 			} finally {
 				popEnvironment();
 			}
 
 			nodes[i] = body;
 
-			OzNode funBody = new SequenceNode(nodes);
-			return new FunctionDeclarationNode(frameDescriptor, funBody);
+			OzNode procBody = new SequenceNode(nodes);
+			return new ProcDeclarationNode(frameDescriptor, procBody);
 		} else if (expression instanceof CallExpression) {
 			CallExpression callExpression = (CallExpression) expression;
 			Expression callable = callExpression.callable();
@@ -298,8 +305,11 @@ public class Translator {
 
 			if (callable instanceof Constant && ((Constant) callable).value() instanceof OzBuiltin) {
 				String name = ((OzBuiltin) ((Constant) callable).value()).builtin().name();
-				if (args.size() == 1 && name.equals("-1")) {
-					return translate(new BinaryOp(args.get(0), "-", new Constant(new OzInt(1))));
+				if (args.size() == 1) {
+					if (name.equals("+1") || name.equals("-1")) {
+						String op = name.substring(0, 1);
+						return translate(new BinaryOp(args.get(0), op, new Constant(new OzInt(1))));
+					}
 				} else if (args.size() == 2) {
 					OzNode left = translate(args.get(0));
 					OzNode right = translate(args.get(1));
@@ -307,12 +317,21 @@ public class Translator {
 				}
 			}
 
-			OzNode[] argsNodes = new OzNode[args.size()];
-			for (int i = 0; i < argsNodes.length; i++) {
+			OzNode[] argsNodes = new OzNode[args.size() + 1];
+			for (int i = 0; i < args.size(); i++) {
 				argsNodes[i] = translate(args.get(i));
 			}
 
-			return CallFunctionNodeGen.create(argsNodes, translate(callable));
+			// The value of the last implicit argument is returned,
+			// so we create a local to hold the result.
+			FrameDescriptor frameDescriptor = environment.frameDescriptor;
+			FrameSlot resultSlot = frameDescriptor.addFrameSlot("CallExpression-result" + nextID());
+			argsNodes[argsNodes.length - 1] = new ReadLocalVariableNode(resultSlot);
+
+			return new SequenceNode(
+					new InitializeVarNode(resultSlot),
+					CallProcNodeGen.create(argsNodes, translate(callable)),
+					new ReadLocalVariableNode(resultSlot));
 		} else if (expression instanceof StatAndExpression) {
 			StatAndExpression statAndExpression = (StatAndExpression) expression;
 			return new SequenceNode(translate(statAndExpression.statement()), translate(statAndExpression.expression()));

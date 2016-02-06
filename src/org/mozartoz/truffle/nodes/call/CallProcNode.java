@@ -15,11 +15,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 
 @NodeChildren({ @NodeChild("function") })
-public abstract class CallFunctionNode extends OzNode {
+public abstract class CallProcNode extends OzNode {
 
 	@Child ExecuteValuesNode executeArgumentsNode;
 
-	public CallFunctionNode(OzNode[] argumentNodes) {
+	public CallProcNode(OzNode[] argumentNodes) {
 		this.executeArgumentsNode = new ExecuteValuesNode(argumentNodes);
 	}
 
