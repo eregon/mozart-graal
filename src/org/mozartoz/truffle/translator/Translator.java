@@ -304,17 +304,7 @@ public class Translator {
 			List<Expression> args = new ArrayList<>(JavaConversions.asJavaCollection(callExpression.args()));
 
 			if (callable instanceof Constant && ((Constant) callable).value() instanceof OzBuiltin) {
-				String name = ((OzBuiltin) ((Constant) callable).value()).builtin().name();
-				if (args.size() == 1) {
-					if (name.equals("+1") || name.equals("-1")) {
-						String op = name.substring(0, 1);
-						return translate(new BinaryOp(args.get(0), op, new Constant(new OzInt(1))));
-					}
-				} else if (args.size() == 2) {
-					OzNode left = translate(args.get(0));
-					OzNode right = translate(args.get(1));
-					return translateBinaryOp(name, left, right);
-				}
+				return translateBuiltin(callable, args);
 			}
 
 			OzNode[] argsNodes = new OzNode[args.size() + 1];
@@ -379,6 +369,21 @@ public class Translator {
 		} else {
 			throw new RuntimeException();
 		}
+	}
+
+	private OzNode translateBuiltin(Expression callable, List<Expression> args) {
+		String name = ((OzBuiltin) ((Constant) callable).value()).builtin().name();
+		if (args.size() == 1) {
+			if (name.equals("+1") || name.equals("-1")) {
+				String op = name.substring(0, 1);
+				return translate(new BinaryOp(args.get(0), op, new Constant(new OzInt(1))));
+			}
+		} else if (args.size() == 2) {
+			OzNode left = translate(args.get(0));
+			OzNode right = translate(args.get(1));
+			return translateBinaryOp(name, left, right);
+		}
+		throw new RuntimeException("Unknown builtin: " + name);
 	}
 
 	private OzNode buildCons(OzNode head, OzNode tail) {
