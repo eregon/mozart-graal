@@ -17,14 +17,25 @@ public class BindVariablesNode extends OzNode {
 	public BindVariablesNode(FrameSlotAndDepth leftSlot, FrameSlotAndDepth rightSlot) {
 		readLeft = leftSlot.createReadNode();
 		readRight = rightSlot.createReadNode();
-		writeLeft = leftSlot.createSetOzVarNode();
-		writeRight = rightSlot.createSetOzVarNode();
+		writeLeft = leftSlot.createSetNode();
+		writeRight = rightSlot.createSetNode();
 	}
 
 	@Override
 	public Object execute(VirtualFrame frame) {
-		OzVar leftVar = (OzVar) readLeft.execute(frame);
-		OzVar rightVar = (OzVar) readRight.execute(frame);
+		Object left = readLeft.execute(frame);
+		Object right = readRight.execute(frame);
+
+		if (!(left instanceof OzVar)) {
+			((OzVar) right).bind(left);
+			return left;
+		} else if (!(right instanceof OzVar)) {
+			((OzVar) left).bind(right);
+			return right;
+		}
+
+		OzVar leftVar = (OzVar) left;
+		OzVar rightVar = (OzVar) right;
 
 		if (!leftVar.isBound()) {
 			writeLeft.executeWrite(frame, rightVar);

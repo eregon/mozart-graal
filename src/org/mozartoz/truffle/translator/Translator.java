@@ -2,6 +2,7 @@ package org.mozartoz.truffle.translator;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.mozartoz.bootcompiler.Main;
@@ -13,8 +14,12 @@ import org.mozartoz.bootcompiler.ast.CompoundStatement;
 import org.mozartoz.bootcompiler.ast.Constant;
 import org.mozartoz.bootcompiler.ast.Expression;
 import org.mozartoz.bootcompiler.ast.IfExpression;
+import org.mozartoz.bootcompiler.ast.IfStatement;
 import org.mozartoz.bootcompiler.ast.LocalExpression;
 import org.mozartoz.bootcompiler.ast.LocalStatement;
+import org.mozartoz.bootcompiler.ast.MatchStatement;
+import org.mozartoz.bootcompiler.ast.MatchStatementClause;
+import org.mozartoz.bootcompiler.ast.NoElseStatement;
 import org.mozartoz.bootcompiler.ast.ProcExpression;
 import org.mozartoz.bootcompiler.ast.Record;
 import org.mozartoz.bootcompiler.ast.RecordField;
@@ -30,20 +35,25 @@ import org.mozartoz.bootcompiler.oz.OzBuiltin;
 import org.mozartoz.bootcompiler.oz.OzFeature;
 import org.mozartoz.bootcompiler.oz.OzInt;
 import org.mozartoz.bootcompiler.oz.OzLiteral;
+import org.mozartoz.bootcompiler.oz.OzPatMatCapture;
 import org.mozartoz.bootcompiler.oz.OzRecord;
 import org.mozartoz.bootcompiler.oz.OzValue;
 import org.mozartoz.bootcompiler.oz.UnitVal;
 import org.mozartoz.bootcompiler.parser.OzParser;
 import org.mozartoz.bootcompiler.symtab.Program;
 import org.mozartoz.bootcompiler.symtab.Symbol;
+import org.mozartoz.bootcompiler.transform.ConstantFolding;
 import org.mozartoz.bootcompiler.transform.Desugar;
 import org.mozartoz.bootcompiler.transform.DesugarClass;
 import org.mozartoz.bootcompiler.transform.DesugarFunctor;
 import org.mozartoz.bootcompiler.transform.Namer;
 import org.mozartoz.bootcompiler.transform.PatternMatcher;
+import org.mozartoz.bootcompiler.transform.Unnester;
 import org.mozartoz.truffle.nodes.IfNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
+import org.mozartoz.truffle.nodes.PatternMatchAtomNodeGen;
+import org.mozartoz.truffle.nodes.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.SequenceNode;
 import org.mozartoz.truffle.nodes.SkipNode;
 import org.mozartoz.truffle.nodes.builtins.AddNodeGen;
@@ -63,8 +73,11 @@ import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindVariablesNode;
 import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
+import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
+import org.mozartoz.truffle.nodes.local.WriteFrameSlotNode;
+import org.mozartoz.truffle.nodes.local.WriteFrameSlotNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.Nil;
 import org.mozartoz.truffle.runtime.Unit;
@@ -138,7 +151,7 @@ public class Translator {
 		// program.baseDeclarations().$plus$eq("Show");
 		OzParser parser = new OzParser();
 
-		String[] builtinTypes = { "Value", "Number", "Float", "Int" };
+		String[] builtinTypes = { "Value", "Number", "Float", "Int", "Exception" };
 
 		List<String> builtins = new ArrayList<>();
 		for (String buitinType : builtinTypes) {
@@ -164,8 +177,9 @@ public class Translator {
 		DesugarClass.apply(program);
 		Desugar.apply(program);
 		PatternMatcher.apply(program);
-		// ConstantFolding.apply(program);
-		// Unnester.apply(program);
+
+		ConstantFolding.apply(program);
+		Unnester.apply(program);
 		// Flattener.apply(program);
 
 		Statement ast = program.rawCode();
@@ -181,7 +195,7 @@ public class Translator {
 		} else if (statement instanceof CompoundStatement) {
 			CompoundStatement compoundStatement = (CompoundStatement) statement;
 			List<OzNode> stmts = new ArrayList<>();
-			for (Statement sub : JavaConversions.asJavaCollection(compoundStatement.statements())) {
+			for (Statement sub : toJava(compoundStatement.statements())) {
 				stmts.add(translate(sub));
 			}
 			return new SequenceNode(stmts.toArray(new OzNode[stmts.size()]));
@@ -191,7 +205,7 @@ public class Translator {
 
 			OzNode[] nodes = new OzNode[localStatement.declarations().size() + 1];
 			int i = 0;
-			for (Variable variable : JavaConversions.asJavaCollection(localStatement.declarations())) {
+			for (Variable variable : toJava(localStatement.declarations())) {
 				FrameSlot slot = frameDescriptor.addFrameSlot(variable.symbol());
 				nodes[i++] = new InitializeVarNode(slot);
 			}
@@ -210,13 +224,86 @@ public class Translator {
 					return leftSlot.createWriteNode(translate(right));
 				}
 			}
+		} else if (statement instanceof IfStatement) {
+			IfStatement ifStatement = (IfStatement) statement;
+			return new IfNode(translate(ifStatement.condition()),
+					translate(ifStatement.trueStatement()),
+					translate(ifStatement.falseStatement()));
+		} else if (statement instanceof MatchStatement) {
+			MatchStatement matchStatement = (MatchStatement) statement;
+
+			FrameDescriptor frameDescriptor = environment.frameDescriptor;
+			FrameSlot valueSlot = frameDescriptor.addFrameSlot("MatchExpression-value" + nextID());
+
+			OzNode valueNode = translate(matchStatement.value());
+			Statement elseStatement = matchStatement.elseStatement();
+
+			final OzNode elseNode;
+			if (elseStatement instanceof NoElseStatement) {
+				elseNode = null;
+			} else {
+				elseNode = translate(elseStatement);
+			}
+
+			OzNode caseNode = elseNode;
+			for (MatchStatementClause clause : toJava(matchStatement.clauses())) {
+				assert !clause.hasGuard();
+				Expression pattern = clause.pattern();
+				ReadLocalVariableNode value = new ReadLocalVariableNode(valueSlot);
+				OzNode patternMatch = null;
+				if (pattern instanceof Constant) {
+					Constant constant = (Constant) pattern;
+					if (constant.value() instanceof OzAtom) {
+						patternMatch = PatternMatchAtomNodeGen.create(((OzAtom) constant.value()).value().intern(), value);
+					} else if (constant.value() instanceof OzRecord) {
+						OzRecord record = (OzRecord) constant.value();
+						assert (boolean) record.isCons();
+						Collection<OzValue> values = toJava(record.values());
+						assert values.stream().allMatch(v -> v instanceof OzPatMatCapture);
+						WriteFrameSlotNode[] writeValues = values.stream().map(val -> {
+							Symbol sym = ((OzPatMatCapture) val).variable();
+							FrameSlot slot = frameDescriptor.findOrAddFrameSlot(sym);
+							return WriteFrameSlotNodeGen.create(slot);
+						}).toArray(WriteFrameSlotNode[]::new);
+
+						patternMatch = PatternMatchConsNodeGen.create(writeValues, value);
+					}
+				}
+				if (patternMatch == null) {
+					throw new RuntimeException();
+				}
+				caseNode = new IfNode(
+						patternMatch,
+						translate(clause.body()),
+						caseNode);
+			}
+
+			return new SequenceNode(
+					new InitializeTmpNode(valueSlot, valueNode),
+					caseNode);
 		} else if (statement instanceof CallStatement) {
 			CallStatement callStatement = (CallStatement) statement;
 			Expression callable = callStatement.callable();
-			List<Expression> args = new ArrayList<>(JavaConversions.asJavaCollection(callStatement.args()));
+			List<Expression> args = new ArrayList<>(toJava(callStatement.args()));
 
 			if (callable instanceof Variable && ((Variable) callable).symbol().name().equals("Show")) {
 				return ShowNodeGen.create(translate(args.get(0)));
+			} else if (callable instanceof Constant && ((Constant) callable).value() instanceof OzBuiltin) {
+				OzBuiltin builtin = (OzBuiltin) ((Constant) callable).value();
+				if (builtin.builtin().name().equals("raiseError")) {
+					return ShowNodeGen.create(translate(args.get(0)));
+				} else {
+					Variable var = (Variable) args.get(args.size() - 1);
+					List<Expression> funArgs = args.subList(0, args.size() - 1);
+					return findVariable(var.symbol()).createWriteNode(
+							translateExpressionBuiltin(callable, funArgs));
+				}
+			} else {
+				OzNode[] argsNodes = new OzNode[args.size()];
+				for (int i = 0; i < args.size(); i++) {
+					argsNodes[i] = translate(args.get(i));
+				}
+				return CallProcNodeGen.create(argsNodes, translate(callable));
 			}
 		}
 
@@ -233,11 +320,9 @@ public class Translator {
 			}
 		} else if (expression instanceof Record) {
 			Record record = (Record) expression;
-			List<RecordField> fields = new ArrayList<>(JavaConversions.asJavaCollection(record.fields()));
+			List<RecordField> fields = new ArrayList<>(toJava(record.fields()));
 			if (record.isCons()) {
 				return buildCons(translate(fields.get(0).value()), translate(fields.get(1).value()));
-			} else if (record.isTuple()) {
-
 			} else {
 				if (record.hasConstantArity()) {
 					OzNode[] values = new OzNode[fields.size()];
@@ -269,7 +354,7 @@ public class Translator {
 
 			OzNode[] nodes = new OzNode[localExpression.declarations().size() + 1];
 			int i = 0;
-			for (Variable variable : JavaConversions.asJavaCollection(localExpression.declarations())) {
+			for (Variable variable : toJava(localExpression.declarations())) {
 				FrameSlot slot = frameDescriptor.addFrameSlot(variable.symbol());
 				nodes[i++] = new InitializeVarNode(slot);
 			}
@@ -281,7 +366,7 @@ public class Translator {
 
 			OzNode[] nodes = new OzNode[procExpression.args().size() + 1];
 			int i = 0;
-			for (VariableOrRaw variable : JavaConversions.asJavaCollection(procExpression.args())) {
+			for (VariableOrRaw variable : toJava(procExpression.args())) {
 				if (variable instanceof Variable) {
 					FrameSlot argSlot = frameDescriptor.addFrameSlot(((Variable) variable).symbol());
 					nodes[i] = InitializeArgNodeGen.create(argSlot, new ReadArgumentNode(i));
@@ -309,7 +394,7 @@ public class Translator {
 			List<Expression> args = new ArrayList<>(JavaConversions.asJavaCollection(callExpression.args()));
 
 			if (callable instanceof Constant && ((Constant) callable).value() instanceof OzBuiltin) {
-				return translateBuiltin(callable, args);
+				return translateExpressionBuiltin(callable, args);
 			}
 
 			OzNode[] argsNodes = new OzNode[args.size() + 1];
@@ -349,13 +434,17 @@ public class Translator {
 			}
 		} else if (ozValue instanceof OzRecord) {
 			OzRecord ozRecord = (OzRecord) ozValue;
-			if (ozRecord.isCons()) {
+			if ((boolean) ozRecord.isCons()) {
 				OzNode left = translateValue(ozRecord.fields().apply(0).value());
 				OzNode right = translateValue(ozRecord.fields().apply(1).value());
 				return buildCons(left, right);
+			} else {
+				Arity arity = buildArity(ozRecord.arity());
+				OzNode[] values = toJava(ozRecord.values()).stream().map(this::translateValue).toArray(OzNode[]::new);
+				return new RecordLiteralNode(arity, values);
 			}
 		}
-		return null;
+		throw new UnsupportedOperationException("Unknown value: " + ozValue);
 	}
 
 	private static Object translateFeature(OzFeature feature) {
@@ -376,7 +465,7 @@ public class Translator {
 		}
 	}
 
-	private OzNode translateBuiltin(Expression callable, List<Expression> args) {
+	private OzNode translateExpressionBuiltin(Expression callable, List<Expression> args) {
 		String name = ((OzBuiltin) ((Constant) callable).value()).builtin().name();
 		if (args.size() == 1) {
 			if (name.equals("+1") || name.equals("-1")) {
@@ -403,7 +492,7 @@ public class Translator {
 
 	private static Shape arity2Shape(OzArity arity) {
 		Shape shape = Arity.BASE;
-		for (OzFeature feature : JavaConversions.asJavaCollection(arity.features())) {
+		for (OzFeature feature : toJava(arity.features())) {
 			shape = shape.defineProperty(translateFeature(feature), SOME_OBJECT, 0);
 		}
 		return shape;
@@ -426,6 +515,10 @@ public class Translator {
 		default:
 			throw new RuntimeException(operator);
 		}
+	}
+
+	private static <E> Collection<E> toJava(scala.collection.immutable.Iterable<E> scalaIterable) {
+		return JavaConversions.asJavaCollection(scalaIterable);
 	}
 
 }
