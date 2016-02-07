@@ -1,13 +1,9 @@
 package org.mozartoz.truffle;
 
-import java.io.IOException;
-
 import org.mozartoz.truffle.nodes.OzRootNode;
-import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.translator.Translator;
 
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 
 public class Main {
@@ -33,14 +29,13 @@ public class Main {
 		eval("local F=functor\n import\n Property(get)\n export\n Return\n define\n Return=42\n end in {Show F} end");
 
 		eval("local fun {MakeList N} if N>0 then _|{MakeList N-1} else nil end end in {Show {MakeList 3}} end");
+
+		eval("local fun {Append Xs Ys} case Xs of nil then Ys [] X|Xr then X|{Append Xr Ys} end end in {Show {Append [1 2] [3 4]}} end");
 	}
 
 	private static void eval(String code) {
-		try {
-			ENGINE.eval(Source.fromText(code, "test.oz").withMimeType(OzLanguage.MIME_TYPE));
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		// ENGINE.eval(Source.fromText(code, "test.oz").withMimeType(OzLanguage.MIME_TYPE));
+		parseAndExecute(code);
 	}
 
 	public static void parseAndExecute(String code) {

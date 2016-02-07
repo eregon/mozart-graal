@@ -36,7 +36,7 @@ public class FrameSlotAndDepth {
 		return BindVariableValueNodeGen.create(writeFrameSlotNode, createReadNode(), value);
 	}
 
-	public WriteFrameSlotNode createSetOzVarNode() {
+	public WriteFrameSlotNode createSetNode() {
 		if (depth == 0) {
 			return WriteFrameSlotNodeGen.create(slot);
 		} else {
