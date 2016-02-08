@@ -57,6 +57,7 @@ import org.mozartoz.truffle.nodes.builtins.DotNodeGen;
 import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
 import org.mozartoz.truffle.nodes.builtins.LargerThanNodeGen;
 import org.mozartoz.truffle.nodes.builtins.MulNodeGen;
+import org.mozartoz.truffle.nodes.builtins.RaiseErrorNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ShowNodeGen;
 import org.mozartoz.truffle.nodes.builtins.SubNodeGen;
 import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
@@ -75,7 +76,6 @@ import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
-import org.mozartoz.truffle.runtime.Nil;
 import org.mozartoz.truffle.runtime.Unit;
 
 import scala.collection.JavaConversions;
@@ -182,6 +182,7 @@ public class Translator {
 		// System.out.println(ast);
 
 		OzNode translated = translate(ast);
+
 		return new OzRootNode(environment.frameDescriptor, translated);
 	}
 
@@ -236,7 +237,7 @@ public class Translator {
 
 			final OzNode elseNode;
 			if (elseStatement instanceof NoElseStatement) {
-				elseNode = null;
+				throw new RuntimeException();
 			} else {
 				elseNode = translate(elseStatement);
 			}
@@ -287,7 +288,7 @@ public class Translator {
 			} else if (callable instanceof Constant && ((Constant) callable).value() instanceof OzBuiltin) {
 				OzBuiltin builtin = (OzBuiltin) ((Constant) callable).value();
 				if (builtin.builtin().name().equals("raiseError")) {
-					return ShowNodeGen.create(translate(args.get(0)));
+					return RaiseErrorNodeGen.create(translate(args.get(0)));
 				} else {
 					Variable var = (Variable) args.get(args.size() - 1);
 					List<Expression> funArgs = args.subList(0, args.size() - 1);
@@ -378,12 +379,8 @@ public class Translator {
 		} else if (ozValue instanceof UnitVal) {
 			return new LiteralNode(Unit.INSTANCE);
 		} else if (ozValue instanceof OzAtom) {
-			String atom = ((OzAtom) ozValue).value();
-			if (atom.equals("nil")) {
-				return new LiteralNode(Nil.INSTANCE);
-			} else {
-				return new LiteralNode(atom.intern());
-			}
+			String atom = ((OzAtom) ozValue).value().intern();
+			return new LiteralNode(atom);
 		} else if (ozValue instanceof OzRecord) {
 			OzRecord ozRecord = (OzRecord) ozValue;
 			if ((boolean) ozRecord.isCons()) {
