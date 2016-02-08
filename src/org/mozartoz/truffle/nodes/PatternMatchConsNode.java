@@ -1,7 +1,6 @@
 package org.mozartoz.truffle.nodes;
 
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNode;
-import org.mozartoz.truffle.runtime.Nil;
 import org.mozartoz.truffle.runtime.OzCons;
 
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -25,8 +24,8 @@ public abstract class PatternMatchConsNode extends OzNode {
 		return true;
 	}
 
-	@Specialization
-	boolean patternMatch(Nil nil) {
+	@Specialization(guards = "isNil(nil)")
+	boolean patternMatch(String nil) {
 		return false;
 	}
 

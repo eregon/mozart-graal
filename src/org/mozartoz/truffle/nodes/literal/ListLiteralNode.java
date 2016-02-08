@@ -1,7 +1,6 @@
 package org.mozartoz.truffle.nodes.literal;
 
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.runtime.Nil;
 import org.mozartoz.truffle.runtime.OzCons;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -20,7 +19,7 @@ public class ListLiteralNode extends OzNode {
 			elementValues[i] = elements[i].execute(frame);
 		}
 
-		Object list = Nil.INSTANCE;
+		Object list = "nil";
 
 		for (int i = elementValues.length - 1; i >= 0; i--) {
 			list = new OzCons(elementValues[i], list);
