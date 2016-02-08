@@ -8,14 +8,11 @@ import java.util.List;
 import org.mozartoz.bootcompiler.Main;
 import org.mozartoz.bootcompiler.ast.BinaryOp;
 import org.mozartoz.bootcompiler.ast.BindStatement;
-import org.mozartoz.bootcompiler.ast.CallExpression;
 import org.mozartoz.bootcompiler.ast.CallStatement;
 import org.mozartoz.bootcompiler.ast.CompoundStatement;
 import org.mozartoz.bootcompiler.ast.Constant;
 import org.mozartoz.bootcompiler.ast.Expression;
-import org.mozartoz.bootcompiler.ast.IfExpression;
 import org.mozartoz.bootcompiler.ast.IfStatement;
-import org.mozartoz.bootcompiler.ast.LocalExpression;
 import org.mozartoz.bootcompiler.ast.LocalStatement;
 import org.mozartoz.bootcompiler.ast.MatchStatement;
 import org.mozartoz.bootcompiler.ast.MatchStatementClause;
@@ -24,7 +21,6 @@ import org.mozartoz.bootcompiler.ast.ProcExpression;
 import org.mozartoz.bootcompiler.ast.Record;
 import org.mozartoz.bootcompiler.ast.RecordField;
 import org.mozartoz.bootcompiler.ast.SkipStatement;
-import org.mozartoz.bootcompiler.ast.StatAndExpression;
 import org.mozartoz.bootcompiler.ast.Statement;
 import org.mozartoz.bootcompiler.ast.UnboundExpression;
 import org.mozartoz.bootcompiler.ast.Variable;
@@ -343,24 +339,7 @@ public class Translator {
 			OzNode left = translate(binaryOp.left());
 			OzNode right = translate(binaryOp.right());
 			return translateBinaryOp(binaryOp.operator(), left, right);
-		} else if (expression instanceof IfExpression) {
-			IfExpression ifExpression = (IfExpression) expression;
-			return new IfNode(translate(ifExpression.condition()),
-					translate(ifExpression.trueExpression()),
-					translate(ifExpression.falseExpression()));
-		} else if (expression instanceof LocalExpression) {
-			LocalExpression localExpression = (LocalExpression) expression;
-			FrameDescriptor frameDescriptor = environment.frameDescriptor;
-
-			OzNode[] nodes = new OzNode[localExpression.declarations().size() + 1];
-			int i = 0;
-			for (Variable variable : toJava(localExpression.declarations())) {
-				FrameSlot slot = frameDescriptor.addFrameSlot(variable.symbol());
-				nodes[i++] = new InitializeVarNode(slot);
-			}
-			nodes[i] = translate(localExpression.expression());
-			return new SequenceNode(nodes);
-		} else if (expression instanceof ProcExpression) {
+		} else if (expression instanceof ProcExpression) { // proc/fun literal
 			ProcExpression procExpression = (ProcExpression) expression;
 			FrameDescriptor frameDescriptor = new FrameDescriptor();
 
@@ -388,33 +367,6 @@ public class Translator {
 
 			OzNode procBody = new SequenceNode(nodes);
 			return new ProcDeclarationNode(frameDescriptor, procBody);
-		} else if (expression instanceof CallExpression) {
-			CallExpression callExpression = (CallExpression) expression;
-			Expression callable = callExpression.callable();
-			List<Expression> args = new ArrayList<>(JavaConversions.asJavaCollection(callExpression.args()));
-
-			if (callable instanceof Constant && ((Constant) callable).value() instanceof OzBuiltin) {
-				return translateExpressionBuiltin(callable, args);
-			}
-
-			OzNode[] argsNodes = new OzNode[args.size() + 1];
-			for (int i = 0; i < args.size(); i++) {
-				argsNodes[i] = translate(args.get(i));
-			}
-
-			// The value of the last implicit argument is returned,
-			// so we create a local to hold the result.
-			FrameDescriptor frameDescriptor = environment.frameDescriptor;
-			FrameSlot resultSlot = frameDescriptor.addFrameSlot("CallExpression-result" + nextID());
-			argsNodes[argsNodes.length - 1] = new ReadLocalVariableNode(resultSlot);
-
-			return new SequenceNode(
-					new InitializeVarNode(resultSlot),
-					CallProcNodeGen.create(argsNodes, translate(callable)),
-					new ReadLocalVariableNode(resultSlot));
-		} else if (expression instanceof StatAndExpression) {
-			StatAndExpression statAndExpression = (StatAndExpression) expression;
-			return new SequenceNode(translate(statAndExpression.statement()), translate(statAndExpression.expression()));
 		}
 
 		throw new RuntimeException("Unknown expression: " + expression.getClass() + ": " + expression);
