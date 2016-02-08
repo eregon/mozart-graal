@@ -21,7 +21,7 @@ public class Main {
 
 		eval("local Add in fun {Add A B} A + B end {Show {Add 2 4}} end");
 		eval("local H=5 V T in T=V V=[6 7 8] {Show H|T} end");
-		eval("local H=5 V T in V=T {Show H|T} V=[6 7 8] {Show H|T} end");
+		eval("local H=5 V T in V=T {Show H|T} {proc {$} V=[6 7 8] end} {Show H|T} end");
 		eval("local fun {Binder A} A=43 unit end X R in R={Binder X} {Show X} end");
 
 		eval("local Tree=tree(left:1 right:2) in {Show Tree} {Show Tree.left} end");

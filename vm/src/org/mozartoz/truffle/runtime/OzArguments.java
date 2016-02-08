@@ -2,6 +2,8 @@ package org.mozartoz.truffle.runtime;
 
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 public class OzArguments {
 	private static final int PARENT_FRAME_INDEX = 0;
@@ -21,4 +23,14 @@ public class OzArguments {
 	public static Object getArgument(Frame frame, int index) {
 		return frame.getArguments()[ARGUMENTS_INDEX + index];
 	}
+
+	@ExplodeLoop
+	public static Frame getParentFrame(VirtualFrame topFrame, int depth) {
+		Frame frame = topFrame;
+		for (int i = 0; i < depth; i++) {
+			frame = OzArguments.getParentFrame(frame);
+		}
+		return frame;
+	}
+
 }
