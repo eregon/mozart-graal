@@ -8,6 +8,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 @NodeChild("value")
 public abstract class DerefNode extends OzNode {
 
+	public abstract Object executeDeref(Object value);
+
 	@Specialization
 	public long deref(long value) {
 		return value;

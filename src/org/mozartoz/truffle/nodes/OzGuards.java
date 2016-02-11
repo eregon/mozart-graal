@@ -16,4 +16,8 @@ public class OzGuards {
 		return value instanceof OzVar;
 	}
 
+	public static boolean isBound(OzVar var) {
+		return var.isBound();
+	}
+
 }
