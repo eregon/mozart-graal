@@ -9,6 +9,13 @@ import com.oracle.truffle.api.dsl.Specialization;
 @NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 public abstract class EqualNode extends OzNode {
 
+	public abstract boolean executeEqual(Object a, Object b);
+
+	@Specialization
+	protected boolean equal(boolean a, boolean b) {
+		return a == b;
+	}
+
 	@Specialization
 	protected boolean equal(long a, long b) {
 		return a == b;
