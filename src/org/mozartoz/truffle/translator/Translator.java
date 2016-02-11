@@ -293,7 +293,7 @@ public class Translator {
 		if (pattern instanceof Constant) {
 			Constant constant = (Constant) pattern;
 			if (constant.value() instanceof OzAtom) {
-				String atom = ((OzAtom) constant.value()).value().intern();
+				String atom = translateAtom((OzAtom) constant.value());
 				patternMatch = PatternMatchEqualNodeGen.create(atom, value);
 			} else if (constant.value() instanceof OzInt) {
 				long n = ((OzInt) constant.value()).value();
@@ -402,8 +402,7 @@ public class Translator {
 		} else if (value instanceof UnitVal) {
 			return new LiteralNode(Unit.INSTANCE);
 		} else if (value instanceof OzAtom) {
-			String atom = ((OzAtom) value).value().intern();
-			return new LiteralNode(atom);
+			return new LiteralNode(translateAtom((OzAtom) value));
 		} else if (value instanceof OzRecord) {
 			OzRecord ozRecord = (OzRecord) value;
 			if ((boolean) ozRecord.isCons()) {
@@ -423,7 +422,7 @@ public class Translator {
 		if (feature instanceof OzInt) {
 			return ((OzInt) feature).value();
 		} else if (feature instanceof OzAtom) {
-			return ((OzAtom) feature).value().intern();
+			return translateAtom((OzAtom) feature);
 		} else {
 			throw unknown("feature", feature);
 		}
@@ -431,10 +430,14 @@ public class Translator {
 
 	private static Object translateLiteral(OzLiteral literal) {
 		if (literal instanceof OzAtom) {
-			return ((OzAtom) literal).value().intern();
+			return translateAtom((OzAtom) literal);
 		} else {
 			throw unknown("literal", literal);
 		}
+	}
+
+	private static String translateAtom(OzAtom atom) {
+		return atom.value().intern();
 	}
 
 	private OzNode translateExpressionBuiltin(Expression callable, List<Expression> args) {
