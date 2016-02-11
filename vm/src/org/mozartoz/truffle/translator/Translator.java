@@ -51,8 +51,8 @@ import org.mozartoz.bootcompiler.transform.Unnester;
 import org.mozartoz.truffle.nodes.IfNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
-import org.mozartoz.truffle.nodes.PatternMatchAtomNodeGen;
 import org.mozartoz.truffle.nodes.PatternMatchConsNodeGen;
+import org.mozartoz.truffle.nodes.PatternMatchEqualNodeGen;
 import org.mozartoz.truffle.nodes.SequenceNode;
 import org.mozartoz.truffle.nodes.SkipNode;
 import org.mozartoz.truffle.nodes.builtins.AddNodeGen;
@@ -293,7 +293,13 @@ public class Translator {
 		if (pattern instanceof Constant) {
 			Constant constant = (Constant) pattern;
 			if (constant.value() instanceof OzAtom) {
-				patternMatch = PatternMatchAtomNodeGen.create(((OzAtom) constant.value()).value().intern(), value);
+				String atom = ((OzAtom) constant.value()).value().intern();
+				patternMatch = PatternMatchEqualNodeGen.create(atom, value);
+			} else if (constant.value() instanceof OzInt) {
+				long n = ((OzInt) constant.value()).value();
+				patternMatch = PatternMatchEqualNodeGen.create(n, value);
+			} else if (constant.value() instanceof True) {
+				patternMatch = PatternMatchEqualNodeGen.create(true, value);
 			} else if (constant.value() instanceof OzRecord) {
 				OzRecord record = (OzRecord) constant.value();
 				assert (boolean) record.isCons();
