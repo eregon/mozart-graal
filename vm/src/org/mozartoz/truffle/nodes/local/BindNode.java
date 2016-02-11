@@ -30,7 +30,7 @@ public abstract class BindNode extends OzNode {
 
 	@Specialization(guards = "!left.isBound()")
 	Object assignLeft(VirtualFrame frame, OzVar left, OzVar right) {
-		writeLeft.executeWrite(frame, right);
+		writeLeft.write(frame, right);
 		// TODO: should chain left to right in case it was captured earlier
 		return unit;
 	}
@@ -44,7 +44,7 @@ public abstract class BindNode extends OzNode {
 
 	@Specialization(guards = "!right.isBound()")
 	Object assignRight(VirtualFrame frame, OzVar left, OzVar right) {
-		writeRight.executeWrite(frame, left);
+		writeRight.write(frame, left);
 		return unit;
 	}
 
