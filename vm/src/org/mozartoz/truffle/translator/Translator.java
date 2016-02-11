@@ -288,40 +288,6 @@ public class Translator {
 		throw unknown("statement", statement);
 	}
 
-	private OzNode translatePattern(Expression pattern, ReadLocalVariableNode valueNode) {
-		FrameDescriptor frameDescriptor = environment.frameDescriptor;
-		OzNode patternMatch = null;
-		if (pattern instanceof Constant) {
-			OzValue value = ((Constant) pattern).value();
-			if (value instanceof OzFeature) {
-				Object feature = translateFeature((OzFeature) value);
-				patternMatch = PatternMatchEqualNodeGen.create(feature, valueNode);
-			} else if (value instanceof OzRecord) {
-				OzRecord record = (OzRecord) value;
-				assert record.isCons();
-				Collection<OzValue> values = toJava(record.values());
-				assert values.stream().allMatch(v -> v instanceof OzPatMatCapture || v instanceof OzPatMatWildcard);
-				WriteFrameSlotNode[] writeValues = values.stream().map(val -> {
-					if (val instanceof OzPatMatWildcard) {
-						return null;
-					} else if (val instanceof OzPatMatCapture) {
-						Symbol sym = ((OzPatMatCapture) val).variable();
-						FrameSlot slot = frameDescriptor.findOrAddFrameSlot(sym);
-						return WriteFrameSlotNodeGen.create(slot);
-					} else {
-						throw unknown("pattern val", val);
-					}
-				}).toArray(WriteFrameSlotNode[]::new);
-
-				patternMatch = PatternMatchConsNodeGen.create(writeValues, valueNode);
-			}
-		}
-		if (patternMatch == null) {
-			throw unknown("pattern", pattern);
-		}
-		return patternMatch;
-	}
-
 	OzNode translate(Expression expression) {
 		if (expression instanceof Constant) {
 			Constant constant = (Constant) expression;
@@ -382,6 +348,40 @@ public class Translator {
 		}
 
 		throw unknown("expression", expression);
+	}
+
+	private OzNode translatePattern(Expression pattern, ReadLocalVariableNode valueNode) {
+		FrameDescriptor frameDescriptor = environment.frameDescriptor;
+		OzNode patternMatch = null;
+		if (pattern instanceof Constant) {
+			OzValue value = ((Constant) pattern).value();
+			if (value instanceof OzFeature) {
+				Object feature = translateFeature((OzFeature) value);
+				patternMatch = PatternMatchEqualNodeGen.create(feature, valueNode);
+			} else if (value instanceof OzRecord) {
+				OzRecord record = (OzRecord) value;
+				assert record.isCons();
+				Collection<OzValue> values = toJava(record.values());
+				assert values.stream().allMatch(v -> v instanceof OzPatMatCapture || v instanceof OzPatMatWildcard);
+				WriteFrameSlotNode[] writeValues = values.stream().map(val -> {
+					if (val instanceof OzPatMatWildcard) {
+						return null;
+					} else if (val instanceof OzPatMatCapture) {
+						Symbol sym = ((OzPatMatCapture) val).variable();
+						FrameSlot slot = frameDescriptor.findOrAddFrameSlot(sym);
+						return WriteFrameSlotNodeGen.create(slot);
+					} else {
+						throw unknown("pattern val", val);
+					}
+				}).toArray(WriteFrameSlotNode[]::new);
+
+				patternMatch = PatternMatchConsNodeGen.create(writeValues, valueNode);
+			}
+		}
+		if (patternMatch == null) {
+			throw unknown("pattern", pattern);
+		}
+		return patternMatch;
 	}
 
 	private OzNode translateConstantNode(OzValue value) {
