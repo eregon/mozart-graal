@@ -33,6 +33,7 @@ import org.mozartoz.bootcompiler.oz.OzFeature;
 import org.mozartoz.bootcompiler.oz.OzInt;
 import org.mozartoz.bootcompiler.oz.OzLiteral;
 import org.mozartoz.bootcompiler.oz.OzPatMatCapture;
+import org.mozartoz.bootcompiler.oz.OzPatMatWildcard;
 import org.mozartoz.bootcompiler.oz.OzRecord;
 import org.mozartoz.bootcompiler.oz.OzValue;
 import org.mozartoz.bootcompiler.oz.True;
@@ -245,30 +246,8 @@ public class Translator {
 			OzNode caseNode = elseNode;
 			for (MatchStatementClause clause : toJava(matchStatement.clauses())) {
 				assert !clause.hasGuard();
-				Expression pattern = clause.pattern();
 				ReadLocalVariableNode value = new ReadLocalVariableNode(valueSlot);
-				OzNode patternMatch = null;
-				if (pattern instanceof Constant) {
-					Constant constant = (Constant) pattern;
-					if (constant.value() instanceof OzAtom) {
-						patternMatch = PatternMatchAtomNodeGen.create(((OzAtom) constant.value()).value().intern(), value);
-					} else if (constant.value() instanceof OzRecord) {
-						OzRecord record = (OzRecord) constant.value();
-						assert (boolean) record.isCons();
-						Collection<OzValue> values = toJava(record.values());
-						assert values.stream().allMatch(v -> v instanceof OzPatMatCapture);
-						WriteFrameSlotNode[] writeValues = values.stream().map(val -> {
-							Symbol sym = ((OzPatMatCapture) val).variable();
-							FrameSlot slot = frameDescriptor.findOrAddFrameSlot(sym);
-							return WriteFrameSlotNodeGen.create(slot);
-						}).toArray(WriteFrameSlotNode[]::new);
-
-						patternMatch = PatternMatchConsNodeGen.create(writeValues, value);
-					}
-				}
-				if (patternMatch == null) {
-					throw unknown("pattern", pattern);
-				}
+				OzNode patternMatch = translatePattern(clause.pattern(), value);
 				caseNode = new IfNode(
 						patternMatch,
 						translate(clause.body()),
@@ -306,6 +285,39 @@ public class Translator {
 		}
 
 		throw unknown("statement", statement);
+	}
+
+	private OzNode translatePattern(Expression pattern, ReadLocalVariableNode value) {
+		FrameDescriptor frameDescriptor = environment.frameDescriptor;
+		OzNode patternMatch = null;
+		if (pattern instanceof Constant) {
+			Constant constant = (Constant) pattern;
+			if (constant.value() instanceof OzAtom) {
+				patternMatch = PatternMatchAtomNodeGen.create(((OzAtom) constant.value()).value().intern(), value);
+			} else if (constant.value() instanceof OzRecord) {
+				OzRecord record = (OzRecord) constant.value();
+				assert (boolean) record.isCons();
+				Collection<OzValue> values = toJava(record.values());
+				assert values.stream().allMatch(v -> v instanceof OzPatMatCapture || v instanceof OzPatMatWildcard);
+				WriteFrameSlotNode[] writeValues = values.stream().map(val -> {
+					if (val instanceof OzPatMatWildcard) {
+						return null;
+					} else if (val instanceof OzPatMatCapture) {
+						Symbol sym = ((OzPatMatCapture) val).variable();
+						FrameSlot slot = frameDescriptor.findOrAddFrameSlot(sym);
+						return WriteFrameSlotNodeGen.create(slot);
+					} else {
+						throw unknown("pattern val", val);
+					}
+				}).toArray(WriteFrameSlotNode[]::new);
+
+				patternMatch = PatternMatchConsNodeGen.create(writeValues, value);
+			}
+		}
+		if (patternMatch == null) {
+			throw unknown("pattern", pattern);
+		}
+		return patternMatch;
 	}
 
 	OzNode translate(Expression expression) {
