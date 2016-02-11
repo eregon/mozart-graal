@@ -18,7 +18,7 @@ public abstract class InitializeArgNode extends OzNode {
 
 	@Specialization
 	public Object initializeArg(VirtualFrame frame, Object value) {
-		writeFrameSlotNode.executeWrite(frame, value);
+		writeFrameSlotNode.write(frame, value);
 		return unit;
 	}
 

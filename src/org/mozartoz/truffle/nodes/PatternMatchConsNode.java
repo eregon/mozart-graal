@@ -20,10 +20,10 @@ public abstract class PatternMatchConsNode extends OzNode {
 	@Specialization
 	boolean patternMatch(VirtualFrame frame, OzCons cons) {
 		if (writeValues[0] != null) {
-			writeValues[0].executeWrite(frame, cons.getHead());
+			writeValues[0].write(frame, cons.getHead());
 		}
 		if (writeValues[1] != null) {
-			writeValues[1].executeWrite(frame, cons.getTail());
+			writeValues[1].write(frame, cons.getTail());
 		}
 		return true;
 	}

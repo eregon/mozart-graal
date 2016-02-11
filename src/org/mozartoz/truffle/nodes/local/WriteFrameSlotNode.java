@@ -6,15 +6,20 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 
 @ImportStatic(FrameSlotKind.class)
-public abstract class WriteFrameSlotNode extends Node {
+public abstract class WriteFrameSlotNode extends Node implements WriteNode {
 
 	private final FrameSlot slot;
 
 	public WriteFrameSlotNode(FrameSlot slot) {
 		this.slot = slot;
+	}
+
+	public Object write(VirtualFrame frame, Object value) {
+		return executeWrite(frame, value);
 	}
 
 	public abstract Object executeWrite(Frame frame, Object value);
