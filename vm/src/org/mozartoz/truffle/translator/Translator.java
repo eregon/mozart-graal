@@ -143,7 +143,7 @@ public class Translator {
 					depth - 1);
 		}
 
-		throw new RuntimeException(symbol.fullName());
+		throw new AssertionError(symbol.fullName());
 	}
 
 	public OzRootNode parseAndTranslate(String code) {
@@ -239,12 +239,8 @@ public class Translator {
 			OzNode valueNode = translate(matchStatement.value());
 			Statement elseStatement = matchStatement.elseStatement();
 
-			final OzNode elseNode;
-			if (elseStatement instanceof NoElseStatement) {
-				throw new RuntimeException();
-			} else {
-				elseNode = translate(elseStatement);
-			}
+			assert !(elseStatement instanceof NoElseStatement);
+			OzNode elseNode = translate(elseStatement);
 
 			OzNode caseNode = elseNode;
 			for (MatchStatementClause clause : toJava(matchStatement.clauses())) {
@@ -271,7 +267,7 @@ public class Translator {
 					}
 				}
 				if (patternMatch == null) {
-					throw new RuntimeException();
+					throw unknown("pattern", pattern);
 				}
 				caseNode = new IfNode(
 						patternMatch,
@@ -309,7 +305,7 @@ public class Translator {
 			}
 		}
 
-		throw new RuntimeException("Unknown statement: " + statement.getClass() + ": " + statement);
+		throw unknown("statement", statement);
 	}
 
 	OzNode translate(Expression expression) {
@@ -357,7 +353,7 @@ public class Translator {
 					nodes[i] = InitializeArgNodeGen.create(argSlot, new ReadArgumentNode(i));
 					i++;
 				} else {
-					throw new RuntimeException();
+					throw unknown("variable", variable);
 				}
 			}
 
@@ -375,7 +371,7 @@ public class Translator {
 			return new ProcDeclarationNode(frameDescriptor, procBody);
 		}
 
-		throw new RuntimeException("Unknown expression: " + expression.getClass() + ": " + expression);
+		throw unknown("expression", expression);
 	}
 
 	private OzNode translateValue(OzValue value) {
@@ -402,7 +398,7 @@ public class Translator {
 				return new RecordLiteralNode(arity, values);
 			}
 		}
-		throw new UnsupportedOperationException("Unknown value: " + value);
+		throw unknown("value", value);
 	}
 
 	private static Object translateFeature(OzFeature feature) {
@@ -411,7 +407,7 @@ public class Translator {
 		} else if (feature instanceof OzAtom) {
 			return ((OzAtom) feature).value().intern();
 		} else {
-			throw new RuntimeException();
+			throw unknown("feature", feature);
 		}
 	}
 
@@ -419,7 +415,7 @@ public class Translator {
 		if (literal instanceof OzAtom) {
 			return ((OzAtom) literal).value().intern();
 		} else {
-			throw new RuntimeException();
+			throw unknown("literal", literal);
 		}
 	}
 
@@ -435,7 +431,7 @@ public class Translator {
 			OzNode right = translate(args.get(1));
 			return translateBinaryOp(name, left, right);
 		}
-		throw new RuntimeException("Unknown builtin: " + name);
+		throw unknown("builtin", name);
 	}
 
 	private OzNode buildCons(OzNode head, OzNode tail) {
@@ -471,12 +467,16 @@ public class Translator {
 		case ".":
 			return DotNodeGen.create(left, right);
 		default:
-			throw new RuntimeException(operator);
+			throw unknown("operator", operator);
 		}
 	}
 
 	private static <E> Collection<E> toJava(scala.collection.immutable.Iterable<E> scalaIterable) {
 		return JavaConversions.asJavaCollection(scalaIterable);
+	}
+
+	private static RuntimeException unknown(String type, Object description) {
+		return new RuntimeException("Unknown " + type + " " + description.getClass() + ": " + description);
 	}
 
 }
