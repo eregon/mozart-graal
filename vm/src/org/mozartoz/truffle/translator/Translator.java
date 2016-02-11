@@ -72,8 +72,7 @@ import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
 import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
-import org.mozartoz.truffle.nodes.local.BindVariableValueNodeGen;
-import org.mozartoz.truffle.nodes.local.BindVariablesNode;
+import org.mozartoz.truffle.nodes.local.BindNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
@@ -222,9 +221,9 @@ public class Translator {
 				final FrameSlotAndDepth leftSlot = findVariable(((Variable) left).symbol());
 				if (right instanceof Variable) {
 					final FrameSlotAndDepth rightSlot = findVariable(((Variable) right).symbol());
-					return new BindVariablesNode(leftSlot, rightSlot);
+					return BindNodeGen.create(leftSlot, rightSlot, leftSlot.createReadNode(), rightSlot.createReadNode());
 				} else {
-					return BindVariableValueNodeGen.create(leftSlot, translate(right));
+					return BindNodeGen.create(leftSlot, null, leftSlot.createReadNode(), translate(right));
 				}
 			}
 		} else if (statement instanceof IfStatement) {
@@ -272,9 +271,8 @@ public class Translator {
 				} else {
 					Variable var = (Variable) args.get(args.size() - 1);
 					List<Expression> funArgs = args.subList(0, args.size() - 1);
-					return BindVariableValueNodeGen.create(
-							findVariable(var.symbol()),
-							translateExpressionBuiltin(callable, funArgs));
+					FrameSlotAndDepth slot = findVariable(var.symbol());
+					return BindNodeGen.create(slot, null, slot.createReadNode(), translateExpressionBuiltin(callable, funArgs));
 				}
 			} else {
 				OzNode[] argsNodes = new OzNode[args.size()];

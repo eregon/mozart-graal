@@ -2,9 +2,11 @@ package org.mozartoz.truffle.nodes.builtins;
 
 import java.math.BigInteger;
 
+import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
 
+import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -13,6 +15,16 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class EqualNode extends OzNode {
 
 	public abstract boolean executeEqual(Object a, Object b);
+
+	@CreateCast("left")
+	protected OzNode derefLeft(OzNode var) {
+		return DerefNodeGen.create(var);
+	}
+
+	@CreateCast("right")
+	protected OzNode derefRight(OzNode var) {
+		return DerefNodeGen.create(var);
+	}
 
 	@Specialization
 	protected boolean equal(boolean a, boolean b) {
