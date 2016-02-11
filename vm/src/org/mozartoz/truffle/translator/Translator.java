@@ -287,21 +287,16 @@ public class Translator {
 		throw unknown("statement", statement);
 	}
 
-	private OzNode translatePattern(Expression pattern, ReadLocalVariableNode value) {
+	private OzNode translatePattern(Expression pattern, ReadLocalVariableNode valueNode) {
 		FrameDescriptor frameDescriptor = environment.frameDescriptor;
 		OzNode patternMatch = null;
 		if (pattern instanceof Constant) {
-			Constant constant = (Constant) pattern;
-			if (constant.value() instanceof OzAtom) {
-				String atom = translateAtom((OzAtom) constant.value());
-				patternMatch = PatternMatchEqualNodeGen.create(atom, value);
-			} else if (constant.value() instanceof OzInt) {
-				long n = ((OzInt) constant.value()).value();
-				patternMatch = PatternMatchEqualNodeGen.create(n, value);
-			} else if (constant.value() instanceof True) {
-				patternMatch = PatternMatchEqualNodeGen.create(true, value);
-			} else if (constant.value() instanceof OzRecord) {
-				OzRecord record = (OzRecord) constant.value();
+			OzValue value = ((Constant) pattern).value();
+			if (value instanceof OzFeature) {
+				Object feature = translateFeature((OzFeature) value);
+				patternMatch = PatternMatchEqualNodeGen.create(feature, valueNode);
+			} else if (value instanceof OzRecord) {
+				OzRecord record = (OzRecord) value;
 				assert (boolean) record.isCons();
 				Collection<OzValue> values = toJava(record.values());
 				assert values.stream().allMatch(v -> v instanceof OzPatMatCapture || v instanceof OzPatMatWildcard);
@@ -317,7 +312,7 @@ public class Translator {
 					}
 				}).toArray(WriteFrameSlotNode[]::new);
 
-				patternMatch = PatternMatchConsNodeGen.create(writeValues, value);
+				patternMatch = PatternMatchConsNodeGen.create(writeValues, valueNode);
 			}
 		}
 		if (patternMatch == null) {
@@ -329,11 +324,7 @@ public class Translator {
 	OzNode translate(Expression expression) {
 		if (expression instanceof Constant) {
 			Constant constant = (Constant) expression;
-			OzValue ozValue = constant.value();
-			OzNode translated = translateValue(ozValue);
-			if (translated != null) {
-				return translated;
-			}
+			return translateConstantNode(constant.value());
 		} else if (expression instanceof Record) {
 			Record record = (Record) expression;
 			List<RecordField> fields = new ArrayList<>(toJava(record.fields()));
@@ -392,7 +383,7 @@ public class Translator {
 		throw unknown("expression", expression);
 	}
 
-	private OzNode translateValue(OzValue value) {
+	private OzNode translateConstantNode(OzValue value) {
 		if (value instanceof OzInt) {
 			return new LongLiteralNode(((OzInt) value).value());
 		} else if (value instanceof True) {
@@ -404,14 +395,15 @@ public class Translator {
 		} else if (value instanceof OzAtom) {
 			return new LiteralNode(translateAtom((OzAtom) value));
 		} else if (value instanceof OzRecord) {
+			// TODO: this is guaranteed to be deeply constant, so only 1 node is needed
 			OzRecord ozRecord = (OzRecord) value;
 			if ((boolean) ozRecord.isCons()) {
-				OzNode left = translateValue(ozRecord.fields().apply(0).value());
-				OzNode right = translateValue(ozRecord.fields().apply(1).value());
+				OzNode left = translateConstantNode(ozRecord.fields().apply(0).value());
+				OzNode right = translateConstantNode(ozRecord.fields().apply(1).value());
 				return buildCons(left, right);
 			} else {
 				Arity arity = buildArity(ozRecord.arity());
-				OzNode[] values = toJava(ozRecord.values()).stream().map(this::translateValue).toArray(OzNode[]::new);
+				OzNode[] values = toJava(ozRecord.values()).stream().map(this::translateConstantNode).toArray(OzNode[]::new);
 				return new RecordLiteralNode(arity, values);
 			}
 		}
@@ -421,6 +413,12 @@ public class Translator {
 	private static Object translateFeature(OzFeature feature) {
 		if (feature instanceof OzInt) {
 			return ((OzInt) feature).value();
+		} else if (feature instanceof True) {
+			return true;
+		} else if (feature instanceof False) {
+			return false;
+		} else if (feature instanceof UnitVal) {
+			return Unit.INSTANCE;
 		} else if (feature instanceof OzAtom) {
 			return translateAtom((OzAtom) feature);
 		} else {
