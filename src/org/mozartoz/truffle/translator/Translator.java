@@ -25,6 +25,7 @@ import org.mozartoz.bootcompiler.ast.Statement;
 import org.mozartoz.bootcompiler.ast.UnboundExpression;
 import org.mozartoz.bootcompiler.ast.Variable;
 import org.mozartoz.bootcompiler.ast.VariableOrRaw;
+import org.mozartoz.bootcompiler.oz.False;
 import org.mozartoz.bootcompiler.oz.OzArity;
 import org.mozartoz.bootcompiler.oz.OzAtom;
 import org.mozartoz.bootcompiler.oz.OzBuiltin;
@@ -34,6 +35,7 @@ import org.mozartoz.bootcompiler.oz.OzLiteral;
 import org.mozartoz.bootcompiler.oz.OzPatMatCapture;
 import org.mozartoz.bootcompiler.oz.OzRecord;
 import org.mozartoz.bootcompiler.oz.OzValue;
+import org.mozartoz.bootcompiler.oz.True;
 import org.mozartoz.bootcompiler.oz.UnitVal;
 import org.mozartoz.bootcompiler.parser.OzParser;
 import org.mozartoz.bootcompiler.symtab.Program;
@@ -62,6 +64,7 @@ import org.mozartoz.truffle.nodes.builtins.ShowNodeGen;
 import org.mozartoz.truffle.nodes.builtins.SubNodeGen;
 import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
+import org.mozartoz.truffle.nodes.literal.BooleanLiteralNode;
 import org.mozartoz.truffle.nodes.literal.ConsLiteralNodeGen;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
@@ -375,16 +378,20 @@ public class Translator {
 		throw new RuntimeException("Unknown expression: " + expression.getClass() + ": " + expression);
 	}
 
-	private OzNode translateValue(OzValue ozValue) {
-		if (ozValue instanceof OzInt) {
-			return new LongLiteralNode(((OzInt) ozValue).value());
-		} else if (ozValue instanceof UnitVal) {
+	private OzNode translateValue(OzValue value) {
+		if (value instanceof OzInt) {
+			return new LongLiteralNode(((OzInt) value).value());
+		} else if (value instanceof True) {
+			return new BooleanLiteralNode(true);
+		} else if (value instanceof False) {
+			return new BooleanLiteralNode(false);
+		} else if (value instanceof UnitVal) {
 			return new LiteralNode(Unit.INSTANCE);
-		} else if (ozValue instanceof OzAtom) {
-			String atom = ((OzAtom) ozValue).value().intern();
+		} else if (value instanceof OzAtom) {
+			String atom = ((OzAtom) value).value().intern();
 			return new LiteralNode(atom);
-		} else if (ozValue instanceof OzRecord) {
-			OzRecord ozRecord = (OzRecord) ozValue;
+		} else if (value instanceof OzRecord) {
+			OzRecord ozRecord = (OzRecord) value;
 			if ((boolean) ozRecord.isCons()) {
 				OzNode left = translateValue(ozRecord.fields().apply(0).value());
 				OzNode right = translateValue(ozRecord.fields().apply(1).value());
@@ -395,7 +402,7 @@ public class Translator {
 				return new RecordLiteralNode(arity, values);
 			}
 		}
-		throw new UnsupportedOperationException("Unknown value: " + ozValue);
+		throw new UnsupportedOperationException("Unknown value: " + value);
 	}
 
 	private static Object translateFeature(OzFeature feature) {

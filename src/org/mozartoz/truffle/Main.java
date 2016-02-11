@@ -31,6 +31,8 @@ public class Main {
 		eval("local fun {MakeList N} if N>0 then _|{MakeList N-1} else nil end end in {Show {MakeList 3}} end");
 
 		eval("local fun {Append Xs Ys} case Xs of nil then Ys [] X|Xr then X|{Append Xr Ys} end end in {Show {Append [1 2] [3 4]}} end");
+
+		eval("local fun {Member X Ys} case Ys of nil then false [] Y|Yr then X==Y orelse {Member X Yr} end end in {Show {Member nil [1 2 3]}} end");
 	}
 
 	private static void eval(String code) {

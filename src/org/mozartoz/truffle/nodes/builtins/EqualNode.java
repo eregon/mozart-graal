@@ -14,4 +14,14 @@ public abstract class EqualNode extends OzNode {
 		return a == b;
 	}
 
+	@Specialization(guards = "!isLong(b)")
+	protected boolean equal(long a, Object b) {
+		return false;
+	}
+
+	@Specialization(guards = "!isLong(a)")
+	protected boolean equal(Object a, long b) {
+		return false;
+	}
+
 }
