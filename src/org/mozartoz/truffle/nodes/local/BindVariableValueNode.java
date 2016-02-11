@@ -42,15 +42,25 @@ public abstract class BindVariableValueNode extends OzNode {
 		assert !(value instanceof OzVar);
 
 		Frame frame = OzArguments.getParentFrame(topFrame, depth);
-		OzVar var = (OzVar) readFrameSlotNode.executeRead(frame);
-
-		if (var.isBound()) {
-			if (equal(var.getValue(), value)) {
-				return value;
-			} else {
-				throw new RuntimeException("Failed unification: " + var.getValue() + " != " + value);
+		Object left = readFrameSlotNode.executeRead(frame);
+		Object leftValue = null;
+		if (left instanceof OzVar) {
+			OzVar var = (OzVar) left;
+			if (var.isBound()) {
+				leftValue = var.getValue();
 			}
 		} else {
+			leftValue = left;
+		}
+
+		if (leftValue != null) {
+			if (equal(leftValue, value)) {
+				return value;
+			} else {
+				throw new RuntimeException("Failed unification: " + leftValue + " != " + value);
+			}
+		} else {
+			OzVar var = (OzVar) left;
 			// Write to the OzVar in the store, in case there is another
 			// reference to it
 			var.bind(value);

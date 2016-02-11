@@ -1,6 +1,9 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import java.math.BigInteger;
+
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzCons;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -29,6 +32,21 @@ public abstract class EqualNode extends OzNode {
 	@Specialization(guards = "!isLong(a)")
 	protected boolean equal(Object a, long b) {
 		return false;
+	}
+
+	@Specialization
+	protected boolean equal(BigInteger a, BigInteger b) {
+		return a.equals(b);
+	}
+
+	@Specialization
+	protected boolean equal(OzCons a, OzCons b) {
+		return executeEqual(a.getHead(), b.getHead()) && executeEqual(a.getTail(), b.getTail());
+	}
+
+	@Specialization
+	protected boolean equal(String a, String b) {
+		return a == b;
 	}
 
 }
