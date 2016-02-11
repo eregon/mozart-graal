@@ -81,6 +81,7 @@ import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.Unit;
 
 import scala.collection.JavaConversions;
@@ -297,7 +298,7 @@ public class Translator {
 				patternMatch = PatternMatchEqualNodeGen.create(feature, valueNode);
 			} else if (value instanceof OzRecord) {
 				OzRecord record = (OzRecord) value;
-				assert (boolean) record.isCons();
+				assert record.isCons();
 				Collection<OzValue> values = toJava(record.values());
 				assert values.stream().allMatch(v -> v instanceof OzPatMatCapture || v instanceof OzPatMatWildcard);
 				WriteFrameSlotNode[] writeValues = values.stream().map(val -> {
@@ -390,21 +391,24 @@ public class Translator {
 			return new BooleanLiteralNode(true);
 		} else if (value instanceof False) {
 			return new BooleanLiteralNode(false);
-		} else if (value instanceof UnitVal) {
-			return new LiteralNode(Unit.INSTANCE);
-		} else if (value instanceof OzAtom) {
-			return new LiteralNode(translateAtom((OzAtom) value));
+		} else {
+			return new LiteralNode(translateConstantValue(value));
+		}
+	}
+
+	private Object translateConstantValue(OzValue value) {
+		if (value instanceof OzFeature) {
+			return translateFeature((OzFeature) value);
 		} else if (value instanceof OzRecord) {
-			// TODO: this is guaranteed to be deeply constant, so only 1 node is needed
 			OzRecord ozRecord = (OzRecord) value;
-			if ((boolean) ozRecord.isCons()) {
-				OzNode left = translateConstantNode(ozRecord.fields().apply(0).value());
-				OzNode right = translateConstantNode(ozRecord.fields().apply(1).value());
-				return buildCons(left, right);
+			if (ozRecord.isCons()) {
+				Object left = translateConstantValue(ozRecord.fields().apply(0).value());
+				Object right = translateConstantValue(ozRecord.fields().apply(1).value());
+				return new OzCons(left, right);
 			} else {
 				Arity arity = buildArity(ozRecord.arity());
-				OzNode[] values = toJava(ozRecord.values()).stream().map(this::translateConstantNode).toArray(OzNode[]::new);
-				return new RecordLiteralNode(arity, values);
+				Object[] values = toJava(ozRecord.values()).stream().map(this::translateConstantValue).toArray(Object[]::new);
+				return RecordLiteralNode.buildRecord(arity, values);
 			}
 		}
 		throw unknown("value", value);

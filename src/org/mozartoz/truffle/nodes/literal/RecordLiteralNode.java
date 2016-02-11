@@ -3,10 +3,11 @@ package org.mozartoz.truffle.nodes.literal;
 import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.call.ExecuteValuesNode;
-import org.mozartoz.truffle.runtime.ArrayUtils;
 import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.ArrayUtils;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 
 public class RecordLiteralNode extends OzNode {
@@ -34,6 +35,11 @@ public class RecordLiteralNode extends OzNode {
 		Object[] values = executeValuesNode.executeValues(frame);
 		Object[] initialValues = ArrayUtils.unshift(arity.getLabel(), values);
 		return factory.newInstance(initialValues);
+	}
+
+	public static DynamicObject buildRecord(Arity arity, Object[] values) {
+		Object[] initialValues = ArrayUtils.unshift(arity.getLabel(), values);
+		return arity.getShape().createFactory().newInstance(initialValues);
 	}
 
 }
