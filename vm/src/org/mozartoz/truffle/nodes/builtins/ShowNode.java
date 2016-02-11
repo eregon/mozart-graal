@@ -50,6 +50,12 @@ public abstract class ShowNode extends OzNode {
 		return unit;
 	}
 
+	@Specialization
+	protected Object show(String atom) {
+		System.out.println(atom);
+		return unit;
+	}
+
 	@Specialization(guards = "undefined == null")
 	protected Object show(Object undefined) {
 		System.out.println("null");
