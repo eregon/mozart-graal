@@ -45,6 +45,11 @@ public abstract class EqualNode extends OzNode {
 	}
 
 	@Specialization
+	protected boolean equal(OzCons a, String b) {
+		return false;
+	}
+
+	@Specialization
 	protected boolean equal(String a, String b) {
 		return a == b;
 	}
