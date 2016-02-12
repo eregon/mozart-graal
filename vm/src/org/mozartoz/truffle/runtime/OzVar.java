@@ -1,5 +1,7 @@
 package org.mozartoz.truffle.runtime;
 
+import org.mozartoz.truffle.nodes.builtins.RaiseErrorNode;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 
@@ -10,14 +12,11 @@ public class OzVar {
 		return value != null;
 	}
 
-	public Object getValue() {
-		return value;
-	}
-
 	public Object getBoundValue() {
 		final Object value = this.value;
 		if (!isBound()) {
 			CompilerDirectives.transferToInterpreterAndInvalidate();
+			RaiseErrorNode.showUserBacktrace(null);
 			throw new RuntimeException("unbound var");
 		}
 		return value;
