@@ -35,8 +35,8 @@ public abstract class DotNode extends OzNode {
 			"feature == cachedFeature",
 			"record.getShape() == cachedShape"
 	})
-	protected Object getRecord(DynamicObject record, String feature,
-			@Cached("feature") String cachedFeature,
+	protected Object getRecord(DynamicObject record, Object feature,
+			@Cached("feature") Object cachedFeature,
 			@Cached("record.getShape()") Shape cachedShape,
 			@Cached("cachedShape.getProperty(cachedFeature)") Property property) {
 		return property.get(record, cachedShape);

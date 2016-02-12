@@ -2,6 +2,7 @@ package org.mozartoz.truffle.runtime;
 
 import java.util.EnumSet;
 
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.HiddenKey;
 import com.oracle.truffle.api.object.Layout;
 import com.oracle.truffle.api.object.Location;
@@ -35,6 +36,10 @@ public class Arity {
 
 	public Shape getShape() {
 		return shape;
+	}
+
+	public boolean matches(DynamicObject object) {
+		return object.getShape() == shape && LABEL_LOCATION.get(object) == label;
 	}
 
 }
