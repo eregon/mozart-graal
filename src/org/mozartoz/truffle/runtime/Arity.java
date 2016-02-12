@@ -42,4 +42,14 @@ public class Arity {
 		return object.getShape() == shape && LABEL_LOCATION.get(object) == label;
 	}
 
+	private static final Object SOME_OBJECT = new Object();
+
+	public static Arity build(Object label, Object... features) {
+		Shape shape = Arity.BASE;
+		for (Object feature : features) {
+			shape = shape.defineProperty(feature, SOME_OBJECT, 0);
+		}
+		return new Arity(label, shape);
+	}
+
 }
