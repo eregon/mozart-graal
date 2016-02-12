@@ -389,13 +389,13 @@ public class Translator {
 			Symbol sym = ((OzPatMatCapture) matcher).variable();
 			FrameDescriptor frameDescriptor = environment.frameDescriptor;
 			FrameSlot slot = frameDescriptor.findOrAddFrameSlot(sym);
-			OzNode elementNode = element.apply(NodeUtil.cloneNode(baseNode));
+			OzNode elementNode = element.apply(copy(baseNode));
 			bindings.add(PatternMatchCaptureNodeGen.create(new ReadLocalVariableNode(slot), elementNode));
 		} else if (matcher instanceof OzRecord) {
 			OzRecord record = (OzRecord) matcher;
 			Arity arity = buildArity(record.arity());
-			OzNode elementNode = element.apply(NodeUtil.cloneNode(baseNode));
-			checks.add(PatternMatchRecordNodeGen.create(arity, NodeUtil.cloneNode(elementNode)));
+			OzNode elementNode = element.apply(copy(baseNode));
+			checks.add(PatternMatchRecordNodeGen.create(arity, copy(elementNode)));
 
 			for (OzRecordField field : toJava(record.fields())) {
 				Object feature = translateFeature(field.feature());
@@ -522,6 +522,10 @@ public class Translator {
 		default:
 			throw unknown("operator", operator);
 		}
+	}
+
+	private OzNode copy(OzNode node) {
+		return NodeUtil.cloneNode(node);
 	}
 
 	private static <E> Collection<E> toJava(scala.collection.immutable.Iterable<E> scalaIterable) {
