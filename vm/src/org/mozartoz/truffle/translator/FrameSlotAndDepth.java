@@ -21,6 +21,10 @@ public class FrameSlotAndDepth {
 		this.depth = depth;
 	}
 
+	public FrameSlot getSlot() {
+		return slot;
+	}
+
 	public int getDepth() {
 		return depth;
 	}

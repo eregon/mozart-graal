@@ -90,6 +90,7 @@ import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
+import org.mozartoz.truffle.nodes.local.BindVarValueNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
@@ -107,7 +108,6 @@ import scala.util.parsing.input.Position;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -156,19 +156,13 @@ public class Translator {
 				depth++;
 			}
 		}
-
-		if (symbol.name().equals("<Base>")) {
-			return new FrameSlotAndDepth(
-					rootEnvironment.frameDescriptor.findOrAddFrameSlot(symbol),
-					depth - 1);
-		}
-
 		throw new AssertionError(symbol.fullName());
 	}
 
 	public OzRootNode parseAndTranslate(String code) {
 		Program program = new Program(false);
-		// program.baseDeclarations().$plus$eq("Show");
+		program.baseDeclarations().$plus$eq("Show").$plus$eq("Label");
+
 		OzParser parser = new OzParser();
 
 		String[] builtinTypes = { "Value", "Number", "Float", "Int", "Exception", "Record" };
@@ -178,9 +172,6 @@ public class Translator {
 			builtins.add("/home/eregon/code/mozart-graal/bootcompiler/Mod" + buitinType + "-builtin.json");
 		}
 		Main.loadModuleDefs(program, JavaConversions.asScalaBuffer(builtins).toList());
-
-		// Add base defs
-		code = "local Base Show Label in " + code + " end";
 
 		CharSequenceReader reader = new CharSequenceReader(code);
 		HashSet<String> defines = new HashSet<String>();// .$plus("Show");
@@ -205,7 +196,21 @@ public class Translator {
 		Statement ast = program.rawCode();
 		// System.out.println(ast);
 
+		FrameSlot baseSlot = rootEnvironment.frameDescriptor.addFrameSlot(program.baseEnvSymbol());
+
 		OzNode translated = translate(ast);
+
+		OzNode showNode = ShowNodeGen.create(new ReadArgumentNode(0));
+		OzNode labelNode = BindVarValueNodeGen.create(new ReadArgumentNode(1),
+				LabelNodeGen.create(new ReadArgumentNode(0)));
+		Arity baseArity = Arity.build("base", "Show", "Label");
+		OzNode initializeBaseNode = new RecordLiteralNode(baseArity, new OzNode[] {
+				new ProcDeclarationNode(new FrameDescriptor(), showNode),
+				new ProcDeclarationNode(new FrameDescriptor(), labelNode)
+		});
+		translated = new SequenceNode(
+				new InitializeTmpNode(baseSlot, initializeBaseNode),
+				translated);
 
 		return new OzRootNode(environment.frameDescriptor, translated);
 	}
@@ -284,18 +289,9 @@ public class Translator {
 			Expression callable = callStatement.callable();
 			List<Expression> args = new ArrayList<>(toJava(callStatement.args()));
 
-			if (callable instanceof Variable) {
-				String name = ((Variable) callable).symbol().name();
-				if (args.size() == 1 && name.equals("Show")) {
-					return ShowNodeGen.create(translate(args.get(0)));
-				} else if (args.size() == 2 && name.equals("Label")) {
-					Variable var = (Variable) args.get(1);
-					FrameSlotAndDepth slot = findVariable(var.symbol());
-					return t(statement, BindNodeGen.create(slot, null, slot.createReadNode(), LabelNodeGen.create(translate(args.get(0)))));
-				}
-			} else if (callable instanceof Constant && ((Constant) callable).value() instanceof OzBuiltin) {
+			if (callable instanceof Constant && ((Constant) callable).value() instanceof OzBuiltin) {
 				OzBuiltin builtin = (OzBuiltin) ((Constant) callable).value();
-				if (builtin.builtin().name().equals("raiseError")) {
+				if (builtin.builtin().name().equals("raiseError")) { // Proc builtin
 					return t(statement, RaiseErrorNodeGen.create(translate(args.get(0))));
 				} else {
 					Variable var = (Variable) args.get(args.size() - 1);
@@ -303,13 +299,13 @@ public class Translator {
 					FrameSlotAndDepth slot = findVariable(var.symbol());
 					return t(statement, BindNodeGen.create(slot, null, slot.createReadNode(), translateExpressionBuiltin(callable, funArgs)));
 				}
+			} else {
+				OzNode[] argsNodes = new OzNode[args.size()];
+				for (int i = 0; i < args.size(); i++) {
+					argsNodes[i] = translate(args.get(i));
+				}
+				return t(statement, CallProcNodeGen.create(argsNodes, translate(callable)));
 			}
-
-			OzNode[] argsNodes = new OzNode[args.size()];
-			for (int i = 0; i < args.size(); i++) {
-				argsNodes[i] = translate(args.get(i));
-			}
-			return t(statement, CallProcNodeGen.create(argsNodes, translate(callable)));
 		}
 
 		throw unknown("statement", statement);
@@ -503,17 +499,8 @@ public class Translator {
 	}
 
 	private Arity buildArity(OzArity arity) {
-		return new Arity(translateLiteral(arity.label()), arity2Shape(arity));
-	}
-
-	private static Object SOME_OBJECT = new Object();
-
-	private static Shape arity2Shape(OzArity arity) {
-		Shape shape = Arity.BASE;
-		for (OzFeature feature : toJava(arity.features())) {
-			shape = shape.defineProperty(translateFeature(feature), SOME_OBJECT, 0);
-		}
-		return shape;
+		Object[] features = toJava(arity.features()).stream().map(Translator::translateFeature).toArray(Object[]::new);
+		return Arity.build(translateLiteral(arity.label()), features);
 	}
 
 	private OzNode translateBinaryOp(String operator, OzNode left, OzNode right) {
