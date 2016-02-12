@@ -20,4 +20,9 @@ public class InitializeVarNode extends OzNode {
 		return unit;
 	}
 
+	@Override
+	public String toString() {
+		return super.toString() + " " + slot.getIdentifier();
+	}
+
 }
