@@ -71,6 +71,7 @@ import org.mozartoz.truffle.nodes.builtins.DivNodeGen;
 import org.mozartoz.truffle.nodes.builtins.DotNodeGen;
 import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
 import org.mozartoz.truffle.nodes.builtins.GreaterThanNodeGen;
+import org.mozartoz.truffle.nodes.builtins.LabelNodeGen;
 import org.mozartoz.truffle.nodes.builtins.LesserThanNodeGen;
 import org.mozartoz.truffle.nodes.builtins.LesserThanOrEqualNodeGen;
 import org.mozartoz.truffle.nodes.builtins.MulNodeGen;
@@ -179,7 +180,7 @@ public class Translator {
 		Main.loadModuleDefs(program, JavaConversions.asScalaBuffer(builtins).toList());
 
 		// Add base defs
-		code = "local Base Show in " + code + " end";
+		code = "local Base Show Label in " + code + " end";
 
 		CharSequenceReader reader = new CharSequenceReader(code);
 		HashSet<String> defines = new HashSet<String>();// .$plus("Show");
@@ -283,8 +284,15 @@ public class Translator {
 			Expression callable = callStatement.callable();
 			List<Expression> args = new ArrayList<>(toJava(callStatement.args()));
 
-			if (callable instanceof Variable && ((Variable) callable).symbol().name().equals("Show")) {
-				return ShowNodeGen.create(translate(args.get(0)));
+			if (callable instanceof Variable) {
+				String name = ((Variable) callable).symbol().name();
+				if (args.size() == 1 && name.equals("Show")) {
+					return ShowNodeGen.create(translate(args.get(0)));
+				} else if (args.size() == 2 && name.equals("Label")) {
+					Variable var = (Variable) args.get(1);
+					FrameSlotAndDepth slot = findVariable(var.symbol());
+					return t(statement, BindNodeGen.create(slot, null, slot.createReadNode(), LabelNodeGen.create(translate(args.get(0)))));
+				}
 			} else if (callable instanceof Constant && ((Constant) callable).value() instanceof OzBuiltin) {
 				OzBuiltin builtin = (OzBuiltin) ((Constant) callable).value();
 				if (builtin.builtin().name().equals("raiseError")) {
@@ -295,13 +303,13 @@ public class Translator {
 					FrameSlotAndDepth slot = findVariable(var.symbol());
 					return t(statement, BindNodeGen.create(slot, null, slot.createReadNode(), translateExpressionBuiltin(callable, funArgs)));
 				}
-			} else {
-				OzNode[] argsNodes = new OzNode[args.size()];
-				for (int i = 0; i < args.size(); i++) {
-					argsNodes[i] = translate(args.get(i));
-				}
-				return t(statement, CallProcNodeGen.create(argsNodes, translate(callable)));
 			}
+
+			OzNode[] argsNodes = new OzNode[args.size()];
+			for (int i = 0; i < args.size(); i++) {
+				argsNodes[i] = translate(args.get(i));
+			}
+			return t(statement, CallProcNodeGen.create(argsNodes, translate(callable)));
 		}
 
 		throw unknown("statement", statement);
