@@ -5,7 +5,6 @@ import org.mozartoz.truffle.runtime.OzCons;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild("value")
 public abstract class PatternMatchConsNode extends OzNode {
@@ -16,7 +15,7 @@ public abstract class PatternMatchConsNode extends OzNode {
 	}
 
 	@Specialization
-	boolean patternMatch(VirtualFrame frame, OzCons cons) {
+	boolean patternMatch(OzCons cons) {
 		return true;
 	}
 

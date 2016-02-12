@@ -3,6 +3,8 @@ package org.mozartoz.truffle.nodes;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzVar;
 
+import com.oracle.truffle.api.object.DynamicObject;
+
 public class OzGuards {
 
 	public static boolean isLong(Object value) {
@@ -15,6 +17,10 @@ public class OzGuards {
 
 	public static boolean isCons(Object value) {
 		return value instanceof OzCons;
+	}
+
+	public static boolean isRecord(Object value) {
+		return value instanceof DynamicObject;
 	}
 
 	public static boolean isVar(Object value) {
