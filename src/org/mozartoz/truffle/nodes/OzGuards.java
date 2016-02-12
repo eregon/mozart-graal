@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes;
 
+import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzVar;
 
 public class OzGuards {
@@ -10,6 +11,10 @@ public class OzGuards {
 
 	public static boolean isNil(Object value) {
 		return value == "nil";
+	}
+
+	public static boolean isCons(Object value) {
+		return value instanceof OzCons;
 	}
 
 	public static boolean isVar(Object value) {
