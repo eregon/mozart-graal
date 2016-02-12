@@ -68,9 +68,11 @@ import org.mozartoz.truffle.nodes.builtins.DotNodeGen;
 import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
 import org.mozartoz.truffle.nodes.builtins.GreaterThanNodeGen;
 import org.mozartoz.truffle.nodes.builtins.LesserThanNodeGen;
+import org.mozartoz.truffle.nodes.builtins.LesserThanOrEqualNodeGen;
 import org.mozartoz.truffle.nodes.builtins.MulNodeGen;
 import org.mozartoz.truffle.nodes.builtins.NotNodeGen;
 import org.mozartoz.truffle.nodes.builtins.RaiseErrorNodeGen;
+import org.mozartoz.truffle.nodes.builtins.RecordMakeDynamicNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ShowNodeGen;
 import org.mozartoz.truffle.nodes.builtins.SubNodeGen;
 import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
@@ -161,7 +163,7 @@ public class Translator {
 		// program.baseDeclarations().$plus$eq("Show");
 		OzParser parser = new OzParser();
 
-		String[] builtinTypes = { "Value", "Number", "Float", "Int", "Exception" };
+		String[] builtinTypes = { "Value", "Number", "Float", "Int", "Exception", "Record" };
 
 		List<String> builtins = new ArrayList<>();
 		for (String buitinType : builtinTypes) {
@@ -515,10 +517,14 @@ public class Translator {
 			return NotNodeGen.create(EqualNodeGen.create(left, right));
 		case "<":
 			return LesserThanNodeGen.create(left, right);
+		case "=<":
+			return LesserThanOrEqualNodeGen.create(left, right);
 		case ">":
 			return GreaterThanNodeGen.create(left, right);
 		case ".":
 			return DotNodeGen.create(left, right);
+		case "makeDynamic": // Record
+			return RecordMakeDynamicNodeGen.create(left, right);
 		default:
 			throw unknown("operator", operator);
 		}
