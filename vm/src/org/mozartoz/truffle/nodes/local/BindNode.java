@@ -17,7 +17,9 @@ public abstract class BindNode extends OzNode {
 
 	@Child WriteNode writeLeft;
 	@Child WriteNode writeRight;
+
 	@Child EqualNode equalNode;
+	@Child UnifyNode unifyNode;
 
 	public BindNode(FrameSlotAndDepth leftSlot, FrameSlotAndDepth rightSlot) {
 		if (leftSlot != null) {
@@ -73,7 +75,7 @@ public abstract class BindNode extends OzNode {
 		if (equal(left, right)) {
 			return unit;
 		} else {
-			throw new RuntimeException("Failed unification: " + left + " != " + right);
+			return unify(left, right);
 		}
 	}
 
@@ -83,6 +85,14 @@ public abstract class BindNode extends OzNode {
 			equalNode = insert(EqualNodeGen.create(null, null));
 		}
 		return equalNode.executeEqual(a, b);
+	}
+
+	private Object unify(Object a, Object b) {
+		if (unifyNode == null) {
+			CompilerDirectives.transferToInterpreter();
+			unifyNode = insert(UnifyNodeGen.create(null, null));
+		}
+		return unifyNode.executeUnify(a, b);
 	}
 
 }
