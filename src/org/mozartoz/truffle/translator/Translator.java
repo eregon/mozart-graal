@@ -1,9 +1,12 @@
 package org.mozartoz.truffle.translator;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.mozartoz.bootcompiler.Main;
@@ -50,6 +53,7 @@ import org.mozartoz.bootcompiler.transform.DesugarFunctor;
 import org.mozartoz.bootcompiler.transform.Namer;
 import org.mozartoz.bootcompiler.transform.PatternMatcher;
 import org.mozartoz.bootcompiler.transform.Unnester;
+import org.mozartoz.bootcompiler.util.FilePosition;
 import org.mozartoz.truffle.nodes.AndNode;
 import org.mozartoz.truffle.nodes.HeadNodeGen;
 import org.mozartoz.truffle.nodes.IfNode;
@@ -97,11 +101,14 @@ import scala.collection.JavaConversions;
 import scala.collection.immutable.HashSet;
 import scala.util.parsing.combinator.Parsers.ParseResult;
 import scala.util.parsing.input.CharSequenceReader;
+import scala.util.parsing.input.Position;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 
 public class Translator {
 
@@ -232,9 +239,9 @@ public class Translator {
 				final FrameSlotAndDepth leftSlot = findVariable(((Variable) left).symbol());
 				if (right instanceof Variable) {
 					final FrameSlotAndDepth rightSlot = findVariable(((Variable) right).symbol());
-					return BindNodeGen.create(leftSlot, rightSlot, leftSlot.createReadNode(), rightSlot.createReadNode());
+					return t(statement, BindNodeGen.create(leftSlot, rightSlot, leftSlot.createReadNode(), rightSlot.createReadNode()));
 				} else {
-					return BindNodeGen.create(leftSlot, null, leftSlot.createReadNode(), translate(right));
+					return t(statement, BindNodeGen.create(leftSlot, null, leftSlot.createReadNode(), translate(right)));
 				}
 			}
 		} else if (statement instanceof IfStatement) {
@@ -281,19 +288,19 @@ public class Translator {
 			} else if (callable instanceof Constant && ((Constant) callable).value() instanceof OzBuiltin) {
 				OzBuiltin builtin = (OzBuiltin) ((Constant) callable).value();
 				if (builtin.builtin().name().equals("raiseError")) {
-					return RaiseErrorNodeGen.create(translate(args.get(0)));
+					return t(statement, RaiseErrorNodeGen.create(translate(args.get(0))));
 				} else {
 					Variable var = (Variable) args.get(args.size() - 1);
 					List<Expression> funArgs = args.subList(0, args.size() - 1);
 					FrameSlotAndDepth slot = findVariable(var.symbol());
-					return BindNodeGen.create(slot, null, slot.createReadNode(), translateExpressionBuiltin(callable, funArgs));
+					return t(statement, BindNodeGen.create(slot, null, slot.createReadNode(), translateExpressionBuiltin(callable, funArgs)));
 				}
 			} else {
 				OzNode[] argsNodes = new OzNode[args.size()];
 				for (int i = 0; i < args.size(); i++) {
 					argsNodes[i] = translate(args.get(i));
 				}
-				return CallProcNodeGen.create(argsNodes, translate(callable));
+				return t(statement, CallProcNodeGen.create(argsNodes, translate(callable)));
 			}
 		}
 
@@ -540,6 +547,37 @@ public class Translator {
 
 	private static RuntimeException unknown(String type, Object description) {
 		return new RuntimeException("Unknown " + type + " " + description.getClass() + ": " + description);
+	}
+
+	private OzNode t(org.mozartoz.bootcompiler.ast.Node node, OzNode ozNode) {
+		SourceSection sourceSection = t(node);
+		ozNode.assignSourceSection(sourceSection);
+		return ozNode;
+	}
+
+	private static final Map<String, Source> SOURCES = new HashMap<>();
+
+	private SourceSection t(org.mozartoz.bootcompiler.ast.Node node) {
+		Position pos = node.pos();
+		if (pos instanceof FilePosition) {
+			FilePosition filePosition = (FilePosition) pos;
+			String canonicalPath;
+			try {
+				canonicalPath = filePosition.file().get().getCanonicalPath();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			Source source = SOURCES.computeIfAbsent(canonicalPath, file -> {
+				try {
+					return Source.fromFileName(file);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			});
+			return source.createSection("", filePosition.line());
+		} else {
+			return SourceSection.createUnavailable("unavailable", "");
+		}
 	}
 
 }

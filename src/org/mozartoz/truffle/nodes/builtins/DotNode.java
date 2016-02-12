@@ -3,7 +3,9 @@ package org.mozartoz.truffle.nodes.builtins;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzError;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -39,7 +41,12 @@ public abstract class DotNode extends OzNode {
 			@Cached("feature") Object cachedFeature,
 			@Cached("record.getShape()") Shape cachedShape,
 			@Cached("cachedShape.getProperty(cachedFeature)") Property property) {
-		return property.get(record, cachedShape);
+		if (property != null) {
+			return property.get(record, cachedShape);
+		} else {
+			CompilerDirectives.transferToInterpreter();
+			throw new OzError("record has no feature " + cachedFeature);
+		}
 	}
 
 }
