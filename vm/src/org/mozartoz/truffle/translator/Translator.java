@@ -56,10 +56,13 @@ import org.mozartoz.truffle.nodes.PatternMatchEqualNodeGen;
 import org.mozartoz.truffle.nodes.SequenceNode;
 import org.mozartoz.truffle.nodes.SkipNode;
 import org.mozartoz.truffle.nodes.builtins.AddNodeGen;
+import org.mozartoz.truffle.nodes.builtins.DivNodeGen;
 import org.mozartoz.truffle.nodes.builtins.DotNodeGen;
 import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
-import org.mozartoz.truffle.nodes.builtins.LargerThanNodeGen;
+import org.mozartoz.truffle.nodes.builtins.GreaterThanNodeGen;
+import org.mozartoz.truffle.nodes.builtins.LesserThanNodeGen;
 import org.mozartoz.truffle.nodes.builtins.MulNodeGen;
+import org.mozartoz.truffle.nodes.builtins.NotNodeGen;
 import org.mozartoz.truffle.nodes.builtins.RaiseErrorNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ShowNodeGen;
 import org.mozartoz.truffle.nodes.builtins.SubNodeGen;
@@ -481,10 +484,16 @@ public class Translator {
 			return SubNodeGen.create(left, right);
 		case "*":
 			return MulNodeGen.create(left, right);
+		case "div":
+			return DivNodeGen.create(left, right);
 		case "==":
 			return EqualNodeGen.create(left, right);
+		case "\\=":
+			return NotNodeGen.create(EqualNodeGen.create(left, right));
+		case "<":
+			return LesserThanNodeGen.create(left, right);
 		case ">":
-			return LargerThanNodeGen.create(left, right);
+			return GreaterThanNodeGen.create(left, right);
 		case ".":
 			return DotNodeGen.create(left, right);
 		default:
