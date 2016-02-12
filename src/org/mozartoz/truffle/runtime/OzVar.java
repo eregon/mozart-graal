@@ -24,7 +24,7 @@ public class OzVar {
 	}
 
 	public void bind(Object value) {
-		assert this.value == null;
+		assert !isBound();
 		assert !(value instanceof OzVar);
 		this.value = value;
 	}
