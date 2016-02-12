@@ -1,5 +1,7 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import java.math.BigInteger;
+
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 
@@ -9,7 +11,7 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @NodeChildren({ @NodeChild("left"), @NodeChild("right") })
-public abstract class LargerThanNode extends OzNode {
+public abstract class DivNode extends OzNode {
 
 	@CreateCast("left")
 	protected OzNode derefLeft(OzNode var) {
@@ -21,9 +23,14 @@ public abstract class LargerThanNode extends OzNode {
 		return DerefNodeGen.create(var);
 	}
 
+	@Specialization(rewriteOn = ArithmeticException.class)
+	protected long div(long a, long b) {
+		return a / b;
+	}
+
 	@Specialization
-	protected boolean largerThan(long a, long b) {
-		return a > b;
+	protected BigInteger div(BigInteger a, BigInteger b) {
+		return a.divide(b);
 	}
 
 }
