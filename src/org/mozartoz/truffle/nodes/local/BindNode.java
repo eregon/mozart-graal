@@ -30,28 +30,35 @@ public abstract class BindNode extends OzNode {
 		}
 	}
 
-	@Specialization(guards = "!left.isBound()")
+	@Specialization(guards = { "!left.isBound()", "!right.isBound()" })
 	Object assignLeft(VirtualFrame frame, OzVar left, OzVar right) {
 		writeLeft.write(frame, right);
+		left.setDead();
 		// TODO: should chain left to right in case it was captured earlier
 		return unit;
 	}
 
+	@Specialization(guards = { "!left.isBound()", "right.isBound()" })
+	Object bindLeft(VirtualFrame frame, OzVar left, OzVar right) {
+		left.bind(right.getBoundValue());
+		return unit;
+	}
+
 	@Specialization(guards = { "!left.isBound()", "!isVar(right)" })
-	Object bindLeft(VirtualFrame frame, OzVar left, Object right) {
+	Object bindLeftValue(VirtualFrame frame, OzVar left, Object right) {
 		left.bind(right);
 		// TODO: Also write the value directly to the frame slot if writeLeft not null?
 		return unit;
 	}
 
-	@Specialization(guards = "!right.isBound()")
-	Object assignRight(VirtualFrame frame, OzVar left, OzVar right) {
-		writeRight.write(frame, left);
+	@Specialization(guards = { "left.isBound()", "!right.isBound()" })
+	Object bindRight(VirtualFrame frame, OzVar left, OzVar right) {
+		right.bind(left.getBoundValue());
 		return unit;
 	}
 
 	@Specialization(guards = { "!isVar(left)", "!right.isBound()" })
-	Object bindRight(VirtualFrame frame, Object left, OzVar right) {
+	Object bindRightValue(VirtualFrame frame, Object left, OzVar right) {
 		right.bind(left);
 		return unit;
 	}

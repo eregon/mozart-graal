@@ -1,6 +1,7 @@
 package org.mozartoz.truffle.nodes.builtins;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
@@ -51,6 +52,29 @@ public abstract class RaiseErrorNode extends OzNode {
 			PRINT_SECTION.accept(frame.getCallNode().getEncapsulatingSourceSection());
 			return null;
 		});
+	}
+
+	private static final Function<SourceSection, String> SHOW_SECTION = sourceSection -> {
+		String desc;
+		if (sourceSection == null) {
+			desc = "<unknown>";
+		} else {
+			desc = sourceSection.getShortDescription();
+		}
+		return "from " + desc + "\n";
+	};
+
+	@TruffleBoundary
+	public static String getUserBacktrace(Node currentNode) {
+		StringBuilder builder = new StringBuilder();
+		if (currentNode != null) {
+			builder.append(SHOW_SECTION.apply(currentNode.getEncapsulatingSourceSection()));
+		}
+		Truffle.getRuntime().iterateFrames(frame -> {
+			builder.append(SHOW_SECTION.apply(frame.getCallNode().getEncapsulatingSourceSection()));
+			return null;
+		});
+		return builder.toString() + "<END>";
 	}
 
 }

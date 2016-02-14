@@ -36,12 +36,12 @@ public abstract class EqualNode extends OzNode {
 		return a == b;
 	}
 
-	@Specialization(guards = "!isLong(b)")
+	@Specialization(guards = { "!isLong(b)", "!isBigInteger(b)" })
 	protected boolean equal(long a, Object b) {
 		return false;
 	}
 
-	@Specialization(guards = "!isLong(a)")
+	@Specialization(guards = { "!isLong(a)", "!isBigInteger(a)" })
 	protected boolean equal(Object a, long b) {
 		return false;
 	}
