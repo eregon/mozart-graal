@@ -206,7 +206,7 @@ public class Translator {
 				new ProcDeclarationNode(new FrameDescriptor(), labelNode),
 				new ProcDeclarationNode(new FrameDescriptor(), byNeedDotNode)
 		});
-		translated = new SequenceNode(
+		translated = SequenceNode.sequence(
 				new InitializeTmpNode(baseSlot, initializeBaseNode),
 				translated);
 
@@ -227,37 +227,25 @@ public class Translator {
 		if (statement instanceof SkipStatement) {
 			return new SkipNode();
 		} else if (statement instanceof CompoundStatement) {
-			CompoundStatement compoundStatement = (CompoundStatement) statement;
-			List<OzNode> stmts = new ArrayList<>();
-			for (Statement sub : toJava(compoundStatement.statements())) {
-				stmts.add(translate(sub));
-			}
-			return new SequenceNode(stmts.toArray(new OzNode[stmts.size()]));
+			CompoundStatement compound = (CompoundStatement) statement;
+			return SequenceNode.sequence(map(compound.statements(), this::translate));
 		} else if (statement instanceof LocalStatement) {
-			LocalStatement localStatement = (LocalStatement) statement;
+			LocalStatement local = (LocalStatement) statement;
 			FrameDescriptor frameDescriptor = environment.frameDescriptor;
-
-			OzNode[] nodes = new OzNode[localStatement.declarations().size() + 1];
-			int i = 0;
-			for (Variable variable : toJava(localStatement.declarations())) {
+			OzNode[] decls = map(local.declarations(), variable -> {
 				FrameSlot slot = frameDescriptor.addFrameSlot(variable.symbol());
-				nodes[i++] = new InitializeVarNode(slot);
-			}
-			nodes[i] = translate(localStatement.statement());
-			return new SequenceNode(nodes);
+				return new InitializeVarNode(slot);
+			});
+			return SequenceNode.sequence(decls, translate(local.statement()));
 		} else if (statement instanceof BindStatement) {
-			BindStatement bindStatement = (BindStatement) statement;
-			Expression left = bindStatement.left();
-			Expression right = bindStatement.right();
+			BindStatement bind = (BindStatement) statement;
+			Expression left = bind.left();
+			Expression right = bind.right();
+			FrameSlotAndDepth leftSlot = null;
 			if (left instanceof Variable) {
-				final FrameSlotAndDepth leftSlot = findVariable(((Variable) left).symbol());
-				if (right instanceof Variable) {
-					final FrameSlotAndDepth rightSlot = findVariable(((Variable) right).symbol());
-					return t(statement, BindNodeGen.create(leftSlot, rightSlot, leftSlot.createReadNode(), rightSlot.createReadNode()));
-				} else {
-					return t(statement, BindNodeGen.create(leftSlot, null, leftSlot.createReadNode(), translate(right)));
-				}
+				leftSlot = findVariable(((Variable) left).symbol());
 			}
+			return t(statement, BindNodeGen.create(leftSlot, leftSlot.createReadNode(), translate(right)));
 		} else if (statement instanceof IfStatement) {
 			IfStatement ifStatement = (IfStatement) statement;
 			return new IfNode(translate(ifStatement.condition()),
@@ -266,9 +254,7 @@ public class Translator {
 		} else if (statement instanceof MatchStatement) {
 			MatchStatement matchStatement = (MatchStatement) statement;
 
-			FrameDescriptor frameDescriptor = environment.frameDescriptor;
-			FrameSlot valueSlot = frameDescriptor.addFrameSlot("MatchExpression-value" + nextID());
-
+			FrameSlot valueSlot = environment.frameDescriptor.addFrameSlot("MatchExpression-value" + nextID());
 			OzNode valueNode = translate(matchStatement.value());
 			Statement elseStatement = matchStatement.elseStatement();
 
@@ -285,11 +271,11 @@ public class Translator {
 				OzNode body = translate(clause.body());
 				caseNode = new IfNode(
 						new AndNode(checks.toArray(new OzNode[checks.size()])),
-						SequenceNode.sequence(bindings, body),
+						SequenceNode.sequence(bindings.toArray(new OzNode[bindings.size()]), body),
 						caseNode);
 			}
 
-			return new SequenceNode(
+			return SequenceNode.sequence(
 					new InitializeTmpNode(valueSlot, valueNode),
 					caseNode);
 		} else if (statement instanceof CallStatement) {
@@ -305,7 +291,7 @@ public class Translator {
 					Variable var = (Variable) args.get(args.size() - 1);
 					List<Expression> funArgs = args.subList(0, args.size() - 1);
 					FrameSlotAndDepth slot = findVariable(var.symbol());
-					return t(statement, BindNodeGen.create(slot, null, slot.createReadNode(), translateExpressionBuiltin(callable, funArgs)));
+					return t(statement, BindNodeGen.create(slot, slot.createReadNode(), translateExpressionBuiltin(callable, funArgs)));
 				}
 			} else {
 				OzNode[] argsNodes = new OzNode[args.size()];
@@ -339,15 +325,14 @@ public class Translator {
 			}
 		} else if (expression instanceof Variable) {
 			Variable variable = (Variable) expression;
-			FrameSlotAndDepth frameSlotAndDepth = findVariable(variable.symbol());
-			return frameSlotAndDepth.createReadNode();
+			return findVariable(variable.symbol()).createReadNode();
 		} else if (expression instanceof UnboundExpression) {
 			return new UnboundLiteralNode();
 		} else if (expression instanceof BinaryOp) {
 			BinaryOp binaryOp = (BinaryOp) expression;
-			OzNode left = translate(binaryOp.left());
-			OzNode right = translate(binaryOp.right());
-			return translateBinaryOp(binaryOp.operator(), left, right);
+			return translateBinaryOp(binaryOp.operator(),
+					translate(binaryOp.left()),
+					translate(binaryOp.right()));
 		} else if (expression instanceof ProcExpression) { // proc/fun literal
 			ProcExpression procExpression = (ProcExpression) expression;
 			FrameDescriptor frameDescriptor = new FrameDescriptor();
@@ -364,17 +349,14 @@ public class Translator {
 				}
 			}
 
-			OzNode body;
 			pushEnvironment(frameDescriptor);
 			try {
-				body = translate(procExpression.body());
+				nodes[i] = translate(procExpression.body());
 			} finally {
 				popEnvironment();
 			}
 
-			nodes[i] = body;
-
-			OzNode procBody = new SequenceNode(nodes);
+			OzNode procBody = SequenceNode.sequence(nodes);
 			return t(expression, new ProcDeclarationNode(frameDescriptor, procBody));
 		}
 
@@ -452,7 +434,7 @@ public class Translator {
 				return new OzCons(left, right);
 			} else {
 				Arity arity = buildArity(ozRecord.arity());
-				Object[] values = toJava(ozRecord.values()).stream().map(this::translateConstantValue).toArray(Object[]::new);
+				Object[] values = mapObjects(ozRecord.values(), this::translateConstantValue);
 				return RecordLiteralNode.buildRecord(arity, values);
 			}
 		}
@@ -507,7 +489,7 @@ public class Translator {
 	}
 
 	private Arity buildArity(OzArity arity) {
-		Object[] features = toJava(arity.features()).stream().map(Translator::translateFeature).toArray(Object[]::new);
+		Object[] features = mapObjects(arity.features(), Translator::translateFeature);
 		return Arity.build(translateLiteral(arity.label()), features);
 	}
 
@@ -548,6 +530,26 @@ public class Translator {
 
 	private static <E> Collection<E> toJava(scala.collection.immutable.Iterable<E> scalaIterable) {
 		return JavaConversions.asJavaCollection(scalaIterable);
+	}
+
+	private static <E> OzNode[] map(scala.collection.immutable.Iterable<E> scalaIterable, Function<E, OzNode> apply) {
+		Collection<E> collection = toJava(scalaIterable);
+		OzNode[] result = new OzNode[collection.size()];
+		int i = 0;
+		for (E element : collection) {
+			result[i++] = apply.apply(element);
+		}
+		return result;
+	}
+
+	private static <E> Object[] mapObjects(scala.collection.immutable.Iterable<E> scalaIterable, Function<E, Object> apply) {
+		Collection<E> collection = toJava(scalaIterable);
+		Object[] result = new Object[collection.size()];
+		int i = 0;
+		for (E element : collection) {
+			result[i++] = apply.apply(element);
+		}
+		return result;
 	}
 
 	private static RuntimeException unknown(String type, Object description) {
