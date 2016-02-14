@@ -166,11 +166,11 @@ public class Translator {
 
 		OzParser parser = new OzParser();
 
-		String[] builtinTypes = { "Value", "Number", "Float", "Int", "Exception", "Record" };
+		String[] builtinTypes = { "Value", "Number", "Float", "Int", "Exception", "Record", "Name", "Object", "Thread" };
 
 		List<String> builtins = new ArrayList<>();
 		for (String buitinType : builtinTypes) {
-			builtins.add("/home/eregon/code/mozart-graal/bootcompiler/Mod" + buitinType + "-builtin.json");
+			builtins.add("/home/eregon/code/mozart-graal/mozart-graal/builtins/Mod" + buitinType + "-builtin.json");
 		}
 		Main.loadModuleDefs(program, JavaConversions.asScalaBuffer(builtins).toList());
 
