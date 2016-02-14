@@ -1,5 +1,7 @@
 package org.mozartoz.truffle.nodes;
 
+import java.math.BigInteger;
+
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzVar;
 
@@ -9,6 +11,10 @@ public class OzGuards {
 
 	public static boolean isLong(Object value) {
 		return value instanceof Long;
+	}
+
+	public static boolean isBigInteger(Object value) {
+		return value instanceof BigInteger;
 	}
 
 	public static boolean isNil(Object value) {
