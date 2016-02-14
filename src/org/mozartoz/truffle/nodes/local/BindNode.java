@@ -16,17 +16,13 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class BindNode extends OzNode {
 
 	@Child WriteNode writeLeft;
-	@Child WriteNode writeRight;
 
 	@Child EqualNode equalNode;
 	@Child UnifyNode unifyNode;
 
-	public BindNode(FrameSlotAndDepth leftSlot, FrameSlotAndDepth rightSlot) {
+	public BindNode(FrameSlotAndDepth leftSlot) {
 		if (leftSlot != null) {
 			writeLeft = leftSlot.createWriteNode();
-		}
-		if (rightSlot != null) {
-			writeRight = rightSlot.createWriteNode();
 		}
 	}
 

@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.nodes;
 
-import java.util.List;
+import java.util.Arrays;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -9,17 +9,20 @@ public class SequenceNode extends OzNode {
 
 	@Children final OzNode[] statements;
 
-	public static OzNode sequence(List<OzNode> nodes, OzNode last) {
-		if (nodes.size() == 0) {
+	public static OzNode sequence(OzNode... nodes) {
+		return new SequenceNode(nodes);
+	}
+
+	public static OzNode sequence(OzNode[] nodes, OzNode last) {
+		if (nodes.length == 0) {
 			return last;
 		}
-		OzNode[] all = new OzNode[nodes.size() + 1];
-		nodes.toArray(all);
+		OzNode[] all = Arrays.copyOf(nodes, nodes.length + 1);
 		all[all.length - 1] = last;
 		return new SequenceNode(all);
 	}
 
-	public SequenceNode(OzNode... statements) {
+	private SequenceNode(OzNode... statements) {
 		this.statements = statements;
 	}
 
