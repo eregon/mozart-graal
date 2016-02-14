@@ -74,6 +74,7 @@ import org.mozartoz.truffle.nodes.builtins.GreaterThanNodeGen;
 import org.mozartoz.truffle.nodes.builtins.LabelNodeGen;
 import org.mozartoz.truffle.nodes.builtins.LesserThanNodeGen;
 import org.mozartoz.truffle.nodes.builtins.LesserThanOrEqualNodeGen;
+import org.mozartoz.truffle.nodes.builtins.ModNodeGen;
 import org.mozartoz.truffle.nodes.builtins.MulNodeGen;
 import org.mozartoz.truffle.nodes.builtins.NotNodeGen;
 import org.mozartoz.truffle.nodes.builtins.RaiseErrorNodeGen;
@@ -161,7 +162,7 @@ public class Translator {
 
 	public OzRootNode parseAndTranslate(String code) {
 		Program program = new Program(false);
-		program.baseDeclarations().$plus$eq("Show").$plus$eq("Label");
+		program.baseDeclarations().$plus$eq("Show").$plus$eq("Label").$plus$eq("ByNeedDot");
 
 		OzParser parser = new OzParser();
 
@@ -203,10 +204,13 @@ public class Translator {
 		OzNode showNode = ShowNodeGen.create(new ReadArgumentNode(0));
 		OzNode labelNode = BindVarValueNodeGen.create(new ReadArgumentNode(1),
 				LabelNodeGen.create(new ReadArgumentNode(0)));
-		Arity baseArity = Arity.build("base", "Show", "Label");
+		OzNode byNeedDotNode = BindVarValueNodeGen.create(new ReadArgumentNode(2),
+				DotNodeGen.create(new ReadArgumentNode(0), new ReadArgumentNode(1)));
+		Arity baseArity = Arity.build("base", "Show", "Label", "ByNeedDot");
 		OzNode initializeBaseNode = new RecordLiteralNode(baseArity, new OzNode[] {
 				new ProcDeclarationNode(new FrameDescriptor(), showNode),
-				new ProcDeclarationNode(new FrameDescriptor(), labelNode)
+				new ProcDeclarationNode(new FrameDescriptor(), labelNode),
+				new ProcDeclarationNode(new FrameDescriptor(), byNeedDotNode)
 		});
 		translated = new SequenceNode(
 				new InitializeTmpNode(baseSlot, initializeBaseNode),
@@ -367,7 +371,7 @@ public class Translator {
 			nodes[i] = body;
 
 			OzNode procBody = new SequenceNode(nodes);
-			return new ProcDeclarationNode(frameDescriptor, procBody);
+			return t(expression, new ProcDeclarationNode(frameDescriptor, procBody));
 		}
 
 		throw unknown("expression", expression);
@@ -513,6 +517,8 @@ public class Translator {
 			return MulNodeGen.create(left, right);
 		case "div":
 			return DivNodeGen.create(left, right);
+		case "mod":
+			return ModNodeGen.create(left, right);
 		case "==":
 			return EqualNodeGen.create(left, right);
 		case "\\=":

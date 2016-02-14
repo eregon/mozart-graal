@@ -38,6 +38,10 @@ public class Arity {
 		return shape;
 	}
 
+	public int getSize() {
+		return shape.getPropertyCount();
+	}
+
 	public boolean matches(DynamicObject object) {
 		return object.getShape() == shape && LABEL_LOCATION.get(object) == label;
 	}
