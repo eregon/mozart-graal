@@ -166,13 +166,7 @@ public class Translator {
 
 		OzParser parser = new OzParser();
 
-		String[] builtinTypes = { "Value", "Number", "Float", "Int", "Exception", "Record", "Name", "Object", "Thread" };
-
-		List<String> builtins = new ArrayList<>();
-		for (String buitinType : builtinTypes) {
-			builtins.add("/home/eregon/code/mozart-graal/mozart-graal/builtins/Mod" + buitinType + "-builtin.json");
-		}
-		Main.loadModuleDefs(program, JavaConversions.asScalaBuffer(builtins).toList());
+		loadBuiltinModules(program);
 
 		CharSequenceReader reader = new CharSequenceReader(code);
 		HashSet<String> defines = new HashSet<String>();// .$plus("Show");
@@ -217,6 +211,16 @@ public class Translator {
 				translated);
 
 		return new OzRootNode(environment.frameDescriptor, translated);
+	}
+
+	private void loadBuiltinModules(Program program) {
+		String[] builtinModules = { "Value", "Number", "Float", "Int", "Exception", "Record", "Name", "Object", "Thread" };
+
+		List<String> builtins = new ArrayList<>();
+		for (String buitinType : builtinModules) {
+			builtins.add("/home/eregon/code/mozart-graal/mozart-graal/builtins/Mod" + buitinType + "-builtin.json");
+		}
+		Main.loadModuleDefs(program, JavaConversions.asScalaBuffer(builtins).toList());
 	}
 
 	OzNode translate(Statement statement) {
