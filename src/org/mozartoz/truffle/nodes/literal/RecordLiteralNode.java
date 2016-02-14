@@ -17,6 +17,7 @@ public class RecordLiteralNode extends OzNode {
 	@Child ExecuteValuesNode executeValuesNode;
 
 	public RecordLiteralNode(Arity arity, OzNode[] values) {
+		assert arity.getSize() == values.length;
 		this.arity = arity;
 		this.factory = arity.getShape().createFactory();
 		this.executeValuesNode = new ExecuteValuesNode(derefIfBound(values));
