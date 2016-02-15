@@ -1,5 +1,7 @@
-package org.mozartoz.truffle.nodes;
+package org.mozartoz.truffle.nodes.builtins;
 
+import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
 
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -7,7 +9,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @NodeChild("cons")
-public abstract class HeadNode extends OzNode {
+public abstract class TailNode extends OzNode {
 
 	@CreateCast("cons")
 	protected OzNode derefCons(OzNode cons) {
@@ -15,8 +17,8 @@ public abstract class HeadNode extends OzNode {
 	}
 
 	@Specialization
-	protected Object head(OzCons cons) {
-		return cons.getHead();
+	protected Object tail(OzCons cons) {
+		return cons.getTail();
 	}
 
 }
