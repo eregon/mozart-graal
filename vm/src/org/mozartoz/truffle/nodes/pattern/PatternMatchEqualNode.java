@@ -1,5 +1,7 @@
-package org.mozartoz.truffle.nodes;
+package org.mozartoz.truffle.nodes.pattern;
 
+import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.EqualNode;
 import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
 

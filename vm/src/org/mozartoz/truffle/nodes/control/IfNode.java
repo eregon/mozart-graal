@@ -1,4 +1,8 @@
-package org.mozartoz.truffle.nodes;
+package org.mozartoz.truffle.nodes.control;
+
+import org.mozartoz.truffle.nodes.DerefNode;
+import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
