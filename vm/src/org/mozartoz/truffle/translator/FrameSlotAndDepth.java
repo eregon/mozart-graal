@@ -2,11 +2,8 @@ package org.mozartoz.truffle.translator;
 
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.local.ReadCapturedVariableNode;
-import org.mozartoz.truffle.nodes.local.ReadFrameSlotNode;
-import org.mozartoz.truffle.nodes.local.ReadFrameSlotNodeGen;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.nodes.local.WriteCapturedVariableNode;
-import org.mozartoz.truffle.nodes.local.WriteFrameSlotNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNodeGen;
 import org.mozartoz.truffle.nodes.local.WriteNode;
 
@@ -27,14 +24,6 @@ public class FrameSlotAndDepth {
 
 	public int getDepth() {
 		return depth;
-	}
-
-	public ReadFrameSlotNode createReadSlotNode() {
-		return ReadFrameSlotNodeGen.create(slot);
-	}
-
-	public WriteFrameSlotNode createWriteSlotNode() {
-		return WriteFrameSlotNodeGen.create(slot);
 	}
 
 	public OzNode createReadNode() {
