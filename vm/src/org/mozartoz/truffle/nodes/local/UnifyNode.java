@@ -1,8 +1,7 @@
 package org.mozartoz.truffle.nodes.local;
 
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.builtins.EqualNode;
-import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.EqualNode;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzVar;
 
@@ -13,6 +12,10 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 @NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 public abstract class UnifyNode extends OzNode {
+
+	public static UnifyNode create() {
+		return UnifyNodeGen.create(null, null);
+	}
 
 	// TODO: should undo bindings if unification fails.
 	// Maybe by catching the failed unification exception?
@@ -46,7 +49,7 @@ public abstract class UnifyNode extends OzNode {
 	private boolean equal(Object a, Object b) {
 		if (equalNode == null) {
 			CompilerDirectives.transferToInterpreter();
-			equalNode = insert(EqualNodeGen.create(null, null));
+			equalNode = insert(EqualNode.create());
 		}
 		return equalNode.executeEqual(a, b);
 	}

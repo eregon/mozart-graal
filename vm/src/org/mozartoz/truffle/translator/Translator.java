@@ -44,6 +44,7 @@ import org.mozartoz.bootcompiler.oz.OzValue;
 import org.mozartoz.bootcompiler.oz.True;
 import org.mozartoz.bootcompiler.oz.UnitVal;
 import org.mozartoz.bootcompiler.parser.OzParser;
+import org.mozartoz.bootcompiler.symtab.Builtin;
 import org.mozartoz.bootcompiler.symtab.Program;
 import org.mozartoz.bootcompiler.symtab.Symbol;
 import org.mozartoz.bootcompiler.transform.ConstantFolding;
@@ -56,23 +57,22 @@ import org.mozartoz.bootcompiler.transform.Unnester;
 import org.mozartoz.bootcompiler.util.FilePosition;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
-import org.mozartoz.truffle.nodes.builtins.AddNodeGen;
-import org.mozartoz.truffle.nodes.builtins.DivNodeGen;
-import org.mozartoz.truffle.nodes.builtins.DotNodeGen;
-import org.mozartoz.truffle.nodes.builtins.EqualNodeGen;
-import org.mozartoz.truffle.nodes.builtins.GreaterThanNodeGen;
-import org.mozartoz.truffle.nodes.builtins.HeadNodeGen;
-import org.mozartoz.truffle.nodes.builtins.LabelNodeGen;
-import org.mozartoz.truffle.nodes.builtins.LesserThanNodeGen;
-import org.mozartoz.truffle.nodes.builtins.LesserThanOrEqualNodeGen;
-import org.mozartoz.truffle.nodes.builtins.ModNodeGen;
-import org.mozartoz.truffle.nodes.builtins.MulNodeGen;
-import org.mozartoz.truffle.nodes.builtins.NotNodeGen;
-import org.mozartoz.truffle.nodes.builtins.RaiseErrorNodeGen;
-import org.mozartoz.truffle.nodes.builtins.RecordMakeDynamicNodeGen;
-import org.mozartoz.truffle.nodes.builtins.ShowNodeGen;
-import org.mozartoz.truffle.nodes.builtins.SubNodeGen;
-import org.mozartoz.truffle.nodes.builtins.TailNodeGen;
+import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
+import org.mozartoz.truffle.nodes.builtins.IntBuiltinsFactory.DivNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.IntBuiltinsFactory.ModNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.HeadNodeGen;
+import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.TailNodeGen;
+import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.AddNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.MulNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.SubNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.LabelNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.SystemBuiltinsFactory.ShowNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.DotNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.GreaterThanNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanOrEqualNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.NotEqualNodeFactory;
 import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.control.AndNode;
@@ -98,6 +98,7 @@ import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzFunction;
 import org.mozartoz.truffle.runtime.Unit;
 
 import scala.collection.JavaConversions;
@@ -167,6 +168,7 @@ public class Translator {
 		OzParser parser = new OzParser();
 
 		loadBuiltinModules(program);
+		BuiltinsManager.defineBuiltins();
 
 		CharSequenceReader reader = new CharSequenceReader(code);
 		HashSet<String> defines = new HashSet<String>();// .$plus("Show");
@@ -195,22 +197,24 @@ public class Translator {
 
 		OzNode translated = translate(ast);
 
-		OzNode showNode = ShowNodeGen.create(new ReadArgumentNode(0));
+		OzNode showNode = ShowNodeFactory.create(new ReadArgumentNode(0));
 		OzNode labelNode = BindVarValueNodeGen.create(new ReadArgumentNode(1),
-				LabelNodeGen.create(new ReadArgumentNode(0)));
+				LabelNodeFactory.create(new ReadArgumentNode(0)));
 		OzNode byNeedDotNode = BindVarValueNodeGen.create(new ReadArgumentNode(2),
-				DotNodeGen.create(new ReadArgumentNode(0), new ReadArgumentNode(1)));
+				DotNodeFactory.create(new ReadArgumentNode(0), new ReadArgumentNode(1)));
 		Arity baseArity = Arity.build("base", "Show", "Label", "ByNeedDot");
+		SourceSection sourceSection = SourceSection.createUnavailable("builtin", "TODO");
 		OzNode initializeBaseNode = new RecordLiteralNode(baseArity, new OzNode[] {
-				new ProcDeclarationNode(new FrameDescriptor(), showNode),
-				new ProcDeclarationNode(new FrameDescriptor(), labelNode),
-				new ProcDeclarationNode(new FrameDescriptor(), byNeedDotNode)
+				new ProcDeclarationNode(sourceSection, new FrameDescriptor(), showNode),
+				new ProcDeclarationNode(sourceSection, new FrameDescriptor(), labelNode),
+				new ProcDeclarationNode(sourceSection, new FrameDescriptor(), byNeedDotNode)
 		});
 		translated = SequenceNode.sequence(
 				new InitializeTmpNode(baseSlot, initializeBaseNode),
 				translated);
 
-		return new OzRootNode(environment.frameDescriptor, translated);
+		SourceSection topSourceSection = SourceSection.createUnavailable("top-level", "<top>");
+		return new OzRootNode(topSourceSection, environment.frameDescriptor, translated);
 	}
 
 	private void loadBuiltinModules(Program program) {
@@ -283,23 +287,11 @@ public class Translator {
 			Expression callable = callStatement.callable();
 			List<Expression> args = new ArrayList<>(toJava(callStatement.args()));
 
-			if (callable instanceof Constant && ((Constant) callable).value() instanceof OzBuiltin) {
-				OzBuiltin builtin = (OzBuiltin) ((Constant) callable).value();
-				if (builtin.builtin().name().equals("raiseError")) { // Proc builtin
-					return t(statement, RaiseErrorNodeGen.create(translate(args.get(0))));
-				} else {
-					Variable var = (Variable) args.get(args.size() - 1);
-					List<Expression> funArgs = args.subList(0, args.size() - 1);
-					FrameSlotAndDepth slot = findVariable(var.symbol());
-					return t(statement, BindNodeGen.create(slot, slot.createReadNode(), translateExpressionBuiltin(callable, funArgs)));
-				}
-			} else {
-				OzNode[] argsNodes = new OzNode[args.size()];
-				for (int i = 0; i < args.size(); i++) {
-					argsNodes[i] = translate(args.get(i));
-				}
-				return t(statement, CallProcNodeGen.create(argsNodes, translate(callable)));
+			OzNode[] argsNodes = new OzNode[args.size()];
+			for (int i = 0; i < args.size(); i++) {
+				argsNodes[i] = translate(args.get(i));
 			}
+			return t(statement, CallProcNodeGen.create(argsNodes, translate(callable)));
 		}
 
 		throw unknown("statement", statement);
@@ -357,7 +349,8 @@ public class Translator {
 			}
 
 			OzNode procBody = SequenceNode.sequence(nodes);
-			return t(expression, new ProcDeclarationNode(frameDescriptor, procBody));
+			SourceSection sourceSection = t(expression);
+			return new ProcDeclarationNode(sourceSection, frameDescriptor, procBody);
 		}
 
 		throw unknown("expression", expression);
@@ -403,7 +396,7 @@ public class Translator {
 			for (OzRecordField field : toJava(record.fields())) {
 				Object feature = translateFeature(field.feature());
 				translateMatcher(field.value(), r -> {
-					return DotNodeGen.create(r, new LiteralNode(feature));
+					return DotNodeFactory.create(r, new LiteralNode(feature));
 				}, elementNode, checks, bindings);
 			}
 		} else {
@@ -437,6 +430,14 @@ public class Translator {
 				Object[] values = mapObjects(ozRecord.values(), this::translateConstantValue);
 				return RecordLiteralNode.buildRecord(arity, values);
 			}
+		} else if (value instanceof OzBuiltin) {
+			Builtin builtin = ((OzBuiltin) value).builtin();
+			OzFunction function = BuiltinsManager.getBuiltin(builtin.moduleName(), builtin.name());
+			if (function != null) {
+				return function;
+			} else {
+				throw unknown("builtin", builtin);
+			}
 		}
 		throw unknown("value", value);
 	}
@@ -469,21 +470,6 @@ public class Translator {
 		return atom.value().intern();
 	}
 
-	private OzNode translateExpressionBuiltin(Expression callable, List<Expression> args) {
-		String name = ((OzBuiltin) ((Constant) callable).value()).builtin().name();
-		if (args.size() == 1) {
-			if (name.equals("+1") || name.equals("-1")) {
-				String op = name.substring(0, 1);
-				return translate(new BinaryOp(args.get(0), op, new Constant(new OzInt(1))));
-			}
-		} else if (args.size() == 2) {
-			OzNode left = translate(args.get(0));
-			OzNode right = translate(args.get(1));
-			return translateBinaryOp(name, left, right);
-		}
-		throw unknown("builtin", name);
-	}
-
 	private OzNode buildCons(OzNode head, OzNode tail) {
 		return ConsLiteralNodeGen.create(head, tail);
 	}
@@ -496,29 +482,27 @@ public class Translator {
 	private OzNode translateBinaryOp(String operator, OzNode left, OzNode right) {
 		switch (operator) {
 		case "+":
-			return AddNodeGen.create(left, right);
+			return AddNodeFactory.create(left, right);
 		case "-":
-			return SubNodeGen.create(left, right);
+			return SubNodeFactory.create(left, right);
 		case "*":
-			return MulNodeGen.create(left, right);
+			return MulNodeFactory.create(left, right);
 		case "div":
-			return DivNodeGen.create(left, right);
+			return DivNodeFactory.create(left, right);
 		case "mod":
-			return ModNodeGen.create(left, right);
+			return ModNodeFactory.create(left, right);
 		case "==":
-			return EqualNodeGen.create(left, right);
+			return EqualNodeFactory.create(left, right);
 		case "\\=":
-			return NotNodeGen.create(EqualNodeGen.create(left, right));
+			return NotEqualNodeFactory.create(left, right);
 		case "<":
-			return LesserThanNodeGen.create(left, right);
+			return LesserThanNodeFactory.create(left, right);
 		case "=<":
-			return LesserThanOrEqualNodeGen.create(left, right);
+			return LesserThanOrEqualNodeFactory.create(left, right);
 		case ">":
-			return GreaterThanNodeGen.create(left, right);
+			return GreaterThanNodeFactory.create(left, right);
 		case ".":
-			return DotNodeGen.create(left, right);
-		case "makeDynamic": // Record
-			return RecordMakeDynamicNodeGen.create(left, right);
+			return DotNodeFactory.create(left, right);
 		default:
 			throw unknown("operator", operator);
 		}

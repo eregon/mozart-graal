@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
-import org.mozartoz.truffle.nodes.builtins.RaiseErrorNode;
+import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltins.RaiseErrorNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
