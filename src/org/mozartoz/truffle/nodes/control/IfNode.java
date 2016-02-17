@@ -1,7 +1,6 @@
 package org.mozartoz.truffle.nodes.control;
 
 import org.mozartoz.truffle.nodes.DerefNode;
-import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -21,7 +20,7 @@ public class IfNode extends OzNode {
 		this.condition = condition;
 		this.thenExpr = thenExpr;
 		this.elseExpr = elseExpr;
-		this.derefNode = DerefNodeGen.create(null);
+		this.derefNode = DerefNode.create();
 	}
 
 	@Override

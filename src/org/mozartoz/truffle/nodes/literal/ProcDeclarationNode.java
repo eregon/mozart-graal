@@ -8,13 +8,15 @@ import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.source.SourceSection;
 
 public class ProcDeclarationNode extends OzNode {
 
 	private final CallTarget callTarget;
 
-	public ProcDeclarationNode(FrameDescriptor frameDescriptor, OzNode body) {
-		OzRootNode rootNode = new OzRootNode(frameDescriptor, body);
+	public ProcDeclarationNode(SourceSection sourceSection, FrameDescriptor frameDescriptor, OzNode body) {
+		assignSourceSection(sourceSection);
+		OzRootNode rootNode = new OzRootNode(sourceSection, frameDescriptor, body);
 		this.callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 	}
 
