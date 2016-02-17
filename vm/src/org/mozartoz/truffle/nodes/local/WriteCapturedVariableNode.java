@@ -19,9 +19,9 @@ public class WriteCapturedVariableNode extends Node implements WriteNode {
 	}
 
 	@Override
-	public Object write(VirtualFrame topFrame, Object value) {
+	public void write(VirtualFrame topFrame, Object value) {
 		Frame parentFrame = OzArguments.getParentFrame(topFrame, depth);
-		return writeFrameSlotNode.executeWrite(parentFrame, value);
+		writeFrameSlotNode.executeWrite(parentFrame, value);
 	}
 
 }

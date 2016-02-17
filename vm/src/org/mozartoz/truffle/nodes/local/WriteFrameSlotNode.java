@@ -18,26 +18,24 @@ public abstract class WriteFrameSlotNode extends Node implements WriteNode {
 		this.slot = slot;
 	}
 
-	public Object write(VirtualFrame frame, Object value) {
-		return executeWrite(frame, value);
+	public void write(VirtualFrame frame, Object value) {
+		executeWrite(frame, value);
 	}
 
-	public abstract Object executeWrite(Frame frame, Object value);
+	public abstract void executeWrite(Frame frame, Object value);
 
 	@Specialization(guards = "isKind(frame, Long)")
-	protected long writeLong(Frame frame, long value) {
+	protected void writeLong(Frame frame, long value) {
 		frame.setLong(slot, value);
-		return value;
 	}
 
 	@Specialization(contains = "writeLong")
-	protected Object write(Frame frame, Object value) {
+	protected void write(Frame frame, Object value) {
 		if (slot.getKind() != FrameSlotKind.Object) {
 			CompilerDirectives.transferToInterpreterAndInvalidate();
 			slot.setKind(FrameSlotKind.Object);
 		}
 		frame.setObject(slot, value);
-		return value;
 	}
 
 	protected boolean isKind(Frame frame, FrameSlotKind kind) {
