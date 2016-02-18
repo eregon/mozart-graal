@@ -1,5 +1,7 @@
 package org.mozartoz.truffle.nodes.literal;
 
+import java.util.Map;
+
 import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.call.ExecuteValuesNode;
@@ -39,8 +41,16 @@ public class RecordLiteralNode extends OzNode {
 	}
 
 	public static DynamicObject buildRecord(Arity arity, Object[] values) {
+		assert values.length != 0;
 		Object[] initialValues = ArrayUtils.unshift(arity.getLabel(), values);
 		return arity.getShape().createFactory().newInstance(initialValues);
+	}
+
+	public static DynamicObject buildRecord(Object label, Map<?, ?> map) {
+		Object[] features = map.keySet().toArray();
+		Arity arity = Arity.build(label, features);
+		Object[] values = map.values().toArray();
+		return buildRecord(arity, values);
 	}
 
 }
