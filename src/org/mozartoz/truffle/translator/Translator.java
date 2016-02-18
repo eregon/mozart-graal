@@ -368,20 +368,7 @@ public class Translator {
 	private void translatePattern(Expression pattern, OzNode valueNode, List<OzNode> checks, List<OzNode> bindings) {
 		if (pattern instanceof Constant) {
 			OzValue matcher = ((Constant) pattern).value();
-			if (matcher instanceof OzFeature) {
-				Object feature = translateFeature((OzFeature) matcher);
-				checks.add(PatternMatchEqualNodeGen.create(feature, valueNode));
-			} else if (matcher instanceof OzRecord) {
-				OzRecord record = (OzRecord) matcher;
-				assert record.isCons();
-				OzValue head = record.values().apply(0);
-				translateMatcher(head, HeadNodeGen::create, valueNode, checks, bindings);
-				OzValue tail = record.values().apply(1);
-				translateMatcher(tail, TailNodeGen::create, valueNode, checks, bindings);
-				checks.add(PatternMatchConsNodeGen.create(valueNode));
-			} else {
-				throw unknown("pattern", pattern);
-			}
+			translateMatcher(matcher, node -> node, valueNode, checks, bindings);
 		} else {
 			throw unknown("pattern", pattern);
 		}
@@ -396,17 +383,30 @@ public class Translator {
 			FrameSlot slot = frameDescriptor.findOrAddFrameSlot(sym);
 			OzNode elementNode = element.apply(copy(baseNode));
 			bindings.add(PatternMatchCaptureNodeGen.create(new ReadLocalVariableNode(slot), elementNode));
+		} else if (matcher instanceof OzFeature) {
+			Object feature = translateFeature((OzFeature) matcher);
+			OzNode elementNode = element.apply(copy(baseNode));
+			checks.add(PatternMatchEqualNodeGen.create(feature, elementNode));
 		} else if (matcher instanceof OzRecord) {
 			OzRecord record = (OzRecord) matcher;
-			Arity arity = buildArity(record.arity());
-			OzNode elementNode = element.apply(copy(baseNode));
-			checks.add(PatternMatchRecordNodeGen.create(arity, copy(elementNode)));
+			if (record.isCons()) {
+				OzNode elementNode = element.apply(copy(baseNode));
+				checks.add(PatternMatchConsNodeGen.create(elementNode));
+				OzValue head = record.values().apply(0);
+				translateMatcher(head, HeadNodeGen::create, elementNode, checks, bindings);
+				OzValue tail = record.values().apply(1);
+				translateMatcher(tail, TailNodeGen::create, elementNode, checks, bindings);
+			} else {
+				Arity arity = buildArity(record.arity());
+				OzNode elementNode = element.apply(copy(baseNode));
+				checks.add(PatternMatchRecordNodeGen.create(arity, elementNode));
 
-			for (OzRecordField field : toJava(record.fields())) {
-				Object feature = translateFeature(field.feature());
-				translateMatcher(field.value(), r -> {
-					return DotNodeFactory.create(r, new LiteralNode(feature));
-				}, elementNode, checks, bindings);
+				for (OzRecordField field : toJava(record.fields())) {
+					Object feature = translateFeature(field.feature());
+					translateMatcher(field.value(), r -> {
+						return DotNodeFactory.create(r, new LiteralNode(feature));
+					}, elementNode, checks, bindings);
+				}
 			}
 		} else {
 			throw unknown("pattern matcher", matcher);
