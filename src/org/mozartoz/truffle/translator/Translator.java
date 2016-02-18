@@ -330,6 +330,9 @@ public class Translator {
 			}
 		} else if (expression instanceof Variable) {
 			Variable variable = (Variable) expression;
+			if (variable.symbol().name().equals("BOOTMODULES")) {
+				return new LiteralNode(BuiltinsManager.getBootModulesRecord());
+			}
 			return findVariable(variable.symbol()).createReadNode();
 		} else if (expression instanceof UnboundExpression) {
 			return new UnboundLiteralNode();

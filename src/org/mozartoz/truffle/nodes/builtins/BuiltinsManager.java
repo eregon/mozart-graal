@@ -7,6 +7,7 @@ import java.util.Map;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
+import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
 import org.mozartoz.truffle.runtime.OzFunction;
 
@@ -14,16 +15,23 @@ import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class BuiltinsManager {
 
-	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
-
 	private static final String[] MODULES = { "Value", "Int", "Number", "Record", "Exception", "Thread" };
+
+	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
+	private static final Map<String, DynamicObject> BOOT_MODULES = new HashMap<>();
+	private static DynamicObject BOOT_MODULES_RECORD;
 
 	public static OzFunction getBuiltin(String moduleName, String builtinName) {
 		return BUILTINS.get(moduleName + "." + builtinName);
+	}
+
+	public static DynamicObject getBootModulesRecord() {
+		return BOOT_MODULES_RECORD;
 	}
 
 	public static void defineBuiltins() {
@@ -40,9 +48,13 @@ public abstract class BuiltinsManager {
 				throw new Error(e);
 			}
 		}
+		BOOT_MODULES_RECORD = RecordLiteralNode.buildRecord("bootModules", BOOT_MODULES);
 	}
 
 	private static void installBuiltins(String module, List<NodeFactory<? extends OzNode>> factories) {
+		// The builtins of this module only, indexed by the builtin name
+		Map<String, OzFunction> builtins = new HashMap<>(factories.size());
+
 		for (NodeFactory<? extends OzNode> factory : factories) {
 			Builtin builtinAnno = factory.getNodeClass().getAnnotation(Builtin.class);
 			boolean anno = builtinAnno != null;
@@ -70,6 +82,10 @@ public abstract class BuiltinsManager {
 			CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 			OzFunction function = new OzFunction(callTarget, null);
 			BUILTINS.put(name, function);
+			builtins.put(builtinName.intern(), function);
 		}
+
+		String label = module.toLowerCase().intern();
+		BOOT_MODULES.put("Boot_" + module, RecordLiteralNode.buildRecord(label, builtins));
 	}
 }
