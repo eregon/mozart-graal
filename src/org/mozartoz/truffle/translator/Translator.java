@@ -68,6 +68,7 @@ import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.MulNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.SubNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.LabelNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.SystemBuiltinsFactory.ShowNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.DotNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.DotNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.GreaterThanNodeFactory;
@@ -368,44 +369,36 @@ public class Translator {
 	private void translatePattern(Expression pattern, OzNode valueNode, List<OzNode> checks, List<OzNode> bindings) {
 		if (pattern instanceof Constant) {
 			OzValue matcher = ((Constant) pattern).value();
-			translateMatcher(matcher, node -> node, valueNode, checks, bindings);
+			translateMatcher(matcher, valueNode, checks, bindings);
 		} else {
 			throw unknown("pattern", pattern);
 		}
 	}
 
-	private void translateMatcher(OzValue matcher, Function<OzNode, OzNode> element, OzNode baseNode, List<OzNode> checks, List<OzNode> bindings) {
+	private void translateMatcher(OzValue matcher, OzNode valueNode, List<OzNode> checks, List<OzNode> bindings) {
 		if (matcher instanceof OzPatMatWildcard) {
 			// Nothing to do
 		} else if (matcher instanceof OzPatMatCapture) {
-			Symbol sym = ((OzPatMatCapture) matcher).variable();
-			FrameDescriptor frameDescriptor = environment.frameDescriptor;
-			FrameSlot slot = frameDescriptor.findOrAddFrameSlot(sym);
-			OzNode elementNode = element.apply(copy(baseNode));
-			bindings.add(PatternMatchCaptureNodeGen.create(new ReadLocalVariableNode(slot), elementNode));
+			FrameSlotAndDepth slot = findVariable(((OzPatMatCapture) matcher).variable());
+			bindings.add(PatternMatchCaptureNodeGen.create(slot.createReadNode(), copy(valueNode)));
 		} else if (matcher instanceof OzFeature) {
 			Object feature = translateFeature((OzFeature) matcher);
-			OzNode elementNode = element.apply(copy(baseNode));
-			checks.add(PatternMatchEqualNodeGen.create(feature, elementNode));
+			checks.add(PatternMatchEqualNodeGen.create(feature, copy(valueNode)));
 		} else if (matcher instanceof OzRecord) {
 			OzRecord record = (OzRecord) matcher;
 			if (record.isCons()) {
-				OzNode elementNode = element.apply(copy(baseNode));
-				checks.add(PatternMatchConsNodeGen.create(elementNode));
+				checks.add(PatternMatchConsNodeGen.create(copy(valueNode)));
 				OzValue head = record.values().apply(0);
-				translateMatcher(head, HeadNodeGen::create, elementNode, checks, bindings);
+				translateMatcher(head, HeadNodeGen.create(copy(valueNode)), checks, bindings);
 				OzValue tail = record.values().apply(1);
-				translateMatcher(tail, TailNodeGen::create, elementNode, checks, bindings);
+				translateMatcher(tail, TailNodeGen.create(copy(valueNode)), checks, bindings);
 			} else {
 				Arity arity = buildArity(record.arity());
-				OzNode elementNode = element.apply(copy(baseNode));
-				checks.add(PatternMatchRecordNodeGen.create(arity, elementNode));
-
+				checks.add(PatternMatchRecordNodeGen.create(arity, copy(valueNode)));
 				for (OzRecordField field : toJava(record.fields())) {
 					Object feature = translateFeature(field.feature());
-					translateMatcher(field.value(), r -> {
-						return DotNodeFactory.create(r, new LiteralNode(feature));
-					}, elementNode, checks, bindings);
+					DotNode dotNode = DotNodeFactory.create(copy(valueNode), new LiteralNode(feature));
+					translateMatcher(field.value(), dotNode, checks, bindings);
 				}
 			}
 		} else {
