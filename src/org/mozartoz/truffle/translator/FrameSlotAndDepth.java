@@ -13,6 +13,10 @@ public class FrameSlotAndDepth {
 	final FrameSlot slot;
 	final int depth;
 
+	public FrameSlotAndDepth(FrameSlot frameSlot) {
+		this(frameSlot, 0);
+	}
+
 	public FrameSlotAndDepth(FrameSlot frameSlot, int depth) {
 		this.slot = frameSlot;
 		this.depth = depth;

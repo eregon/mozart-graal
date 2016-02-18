@@ -21,7 +21,6 @@ public abstract class IntBuiltins {
 	@NodeChild("value")
 	public static abstract class AddOneNode extends OzNode {
 
-
 		@CreateCast("value")
 		protected OzNode derefValue(OzNode var) {
 			return DerefNodeGen.create(var);

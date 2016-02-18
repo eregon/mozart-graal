@@ -20,7 +20,7 @@ public abstract class BuiltinsManager {
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
 
-	private static final String[] MODULES = { "Value", "Int", "Number", "Record", "Exception" };
+	private static final String[] MODULES = { "Value", "Int", "Number", "Record", "Exception", "Thread" };
 
 	public static OzFunction getBuiltin(String moduleName, String builtinName) {
 		return BUILTINS.get(moduleName + "." + builtinName);
