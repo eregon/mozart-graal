@@ -26,6 +26,7 @@ import org.mozartoz.bootcompiler.ast.Record;
 import org.mozartoz.bootcompiler.ast.RecordField;
 import org.mozartoz.bootcompiler.ast.SkipStatement;
 import org.mozartoz.bootcompiler.ast.Statement;
+import org.mozartoz.bootcompiler.ast.TryStatement;
 import org.mozartoz.bootcompiler.ast.UnboundExpression;
 import org.mozartoz.bootcompiler.ast.Variable;
 import org.mozartoz.bootcompiler.ast.VariableOrRaw;
@@ -79,6 +80,7 @@ import org.mozartoz.truffle.nodes.control.AndNode;
 import org.mozartoz.truffle.nodes.control.IfNode;
 import org.mozartoz.truffle.nodes.control.SequenceNode;
 import org.mozartoz.truffle.nodes.control.SkipNode;
+import org.mozartoz.truffle.nodes.control.TryNode;
 import org.mozartoz.truffle.nodes.literal.BooleanLiteralNode;
 import org.mozartoz.truffle.nodes.literal.ConsLiteralNodeGen;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
@@ -255,6 +257,13 @@ public class Translator {
 			return new IfNode(translate(ifStatement.condition()),
 					translate(ifStatement.trueStatement()),
 					translate(ifStatement.falseStatement()));
+		} else if (statement instanceof TryStatement) {
+			TryStatement tryStatement = (TryStatement) statement;
+			FrameSlotAndDepth exceptionVarSlot = findVariable(((Variable) tryStatement.exceptionVar()).symbol());
+			return new TryNode(
+					exceptionVarSlot,
+					translate(tryStatement.body()),
+					translate(tryStatement.catchBody()));
 		} else if (statement instanceof MatchStatement) {
 			MatchStatement matchStatement = (MatchStatement) statement;
 

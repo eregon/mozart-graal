@@ -5,6 +5,7 @@ import java.util.function.Function;
 
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.RaiseErrorNodeFactory;
 import org.mozartoz.truffle.runtime.OzError;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -23,6 +24,8 @@ public abstract class ExceptionBuiltins {
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class RaiseErrorNode extends OzNode {
+
+		public abstract Object executeRaiseError(Object value);
 
 		@CreateCast("value")
 		protected OzNode derefValue(OzNode value) {
@@ -80,6 +83,21 @@ public abstract class ExceptionBuiltins {
 				return null;
 			});
 			return builder.toString() + "<END>";
+		}
+
+	}
+
+	@Builtin(proc = true)
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class RaiseNode extends OzNode {
+
+		@Child RaiseErrorNode raiseErrorNode = RaiseErrorNodeFactory.create(null);
+
+		@Specialization
+		Object raise(Object value) {
+			// TODO: should wrap in error(Value)
+			return raiseErrorNode.executeRaiseError(value);
 		}
 
 	}
