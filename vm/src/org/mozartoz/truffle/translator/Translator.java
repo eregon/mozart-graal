@@ -68,6 +68,7 @@ import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.MulNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.SubNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.LabelNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.SystemBuiltinsFactory.ShowNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.UnknownBuiltinNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.DotNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.DotNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
@@ -110,6 +111,8 @@ import scala.util.parsing.combinator.Parsers.ParseResult;
 import scala.util.parsing.input.CharSequenceReader;
 import scala.util.parsing.input.Position;
 
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
@@ -438,7 +441,9 @@ public class Translator {
 			if (function != null) {
 				return function;
 			} else {
-				throw unknown("builtin", builtin);
+				OzRootNode rootNode = new OzRootNode(null, null, new UnknownBuiltinNode(builtin.toString()));
+				CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+				return new OzFunction(callTarget, null);
 			}
 		}
 		throw unknown("value", value);

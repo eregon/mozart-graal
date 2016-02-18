@@ -1,7 +1,5 @@
 package org.mozartoz.truffle.nodes.builtins;
 
-import java.math.BigInteger;
-
 import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -15,7 +13,7 @@ public abstract class ThreadBuiltins {
 	public static abstract class CreateNode extends OzNode {
 
 		@Specialization
-		protected Object createOne(BigInteger n) {
+		protected Object create(Object target) {
 			throw new UnsupportedOperationException();
 		}
 
