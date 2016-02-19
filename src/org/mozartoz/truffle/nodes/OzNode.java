@@ -15,4 +15,8 @@ public abstract class OzNode extends Node {
 
 	public abstract Object execute(VirtualFrame frame);
 
+	protected Object unimplemented() {
+		throw new RuntimeException("unimplemented");
+	}
+
 }
