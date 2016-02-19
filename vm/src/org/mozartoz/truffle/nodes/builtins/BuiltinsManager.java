@@ -20,7 +20,7 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class BuiltinsManager {
 
-	private static final String[] MODULES = { "Value", "Int", "Number", "Record", "Exception", "Thread", "Literal" };
+	private static final String[] MODULES = { "Value", "Int", "Number", "Record", "Exception", "Thread", "Literal", "Cell" };
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
 	private static final Map<String, DynamicObject> BOOT_MODULES = new HashMap<>();
