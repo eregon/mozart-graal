@@ -564,6 +564,22 @@ public class Translator {
 	private SourceSection t(org.mozartoz.bootcompiler.ast.Node node) {
 		Position pos = node.pos();
 		if (pos instanceof FilePosition) {
+			return t(pos);
+		} else {
+			if (node instanceof CallStatement) {
+				CallStatement callStatement = (CallStatement) node;
+				if (!callStatement.args().isEmpty() &&
+						callStatement.args().head().pos() instanceof FilePosition) {
+					Position firstArgPos = callStatement.args().head().pos();
+					return t(firstArgPos);
+				}
+			}
+			return t(pos);
+		}
+	}
+
+	private SourceSection t(Position pos) {
+		if (pos instanceof FilePosition) {
 			FilePosition filePosition = (FilePosition) pos;
 			String canonicalPath;
 			try {
