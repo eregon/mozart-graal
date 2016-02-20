@@ -111,6 +111,7 @@ public abstract class BuiltinsManager {
 			OzRootNode rootNode = new OzRootNode(sourceSection, new FrameDescriptor(), node);
 			CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 			OzFunction function = new OzFunction(callTarget, null);
+			assert !BUILTINS.containsKey(name) : name;
 			BUILTINS.put(name, function);
 			builtins.put(builtinName.intern(), function);
 		}

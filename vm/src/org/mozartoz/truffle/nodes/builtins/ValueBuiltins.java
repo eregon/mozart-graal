@@ -142,6 +142,28 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(name = ">=")
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
+	public static abstract class GreaterThanOrEqualNode extends OzNode {
+
+		@CreateCast("left")
+		protected OzNode derefLeft(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
+		@CreateCast("right")
+		protected OzNode derefRight(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
+		@Specialization
+		protected boolean greaterThanOrEqual(long a, long b) {
+			return a >= b;
+		}
+
+	}
+
 	@Builtin(name = ">")
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
@@ -208,6 +230,287 @@ public abstract class ValueBuiltins {
 				throw new OzError("record has no feature " + feature);
 			}
 			return value;
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("value"), @NodeChild("feature") })
+	public static abstract class DotAssignNode extends OzNode {
+
+		@Specialization
+		Object dotAssign(Object value, Object feature) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("value"), @NodeChild("feature"), @NodeChild("newValue") })
+	public static abstract class DotExchangeNode extends OzNode {
+
+		@Specialization
+		Object dotExchange(Object value, Object feature, Object newValue) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("reference")
+	public static abstract class CatAccessNode extends OzNode {
+
+		@Specialization
+		Object catAccess(Object reference) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("reference")
+	public static abstract class CatAssignNode extends OzNode {
+
+		@Specialization
+		Object catAssign(Object reference) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("reference"), @NodeChild("newValue") })
+	public static abstract class CatExchangeNode extends OzNode {
+
+		@Specialization
+		Object catExchange(Object reference, Object newValue) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("self"), @NodeChild("reference") })
+	public static abstract class CatAccessOONode extends OzNode {
+
+		@Specialization
+		Object catAccessOO(Object self, Object reference) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("self"), @NodeChild("reference") })
+	public static abstract class CatAssignOONode extends OzNode {
+
+		@Specialization
+		Object catAssignOO(Object self, Object reference) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("self"), @NodeChild("reference"), @NodeChild("newValue") })
+	public static abstract class CatExchangeOONode extends OzNode {
+
+		@Specialization
+		Object catExchangeOO(Object self, Object reference, Object newValue) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	public static abstract class WaitNode extends OzNode {
+
+		@Specialization
+		Object doWait() {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	public static abstract class WaitQuietNode extends OzNode {
+
+		@Specialization
+		Object waitQuiet() {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	public static abstract class WaitNeededNode extends OzNode {
+
+		@Specialization
+		Object waitNeeded() {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	public static abstract class MakeNeededNode extends OzNode {
+
+		@Specialization
+		Object makeNeeded() {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class IsFreeNode extends OzNode {
+
+		@Specialization
+		Object isFree(Object value) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class IsKindedNode extends OzNode {
+
+		@Specialization
+		Object isKinded(Object value) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class IsFutureNode extends OzNode {
+
+		@Specialization
+		Object isFuture(Object value) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class IsFailedNode extends OzNode {
+
+		@Specialization
+		Object isFailed(Object value) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class IsDetNode extends OzNode {
+
+		@Specialization
+		Object isDet(Object value) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class StatusNode extends OzNode {
+
+		@Specialization
+		Object status(Object value) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class TypeNode extends OzNode {
+
+		@Specialization
+		Object type(Object value) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class IsNeededNode extends OzNode {
+
+		@Specialization
+		Object isNeeded(Object value) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("record"), @NodeChild("feature") })
+	public static abstract class HasFeatureNode extends OzNode {
+
+		@Specialization
+		Object hasFeature(Object record, Object feature) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("record"), @NodeChild("feature"), @NodeChild("def") })
+	public static abstract class CondSelectNode extends OzNode {
+
+		@Specialization
+		Object condSelect(Object record, Object feature, Object def) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("exception")
+	public static abstract class FailedValueNode extends OzNode {
+
+		@Specialization
+		Object failedValue(Object exception) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("variable")
+	public static abstract class ReadOnlyNode extends OzNode {
+
+		@Specialization
+		Object readOnly(Object variable) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	public static abstract class NewReadOnlyNode extends OzNode {
+
+		@Specialization
+		Object newReadOnly() {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("readOnly")
+	public static abstract class BindReadOnlyNode extends OzNode {
+
+		@Specialization
+		Object bindReadOnly(Object readOnly) {
+			return unimplemented();
 		}
 
 	}
