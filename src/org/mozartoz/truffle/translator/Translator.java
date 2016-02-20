@@ -439,7 +439,7 @@ public class Translator {
 			} else {
 				Arity arity = buildArity(ozRecord.arity());
 				Object[] values = mapObjects(ozRecord.values(), this::translateConstantValue);
-				return RecordLiteralNode.buildRecord(arity, values);
+				return org.mozartoz.truffle.runtime.OzRecord.buildRecord(arity, values);
 			}
 		} else if (value instanceof OzBuiltin) {
 			Builtin builtin = ((OzBuiltin) value).builtin();

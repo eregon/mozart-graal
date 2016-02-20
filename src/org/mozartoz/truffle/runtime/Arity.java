@@ -38,7 +38,7 @@ public class Arity {
 		return shape;
 	}
 
-	public int getSize() {
+	public int getWidth() {
 		return shape.getPropertyCount();
 	}
 

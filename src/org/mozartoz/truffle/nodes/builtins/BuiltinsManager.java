@@ -7,9 +7,9 @@ import java.util.Map;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
-import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
 import org.mozartoz.truffle.runtime.OzFunction;
+import org.mozartoz.truffle.runtime.OzRecord;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -78,7 +78,7 @@ public abstract class BuiltinsManager {
 			}
 		}
 		BOOT_MODULES.put("Boot_WeakRef", BOOT_MODULES.get("Boot_WeakReference")); // TODO: hack
-		BOOT_MODULES_RECORD = RecordLiteralNode.buildRecord("bootModules", BOOT_MODULES);
+		BOOT_MODULES_RECORD = OzRecord.buildRecord("bootModules", BOOT_MODULES);
 	}
 
 	private static void installBuiltins(String module, List<NodeFactory<? extends OzNode>> factories) {
@@ -117,6 +117,6 @@ public abstract class BuiltinsManager {
 		}
 
 		String label = module.toLowerCase().intern();
-		BOOT_MODULES.put("Boot_" + module, RecordLiteralNode.buildRecord(label, builtins));
+		BOOT_MODULES.put("Boot_" + module, OzRecord.buildRecord(label, builtins));
 	}
 }
