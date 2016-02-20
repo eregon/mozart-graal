@@ -9,6 +9,7 @@ import org.mozartoz.truffle.runtime.Unit;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -69,5 +70,91 @@ public abstract class SystemBuiltins {
 
 	}
 
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("value"), @NodeChild("toStdErr") })
+	public static abstract class PrintReprNode extends OzNode {
+
+		@Specialization
+		Object printRepr(Object value, Object toStdErr) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("value"), @NodeChild("depth"), @NodeChild("width") })
+	public static abstract class GetReprNode extends OzNode {
+
+		@Specialization
+		Object getRepr(Object value, Object depth, Object width) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class PrintNameNode extends OzNode {
+
+		@Specialization
+		Object printName(Object value) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("value"), @NodeChild("toStdErr") })
+	public static abstract class PrintVSNode extends OzNode {
+
+		@Specialization
+		Object printVS(Object value, Object toStdErr) {
+			return unimplemented();
+		}
+
+	}
+
+	@Builtin(proc = true)
+	@GenerateNodeFactory
+	public static abstract class GcDoNode extends OzNode {
+
+		@Specialization
+		Object gcDo() {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("lhs"), @NodeChild("rhs") })
+	public static abstract class EqNode extends OzNode {
+
+		@Specialization
+		Object eq(Object lhs, Object rhs) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	public static abstract class OnToplevelNode extends OzNode {
+
+		@Specialization
+		Object onToplevel() {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("exitCode")
+	public static abstract class ExitNode extends OzNode {
+
+		@Specialization
+		Object exit(Object exitCode) {
+			return unimplemented();
+		}
+
+	}
 
 }
