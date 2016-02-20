@@ -9,10 +9,10 @@ import com.oracle.truffle.api.object.DynamicObject;
  */
 public abstract class OzRecord {
 
-	public static DynamicObject buildRecord(Arity arity, Object[] values) {
+	public static DynamicObject buildRecord(Arity arity, Object... values) {
 		assert values.length != 0;
 		Object[] initialValues = ArrayUtils.unshift(arity.getLabel(), values);
-		return arity.getShape().createFactory().newInstance(initialValues);
+		return arity.createFactory().newInstance(initialValues);
 	}
 
 	public static DynamicObject buildRecord(Object label, Map<?, ?> map) {

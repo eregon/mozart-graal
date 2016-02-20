@@ -31,6 +31,21 @@ public class OzBacktrace {
 		}
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		for (SourceSection sourceSection : backtrace) {
+			final String desc;
+			if (sourceSection == null) {
+				desc = "<unknown>";
+			} else {
+				desc = sourceSection.getShortDescription();
+			}
+			builder.append("from " + desc).append('\n');
+		}
+		return builder.toString();
+	}
+
 	public static OzBacktrace capture(OzNode currentNode) {
 		List<SourceSection> backtrace = new ArrayList<>();
 		if (currentNode != null) {
