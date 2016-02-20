@@ -3,6 +3,7 @@ package org.mozartoz.truffle.nodes.builtins;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -46,9 +47,14 @@ public abstract class RecordBuiltins {
 	@NodeChild("record")
 	public static abstract class WidthNode extends OzNode {
 
+		@CreateCast("record")
+		protected OzNode derefValue(OzNode value) {
+			return DerefNodeGen.create(value);
+		}
+
 		@Specialization
-		Object width(Object record) {
-			return unimplemented();
+		long width(DynamicObject record) {
+			return OzRecord.getArity(record).getWidth();
 		}
 
 	}
