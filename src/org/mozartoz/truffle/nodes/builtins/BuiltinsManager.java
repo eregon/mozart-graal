@@ -35,6 +35,7 @@ public abstract class BuiltinsManager {
 			"Float",
 			"Tuple",
 			"Procedure",
+			"Dictionary",
 	};
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
