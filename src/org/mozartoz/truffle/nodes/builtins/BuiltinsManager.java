@@ -20,28 +20,29 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class BuiltinsManager {
 
+	// Order is from Base.oz
 	private static final String[] MODULES = {
 			"Value",
-			"Int",
-			"Number",
-			"Record",
-			"Exception",
-			"Thread",
 			"Literal",
 			"Cell",
 			"Port",
 			"Atom",
 			"Name",
+			"Int",
 			"Float",
+			"Number",
 			"Tuple",
 			"Procedure",
 			"Dictionary",
+			"Record",
 			"Chunk",
 			"VirtualString",
 			"VirtualByteString",
 			"Coders",
 			"Array",
 			"Object",
+			"Thread",
+			"Exception",
 			"Time",
 	};
 
