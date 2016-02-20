@@ -34,10 +34,12 @@ public class OzBacktrace {
 	public static OzBacktrace capture(OzNode currentNode) {
 		List<SourceSection> backtrace = new ArrayList<>();
 		if (currentNode != null) {
-			backtrace.add(currentNode.getEncapsulatingSourceSection());
+			SourceSection sourceSection = currentNode.getEncapsulatingSourceSection();
+			backtrace.add(sourceSection);
 		}
 		Truffle.getRuntime().iterateFrames(frame -> {
-			backtrace.add(frame.getCallNode().getEncapsulatingSourceSection());
+			SourceSection sourceSection = frame.getCallNode().getEncapsulatingSourceSection();
+			backtrace.add(sourceSection);
 			return null;
 		});
 
