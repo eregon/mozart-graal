@@ -31,7 +31,8 @@ public abstract class BuiltinsManager {
 			"Cell",
 			"Port",
 			"Atom",
-			"Name"
+			"Name",
+			"Float"
 	};
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
