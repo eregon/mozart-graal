@@ -44,6 +44,7 @@ public abstract class BuiltinsManager {
 			"Thread",
 			"Exception",
 			"Time",
+			"ForeignPointer",
 	};
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
