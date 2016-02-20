@@ -12,9 +12,12 @@ import org.mozartoz.truffle.runtime.OzFunction;
 import org.mozartoz.truffle.runtime.OzRecord;
 
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -56,7 +59,10 @@ public abstract class BuiltinsManager {
 	private static DynamicObject BOOT_MODULES_RECORD;
 
 	public static OzFunction getBuiltin(String moduleName, String builtinName) {
-		return BUILTINS.get(moduleName + "." + builtinName);
+		OzFunction fun = BUILTINS.get(moduleName + "." + builtinName);
+		// Create a new node tree for every call site
+		RootNode rootNode = NodeUtil.cloneNode(((RootCallTarget) fun.callTarget).getRootNode());
+		return new OzFunction(Truffle.getRuntime().createCallTarget(rootNode), null);
 	}
 
 	public static DynamicObject getBootModulesRecord() {
