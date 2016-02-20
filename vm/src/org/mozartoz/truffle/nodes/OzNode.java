@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.nodes;
 
-import org.mozartoz.truffle.runtime.OzError;
+import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.Unit;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -17,7 +17,7 @@ public abstract class OzNode extends Node {
 	public abstract Object execute(VirtualFrame frame);
 
 	protected Object unimplemented() {
-		throw new OzError(this, "unimplemented");
+		throw new OzException(this, "unimplemented");
 	}
 
 }

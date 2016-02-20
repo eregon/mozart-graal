@@ -19,7 +19,7 @@ public class OzVar {
 		final Object value = this.value;
 		if (!isBound()) {
 			CompilerDirectives.transferToInterpreterAndInvalidate();
-			throw new OzError(currentNode, "unbound var");
+			throw new OzException(currentNode, "unbound var");
 		}
 		return value;
 	}

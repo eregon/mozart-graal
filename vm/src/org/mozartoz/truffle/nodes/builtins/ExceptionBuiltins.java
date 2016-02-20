@@ -3,7 +3,7 @@ package org.mozartoz.truffle.nodes.builtins;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.RaiseErrorNodeFactory;
-import org.mozartoz.truffle.runtime.OzError;
+import org.mozartoz.truffle.runtime.OzException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -30,7 +30,7 @@ public abstract class ExceptionBuiltins {
 		@TruffleBoundary
 		protected Object raiseError(DynamicObject record) {
 			String message = record.toString();
-			throw new OzError(this, message);
+			throw new OzException(this, message);
 		}
 
 	}
