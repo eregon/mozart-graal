@@ -21,6 +21,19 @@ public class OzGuards {
 		return value == "nil";
 	}
 
+	public static boolean isInterned(String str) {
+		return str.intern() == str;
+	}
+
+	public static boolean isAtom(Object value) {
+		assert !(value instanceof String) || isInterned((String) value);
+		return value instanceof String;
+	}
+
+	public static boolean isFeature(Object value) {
+		return isLong(value) || isAtom(value);
+	}
+
 	public static boolean isCons(Object value) {
 		return value instanceof OzCons;
 	}

@@ -28,7 +28,7 @@ public abstract class TupleBuiltins {
 			Object[] features = new Object[(int) width];
 			Object[] values = new Object[(int) width];
 			for (int i = 0; i < features.length; i++) {
-				features[i] = i + 1;
+				features[i] = (long) (i + 1);
 				values[i] = new OzVar();
 			}
 			Arity arity = Arity.build(label, features);

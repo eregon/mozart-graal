@@ -178,7 +178,7 @@ public abstract class DictionaryBuiltins {
 	@NodeChild("dict")
 	public static abstract class EntriesNode extends OzNode {
 
-		static final DynamicObjectFactory PAIR_FACTORY = Arity.build("#", 1, 2).createFactory();
+		static final DynamicObjectFactory PAIR_FACTORY = Arity.build("#", 1L, 2L).createFactory();
 
 		@CreateCast("dict")
 		protected OzNode derefDict(OzNode var) {
