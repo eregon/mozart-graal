@@ -48,6 +48,7 @@ public abstract class BuiltinsManager {
 			"CompactString",
 			"System",
 			"Property",
+			"WeakReference",
 	};
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
@@ -76,6 +77,7 @@ public abstract class BuiltinsManager {
 				throw new Error(e);
 			}
 		}
+		BOOT_MODULES.put("Boot_WeakRef", BOOT_MODULES.get("Boot_WeakReference")); // TODO: hack
 		BOOT_MODULES_RECORD = RecordLiteralNode.buildRecord("bootModules", BOOT_MODULES);
 	}
 
