@@ -40,6 +40,7 @@ public abstract class BuiltinsManager {
 			"VirtualString",
 			"VirtualByteString",
 			"Coders",
+			"Array",
 	};
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
