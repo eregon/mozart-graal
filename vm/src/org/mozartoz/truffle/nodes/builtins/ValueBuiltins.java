@@ -184,6 +184,11 @@ public abstract class ValueBuiltins {
 			return a > b;
 		}
 
+		@Specialization
+		protected boolean greaterThan(BigInteger a, BigInteger b) {
+			return a.compareTo(b) > 0;
+		}
+
 	}
 
 	@Builtin(name = ".")
@@ -194,6 +199,11 @@ public abstract class ValueBuiltins {
 		@CreateCast("record")
 		protected OzNode derefRecord(OzNode var) {
 			return DerefNodeGen.create(var);
+		}
+
+		@CreateCast("feature")
+		protected OzNode derefFeature(OzNode feature) {
+			return DerefNodeGen.create(feature);
 		}
 
 		@Specialization(guards = "feature == 1")
@@ -454,9 +464,19 @@ public abstract class ValueBuiltins {
 	@NodeChildren({ @NodeChild("record"), @NodeChild("feature") })
 	public static abstract class HasFeatureNode extends OzNode {
 
+		@CreateCast("record")
+		protected OzNode derefRecord(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
+		@CreateCast("feature")
+		protected OzNode derefFeature(OzNode feature) {
+			return DerefNodeGen.create(feature);
+		}
+
 		@Specialization
-		Object hasFeature(Object record, Object feature) {
-			return unimplemented();
+		boolean hasFeature(DynamicObject record, Object feature) {
+			return record.getShape().hasProperty(feature);
 		}
 
 	}

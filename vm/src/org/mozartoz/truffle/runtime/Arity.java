@@ -3,6 +3,7 @@ package org.mozartoz.truffle.runtime;
 import java.util.EnumSet;
 
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.HiddenKey;
 import com.oracle.truffle.api.object.Layout;
 import com.oracle.truffle.api.object.Location;
@@ -46,6 +47,10 @@ public class Arity {
 		return object.getShape() == shape && LABEL_LOCATION.get(object) == label;
 	}
 
+	public DynamicObjectFactory createFactory() {
+		return shape.createFactory();
+	}
+
 	private static final Object SOME_OBJECT = new Object();
 
 	public static Arity build(Object label, Object... features) {
@@ -54,6 +59,10 @@ public class Arity {
 			shape = shape.defineProperty(feature, SOME_OBJECT, 0);
 		}
 		return new Arity(label, shape);
+	}
+
+	public static Arity forAtom(String atom) {
+		return new Arity(atom, BASE);
 	}
 
 }

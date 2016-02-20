@@ -63,9 +63,19 @@ public abstract class RecordBuiltins {
 	@NodeChild("record")
 	public static abstract class ArityNode extends OzNode {
 
+		@CreateCast("record")
+		protected OzNode derefValue(OzNode value) {
+			return DerefNodeGen.create(value);
+		}
+
 		@Specialization
-		Object arity(Object record) {
-			return unimplemented();
+		Arity arity(String atom) {
+			return Arity.forAtom(atom);
+		}
+
+		@Specialization
+		Arity arity(DynamicObject record) {
+			return OzRecord.getArity(record);
 		}
 
 	}

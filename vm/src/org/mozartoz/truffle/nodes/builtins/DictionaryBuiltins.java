@@ -1,11 +1,19 @@
 package org.mozartoz.truffle.nodes.builtins;
 
-import org.mozartoz.truffle.nodes.OzNode;
+import java.util.Map.Entry;
 
+import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzDict;
+
+import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
 
 public abstract class DictionaryBuiltins {
 
@@ -14,8 +22,8 @@ public abstract class DictionaryBuiltins {
 	public static abstract class NewDictionaryNode extends OzNode {
 
 		@Specialization
-		Object newDictionary() {
-			return unimplemented();
+		OzDict newDictionary() {
+			return new OzDict();
 		}
 
 	}
@@ -37,8 +45,8 @@ public abstract class DictionaryBuiltins {
 	public static abstract class IsEmptyNode extends OzNode {
 
 		@Specialization
-		Object isEmpty(Object dict) {
-			return unimplemented();
+		boolean isEmpty(OzDict dict) {
+			return dict.isEmpty();
 		}
 
 	}
@@ -81,9 +89,15 @@ public abstract class DictionaryBuiltins {
 	@NodeChildren({ @NodeChild("dict"), @NodeChild("feature"), @NodeChild("newValue") })
 	public static abstract class PutNode extends OzNode {
 
+		@CreateCast("dict")
+		protected OzNode derefDict(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
 		@Specialization
-		Object put(Object dict, Object feature, Object newValue) {
-			return unimplemented();
+		Object put(OzDict dict, Object feature, Object newValue) {
+			dict.put(feature, newValue);
+			return unit;
 		}
 
 	}
@@ -115,9 +129,15 @@ public abstract class DictionaryBuiltins {
 	@NodeChildren({ @NodeChild("dict"), @NodeChild("feature") })
 	public static abstract class RemoveNode extends OzNode {
 
+		@CreateCast("dict")
+		protected OzNode derefDict(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
 		@Specialization
-		Object remove(Object dict, Object feature) {
-			return unimplemented();
+		Object remove(OzDict dict, Object feature) {
+			dict.remove(feature);
+			return unit;
 		}
 
 	}
@@ -138,9 +158,18 @@ public abstract class DictionaryBuiltins {
 	@NodeChild("dict")
 	public static abstract class KeysNode extends OzNode {
 
+		@CreateCast("dict")
+		protected OzNode derefDict(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
 		@Specialization
-		Object keys(Object dict) {
-			return unimplemented();
+		Object keys(OzDict dict) {
+			Object keys = "nil";
+			for (Object key : dict.keySet()) {
+				keys = new OzCons(key, keys);
+			}
+			return keys;
 		}
 
 	}
@@ -149,9 +178,21 @@ public abstract class DictionaryBuiltins {
 	@NodeChild("dict")
 	public static abstract class EntriesNode extends OzNode {
 
+		static final DynamicObjectFactory PAIR_FACTORY = Arity.build("#", 1, 2).createFactory();
+
+		@CreateCast("dict")
+		protected OzNode derefDict(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
 		@Specialization
-		Object entries(Object dict) {
-			return unimplemented();
+		Object entries(OzDict dict) {
+			Object entries = "nil";
+			for (Entry<Object, Object> entry : dict.entrySet()) {
+				Object pair = PAIR_FACTORY.newInstance("#", entry.getKey(), entry.getValue());
+				entries = new OzCons(pair, entries);
+			}
+			return entries;
 		}
 
 	}
