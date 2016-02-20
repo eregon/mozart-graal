@@ -32,7 +32,8 @@ public abstract class BuiltinsManager {
 			"Port",
 			"Atom",
 			"Name",
-			"Float"
+			"Float",
+			"Tuple",
 	};
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
