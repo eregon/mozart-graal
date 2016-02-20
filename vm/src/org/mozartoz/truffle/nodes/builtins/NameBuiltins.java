@@ -1,6 +1,7 @@
 package org.mozartoz.truffle.nodes.builtins;
 
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzUniqueName;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -36,8 +37,8 @@ public abstract class NameBuiltins {
 	public static abstract class NewUniqueNode extends OzNode {
 
 		@Specialization
-		Object newUnique(Object atom) {
-			return unimplemented();
+		OzUniqueName newUnique(String atom) {
+			return new OzUniqueName(atom);
 		}
 
 	}
