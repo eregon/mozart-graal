@@ -30,7 +30,8 @@ public abstract class BuiltinsManager {
 			"Literal",
 			"Cell",
 			"Port",
-			"Atom"
+			"Atom",
+			"Name"
 	};
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
