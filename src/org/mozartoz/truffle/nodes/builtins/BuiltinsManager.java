@@ -42,6 +42,7 @@ public abstract class BuiltinsManager {
 			"Coders",
 			"Array",
 			"Object",
+			"Time",
 	};
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
