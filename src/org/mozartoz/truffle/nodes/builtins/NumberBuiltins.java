@@ -14,6 +14,41 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 public abstract class NumberBuiltins {
 
+	@Builtin(name = "is")
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class IsNumberNode extends OzNode {
+
+		@Specialization
+		Object isNumber(Object value) {
+			return unimplemented();
+		}
+
+	}
+
+	@Builtin(name = "~")
+	@GenerateNodeFactory
+	@NodeChild("operand")
+	public static abstract class NegNode extends OzNode {
+
+		@Specialization
+		Object neg(Object operand) {
+			return unimplemented();
+		}
+
+	}
+
+	@GenerateNodeFactory
+	@NodeChild("operand")
+	public static abstract class AbsNode extends OzNode {
+
+		@Specialization
+		Object abs(Object operand) {
+			return unimplemented();
+		}
+
+	}
+
 	@Builtin(name = "+")
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
@@ -94,6 +129,5 @@ public abstract class NumberBuiltins {
 		}
 
 	}
-
 
 }
