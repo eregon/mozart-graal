@@ -2,7 +2,7 @@ package org.mozartoz.truffle.nodes.control;
 
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.local.WriteNode;
-import org.mozartoz.truffle.runtime.OzError;
+import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.translator.FrameSlotAndDepth;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -26,7 +26,7 @@ public class TryNode extends OzNode {
 	public Object execute(VirtualFrame frame) {
 		try {
 			return body.execute(frame);
-		} catch (OzError exception) {
+		} catch (OzException exception) {
 			exceptionProfile.enter();
 			writeExceptionVarNode.write(frame, exception);
 			return catchBody.execute(frame);

@@ -6,7 +6,7 @@ import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
 import org.mozartoz.truffle.runtime.OzCons;
-import org.mozartoz.truffle.runtime.OzError;
+import org.mozartoz.truffle.runtime.OzException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -218,7 +218,7 @@ public abstract class ValueBuiltins {
 				return property.get(record, cachedShape);
 			} else {
 				CompilerDirectives.transferToInterpreter();
-				throw new OzError(this, "record has no feature " + cachedFeature);
+				throw new OzException(this, "record has no feature " + cachedFeature);
 			}
 		}
 
@@ -227,7 +227,7 @@ public abstract class ValueBuiltins {
 			Object value = record.get(feature);
 			if (value == null) {
 				CompilerDirectives.transferToInterpreter();
-				throw new OzError(this, "record " + record + " has no feature " + feature);
+				throw new OzException(this, "record " + record + " has no feature " + feature);
 			}
 			return value;
 		}

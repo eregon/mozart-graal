@@ -3,11 +3,11 @@ package org.mozartoz.truffle.runtime;
 import org.mozartoz.truffle.nodes.OzNode;
 
 @SuppressWarnings("serial")
-public class OzError extends RuntimeException {
+public class OzException extends RuntimeException {
 
 	private OzBacktrace backtrace;
 
-	public OzError(OzNode currentNode, String message) {
+	public OzException(OzNode currentNode, String message) {
 		super(message);
 		this.backtrace = OzBacktrace.capture(currentNode);
 	}
