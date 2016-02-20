@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
-import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltins.RaiseErrorNode;
+import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -14,13 +14,12 @@ public class OzVar {
 		return value != null;
 	}
 
-	public Object getBoundValue() {
+	public Object getBoundValue(OzNode currentNode) {
 		assert !dead;
 		final Object value = this.value;
 		if (!isBound()) {
 			CompilerDirectives.transferToInterpreterAndInvalidate();
-			RaiseErrorNode.showUserBacktrace(null);
-			throw new RuntimeException("unbound var");
+			throw new OzError(currentNode, "unbound var");
 		}
 		return value;
 	}
