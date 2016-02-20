@@ -16,6 +16,18 @@ public abstract class IntBuiltins {
 
 	private static final BigInteger ONE = BigInteger.valueOf(1);
 
+	@Builtin(name = "is")
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class IsIntNode extends OzNode {
+
+		@Specialization
+		Object isInt(Object value) {
+			return unimplemented();
+		}
+
+	}
+
 	@Builtin(name = "+1")
 	@GenerateNodeFactory
 	@NodeChild("value")
