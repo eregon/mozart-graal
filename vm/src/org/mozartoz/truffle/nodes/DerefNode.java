@@ -26,7 +26,7 @@ public abstract class DerefNode extends OzNode {
 
 	@Specialization
 	public Object deref(OzVar var) {
-		return var.getBoundValue();
+		return var.getBoundValue(this);
 	}
 
 }

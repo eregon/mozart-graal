@@ -35,7 +35,7 @@ public abstract class BindNode extends OzNode {
 
 	@Specialization(guards = { "!left.isBound()", "right.isBound()" })
 	Object bindLeft(VirtualFrame frame, OzVar left, OzVar right) {
-		left.bind(right.getBoundValue());
+		left.bind(right.getBoundValue(this));
 		return unit;
 	}
 
@@ -48,7 +48,7 @@ public abstract class BindNode extends OzNode {
 
 	@Specialization(guards = { "left.isBound()", "!right.isBound()" })
 	Object bindRight(VirtualFrame frame, OzVar left, OzVar right) {
-		right.bind(left.getBoundValue());
+		right.bind(left.getBoundValue(this));
 		return unit;
 	}
 
@@ -65,12 +65,12 @@ public abstract class BindNode extends OzNode {
 
 	@Specialization(guards = { "isBound(left)", "!isVar(right)" })
 	Object unifyVarValue(VirtualFrame frame, OzVar left, Object right) {
-		return unifyValues(left.getBoundValue(), right);
+		return unifyValues(left.getBoundValue(this), right);
 	}
 
 	@Specialization(guards = { "!isVar(left)", "isBound(right)" })
 	Object unifyValueVar(VirtualFrame frame, Object left, OzVar right) {
-		return unifyValues(left, right.getBoundValue());
+		return unifyValues(left, right.getBoundValue(this));
 	}
 
 	private Object unifyValues(Object left, Object right) {

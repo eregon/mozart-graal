@@ -11,7 +11,7 @@ public abstract class DerefIfBoundNode extends OzNode {
 	@Specialization
 	public Object derefIfBound(OzVar var) {
 		if (var.isBound()) {
-			return var.getBoundValue();
+			return var.getBoundValue(this);
 		} else {
 			return var;
 		}

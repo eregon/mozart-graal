@@ -58,6 +58,7 @@ import org.mozartoz.bootcompiler.transform.Unnester;
 import org.mozartoz.bootcompiler.util.FilePosition;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
+import org.mozartoz.truffle.nodes.TopLevelHandlerNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
 import org.mozartoz.truffle.nodes.builtins.IntBuiltinsFactory.DivNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.IntBuiltinsFactory.ModNodeFactory;
@@ -215,9 +216,11 @@ public class Translator {
 				new ProcDeclarationNode(sourceSection, new FrameDescriptor(), labelNode),
 				new ProcDeclarationNode(sourceSection, new FrameDescriptor(), byNeedDotNode)
 		});
-		translated = SequenceNode.sequence(
-				new InitializeTmpNode(baseSlot, initializeBaseNode),
-				translated);
+		translated =
+				new TopLevelHandlerNode(
+						SequenceNode.sequence(
+								new InitializeTmpNode(baseSlot, initializeBaseNode),
+								translated));
 
 		SourceSection topSourceSection = SourceSection.createUnavailable("top-level", "<top>");
 		return new OzRootNode(topSourceSection, environment.frameDescriptor, translated);

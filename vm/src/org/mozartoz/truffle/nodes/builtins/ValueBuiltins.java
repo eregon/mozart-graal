@@ -218,7 +218,7 @@ public abstract class ValueBuiltins {
 				return property.get(record, cachedShape);
 			} else {
 				CompilerDirectives.transferToInterpreter();
-				throw new OzError("record has no feature " + cachedFeature);
+				throw new OzError(this, "record has no feature " + cachedFeature);
 			}
 		}
 
@@ -227,7 +227,7 @@ public abstract class ValueBuiltins {
 			Object value = record.get(feature);
 			if (value == null) {
 				CompilerDirectives.transferToInterpreter();
-				throw new OzError("record " + record + " has no feature " + feature);
+				throw new OzError(this, "record " + record + " has no feature " + feature);
 			}
 			return value;
 		}
