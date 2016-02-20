@@ -37,7 +37,8 @@ public abstract class BuiltinsManager {
 			"Procedure",
 			"Dictionary",
 			"Chunk",
-			"VirtualString"
+			"VirtualString",
+			"VirtualByteString",
 	};
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
