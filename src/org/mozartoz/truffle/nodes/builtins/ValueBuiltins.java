@@ -227,7 +227,7 @@ public abstract class ValueBuiltins {
 			Object value = record.get(feature);
 			if (value == null) {
 				CompilerDirectives.transferToInterpreter();
-				throw new OzError("record has no feature " + feature);
+				throw new OzError("record " + record + " has no feature " + feature);
 			}
 			return value;
 		}
