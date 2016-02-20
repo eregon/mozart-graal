@@ -47,6 +47,7 @@ public abstract class BuiltinsManager {
 			"ForeignPointer",
 			"CompactString",
 			"System",
+			"Property",
 	};
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
