@@ -2,6 +2,8 @@ package org.mozartoz.truffle.runtime;
 
 import java.util.EnumSet;
 
+import org.mozartoz.truffle.nodes.OzGuards;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.HiddenKey;
@@ -56,6 +58,7 @@ public class Arity {
 	public static Arity build(Object label, Object... features) {
 		Shape shape = Arity.BASE;
 		for (Object feature : features) {
+			assert OzGuards.isFeature(feature);
 			shape = shape.defineProperty(feature, SOME_OBJECT, 0);
 		}
 		return new Arity(label, shape);

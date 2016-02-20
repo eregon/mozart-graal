@@ -117,6 +117,6 @@ public abstract class BuiltinsManager {
 		}
 
 		String label = module.toLowerCase().intern();
-		BOOT_MODULES.put("Boot_" + module, OzRecord.buildRecord(label, builtins));
+		BOOT_MODULES.put(("Boot_" + module).intern(), OzRecord.buildRecord(label, builtins));
 	}
 }
