@@ -39,6 +39,7 @@ public abstract class BuiltinsManager {
 			"Chunk",
 			"VirtualString",
 			"VirtualByteString",
+			"Coders",
 	};
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
