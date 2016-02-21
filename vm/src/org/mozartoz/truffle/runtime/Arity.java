@@ -53,6 +53,14 @@ public class Arity {
 		return shape.createFactory();
 	}
 
+	public Object asOzList() {
+		Object features = "nil";
+		for (Property property : shape.getProperties()) {
+			features = new OzCons(property.getKey(), features);
+		}
+		return features;
+	}
+
 	private static final Object SOME_OBJECT = new Object();
 
 	public static Arity build(Object label, Object... features) {

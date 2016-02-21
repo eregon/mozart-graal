@@ -89,7 +89,17 @@ public abstract class ValueBuiltins {
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class NotEqualNode extends OzNode {
 
-		EqualNode equalNode = EqualNode.create();
+		@Child EqualNode equalNode = EqualNode.create();
+
+		@CreateCast("left")
+		protected OzNode derefLeft(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
+		@CreateCast("right")
+		protected OzNode derefRight(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
 
 		@Specialization
 		boolean notEqual(Object left, Object right) {
