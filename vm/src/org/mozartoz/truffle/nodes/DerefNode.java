@@ -15,17 +15,17 @@ public abstract class DerefNode extends OzNode {
 	public abstract Object executeDeref(Object value);
 
 	@Specialization
-	public long deref(long value) {
+	long deref(long value) {
 		return value;
 	}
 
 	@Specialization(guards = "!isVar(value)")
-	public Object deref(Object value) {
+	Object deref(Object value) {
 		return value;
 	}
 
 	@Specialization
-	public Object deref(OzVar var) {
+	Object deref(OzVar var) {
 		return var.getBoundValue(this);
 	}
 
