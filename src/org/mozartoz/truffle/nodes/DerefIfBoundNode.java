@@ -8,6 +8,12 @@ import com.oracle.truffle.api.dsl.Specialization;
 @NodeChild("value")
 public abstract class DerefIfBoundNode extends OzNode {
 
+	public static DerefIfBoundNode create() {
+		return DerefIfBoundNodeGen.create(null);
+	}
+
+	public abstract Object executeDerefIfBound(Object value);
+
 	@Specialization
 	Object derefIfBound(OzVar var) {
 		if (var.isBound()) {
