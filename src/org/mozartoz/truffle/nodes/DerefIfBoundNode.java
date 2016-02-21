@@ -9,7 +9,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class DerefIfBoundNode extends OzNode {
 
 	@Specialization
-	public Object derefIfBound(OzVar var) {
+	Object derefIfBound(OzVar var) {
 		if (var.isBound()) {
 			return var.getBoundValue(this);
 		} else {
@@ -18,7 +18,7 @@ public abstract class DerefIfBoundNode extends OzNode {
 	}
 
 	@Specialization(guards = "!isVar(value)")
-	public Object derefIfBound(Object value) {
+	Object derefIfBound(Object value) {
 		return value;
 	}
 
