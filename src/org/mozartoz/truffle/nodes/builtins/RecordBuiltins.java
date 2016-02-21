@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
@@ -106,9 +107,35 @@ public abstract class RecordBuiltins {
 	@NodeChildren({ @NodeChild("label"), @NodeChild("contents") })
 	public static abstract class MakeDynamicNode extends OzNode {
 
+		@Child DerefNode derefNode = DerefNode.create();
+
+		@CreateCast("label")
+		protected OzNode derefLabel(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
+		@CreateCast("contents")
+		protected OzNode derefContents(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
 		@Specialization
-		protected Object makeDynamicRecord(Object label, Object contents) {
-			return unimplemented();
+		protected String makeDynamic(String label, String emptyContents) {
+			return label;
+		}
+
+		@Specialization
+		protected DynamicObject makeDynamic(String label, DynamicObject contents) {
+			int width = OzRecord.getArity(contents).getWidth();
+			assert width % 2 == 0;
+			int size = width / 2;
+			Object[] features = new Object[size];
+			Object[] values = new Object[size];
+			for (int i = 0; i < size; i += 2) {
+				features[i] = derefNode.executeDeref(contents.get((long) i + 1));
+				values[i] = derefNode.executeDeref(contents.get((long) i + 2));
+			}
+			return OzRecord.buildRecord(Arity.build(label, features), values);
 		}
 
 	}

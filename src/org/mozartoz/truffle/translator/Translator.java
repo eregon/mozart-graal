@@ -289,10 +289,10 @@ public class Translator {
 				List<OzNode> bindings = new ArrayList<>();
 				translatePattern(clause.pattern(), value, checks, bindings);
 				OzNode body = translate(clause.body());
-				caseNode = new IfNode(
+				caseNode = t(clause, new IfNode(
 						new AndNode(checks.toArray(new OzNode[checks.size()])),
 						SequenceNode.sequence(bindings.toArray(new OzNode[bindings.size()]), body),
-						caseNode);
+						caseNode));
 			}
 
 			return SequenceNode.sequence(
@@ -389,7 +389,7 @@ public class Translator {
 			// Nothing to do
 		} else if (matcher instanceof OzPatMatCapture) {
 			FrameSlotAndDepth slot = findVariable(((OzPatMatCapture) matcher).variable());
-			bindings.add(PatternMatchCaptureNodeGen.create(slot.createReadNode(), copy(valueNode)));
+			bindings.add(PatternMatchCaptureNodeGen.create(slot, slot.createReadNode(), copy(valueNode)));
 		} else if (matcher instanceof OzFeature) {
 			Object feature = translateFeature((OzFeature) matcher);
 			checks.add(PatternMatchEqualNodeGen.create(feature, copy(valueNode)));

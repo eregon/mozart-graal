@@ -25,6 +25,9 @@ public abstract class TupleBuiltins {
 
 		@Specialization
 		Object make(Object label, long width) {
+			if (width == 0) {
+				return label;
+			}
 			Object[] features = new Object[(int) width];
 			Object[] values = new Object[(int) width];
 			for (int i = 0; i < features.length; i++) {
