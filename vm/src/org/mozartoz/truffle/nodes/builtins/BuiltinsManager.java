@@ -59,7 +59,11 @@ public abstract class BuiltinsManager {
 	private static DynamicObject BOOT_MODULES_RECORD;
 
 	public static OzFunction getBuiltin(String moduleName, String builtinName) {
-		OzFunction fun = BUILTINS.get(moduleName + "." + builtinName);
+		String name = moduleName + "." + builtinName;
+		OzFunction fun = BUILTINS.get(name);
+		if (fun == null) {
+			throw new Error("No builtin " + name);
+		}
 		// Create a new node tree for every call site
 		RootNode rootNode = NodeUtil.cloneNode(((RootCallTarget) fun.callTarget).getRootNode());
 		return new OzFunction(Truffle.getRuntime().createCallTarget(rootNode), null);

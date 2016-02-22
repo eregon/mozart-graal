@@ -16,21 +16,11 @@ public abstract class ExceptionBuiltins {
 
 	@Builtin(proc = true)
 	@GenerateNodeFactory
-	@NodeChild("value")
-	public static abstract class RaiseErrorNode extends OzNode {
-
-		public abstract Object executeRaiseError(Object value);
-
-		@CreateCast("value")
-		protected OzNode derefValue(OzNode value) {
-			return DerefNodeGen.create(value);
-		}
+	public static abstract class FailNode extends OzNode {
 
 		@Specialization
-		@TruffleBoundary
-		protected Object raiseError(DynamicObject record) {
-			String message = record.toString();
-			throw new OzException(this, message);
+		Object fail() {
+			return unimplemented();
 		}
 
 	}
@@ -46,6 +36,27 @@ public abstract class ExceptionBuiltins {
 		Object raise(Object value) {
 			// TODO: should wrap in error(Value)
 			return raiseErrorNode.executeRaiseError(value);
+		}
+
+	}
+
+	@Builtin(proc = true)
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class RaiseErrorNode extends OzNode {
+
+		public abstract Object executeRaiseError(Object value);
+
+		@CreateCast("value")
+		protected OzNode derefValue(OzNode value) {
+			return DerefNodeGen.create(value);
+		}
+
+		@Specialization
+		@TruffleBoundary
+		protected Object raiseError(DynamicObject record) {
+			String message = record.toString();
+			throw new OzException(this, message);
 		}
 
 	}
