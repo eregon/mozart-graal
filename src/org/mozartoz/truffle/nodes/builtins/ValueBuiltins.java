@@ -442,6 +442,11 @@ public abstract class ValueBuiltins {
 			return var.isBound();
 		}
 
+		@Specialization(guards = "!isVar(value)")
+		boolean isDet(Object value) {
+			return true;
+		}
+
 	}
 
 	@GenerateNodeFactory
