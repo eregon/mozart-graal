@@ -1,7 +1,6 @@
 package org.mozartoz.truffle.nodes.local;
 
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.EqualNode;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.translator.FrameSlotAndDepth;
 
@@ -16,7 +15,6 @@ public abstract class BindNode extends OzNode {
 
 	@Child WriteNode writeLeft;
 
-	@Child EqualNode equalNode;
 	@Child UnifyNode unifyNode;
 
 	public BindNode(FrameSlotAndDepth leftSlot) {
@@ -72,19 +70,7 @@ public abstract class BindNode extends OzNode {
 	}
 
 	private Object unifyValues(Object left, Object right) {
-		if (equal(left, right)) {
-			return unit;
-		} else {
-			return unify(left, right);
-		}
-	}
-
-	private boolean equal(Object a, Object b) {
-		if (equalNode == null) {
-			CompilerDirectives.transferToInterpreter();
-			equalNode = insert(EqualNode.create());
-		}
-		return equalNode.executeEqual(a, b);
+		return unify(left, right);
 	}
 
 	private Object unify(Object a, Object b) {
