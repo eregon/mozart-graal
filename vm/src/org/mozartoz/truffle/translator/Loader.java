@@ -53,6 +53,16 @@ public class Loader {
 		BuiltinsManager.defineBuiltins();
 	}
 
+	public DynamicObject loadBase() {
+		if (base == null) {
+			OzRootNode baseRootNode = parseBase();
+			Object result = execute(baseRootNode);
+			assert result instanceof DynamicObject;
+			base = (DynamicObject) result;
+		}
+		return base;
+	}
+
 	private OzRootNode parseBase() {
 		Program program = Main.buildBaseEnvProgram(BASE_FILE_NAME, moduleDefs(), defines());
 		Statement ast = compile(program, "the base environment");
@@ -65,16 +75,6 @@ public class Loader {
 					node,
 					DerefNodeGen.create(new ReadLocalVariableNode(topLevelResultSlot)));
 		});
-	}
-
-	public DynamicObject loadBase() {
-		if (base == null) {
-			OzRootNode baseRootNode = parseBase();
-			Object result = execute(baseRootNode);
-			assert result instanceof DynamicObject;
-			base = (DynamicObject) result;
-		}
-		return base;
 	}
 
 	public OzRootNode parse(Source source) {
