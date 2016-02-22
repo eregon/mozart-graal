@@ -17,17 +17,17 @@ public class Main {
 	public static final String PROJECT_ROOT = getProjectRoot();
 
 	public static void main(String[] args) throws IOException {
-		Source source = Source.fromFileName(PROJECT_ROOT + "/test.oz");
-		eval(source.getCode());
+		Source source = Source.fromFileName(PROJECT_ROOT + "/base.oz");
+		eval(source);
 	}
 
-	private static void eval(String code) {
+	private static void eval(Source source) {
 		// ENGINE.eval(Source.fromText(code, "test.oz").withMimeType(OzLanguage.MIME_TYPE));
-		parseAndExecute(code);
+		parseAndExecute(source);
 	}
 
-	public static void parseAndExecute(String code) {
-		execute(new Translator().parseAndTranslate(code));
+	public static void parseAndExecute(Source source) {
+		execute(new Translator().parseAndTranslate(source));
 	}
 
 	private static Object execute(OzRootNode rootNode) {
