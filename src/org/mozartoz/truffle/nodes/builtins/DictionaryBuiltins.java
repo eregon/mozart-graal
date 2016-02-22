@@ -3,6 +3,7 @@ package org.mozartoz.truffle.nodes.builtins;
 import java.util.Map.Entry;
 
 import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -94,8 +95,14 @@ public abstract class DictionaryBuiltins {
 			return DerefNodeGen.create(var);
 		}
 
+		@CreateCast("feature")
+		protected OzNode derefFeature(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
 		@Specialization
 		Object put(OzDict dict, Object feature, Object newValue) {
+			assert OzGuards.isFeature(feature);
 			dict.put(feature, newValue);
 			return unit;
 		}
