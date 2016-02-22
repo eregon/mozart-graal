@@ -3,7 +3,7 @@ package org.mozartoz.truffle.runtime;
 import java.io.IOException;
 
 import org.mozartoz.truffle.nodes.OzRootNode;
-import org.mozartoz.truffle.translator.Translator;
+import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -29,7 +29,7 @@ public class OzLanguage extends TruffleLanguage<Object> {
 
 	@Override
 	protected CallTarget parse(Source source, Node context, String... argumentNames) throws IOException {
-		OzRootNode rootNode = new Translator().parseAndTranslate(source);
+		OzRootNode rootNode = Loader.getInstance().parse(source);
 		return Truffle.getRuntime().createCallTarget(rootNode);
 	}
 
