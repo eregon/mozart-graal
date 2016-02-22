@@ -2,6 +2,7 @@ package org.mozartoz.truffle.nodes.builtins;
 
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzName;
 
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -22,6 +23,11 @@ public abstract class LiteralBuiltins {
 
 		@Specialization
 		boolean isLiteral(String atom) {
+			return true;
+		}
+
+		@Specialization
+		boolean isLiteral(OzName name) {
 			return true;
 		}
 
