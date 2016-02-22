@@ -22,12 +22,10 @@ import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 
-import scala.Tuple2;
 import scala.collection.JavaConversions;
 import scala.collection.immutable.HashSet;
 import scala.collection.immutable.List;
 import scala.collection.immutable.Set;
-import scala.util.parsing.input.Position;
 
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
@@ -105,15 +103,7 @@ public class Loader {
 
 	private Statement compile(Program program, String fileName) {
 		Statement ast = applyTransformations(program);
-		if (program.hasErrors()) {
-			System.err.println("There were errors while compiling " + fileName);
-			for (Tuple2<String, Position> error : JavaConversions.asJavaCollection(program.errors())) {
-				System.err.println("Error at " + error._2);
-				System.err.println(error._1);
-				System.err.println(error._2.longString());
-				System.exit(2);
-			}
-		}
+		Main.checkCompileErrors(program, fileName);
 		return ast;
 	}
 
