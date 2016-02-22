@@ -13,6 +13,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Property;
 
 public abstract class RecordBuiltins {
 
@@ -38,6 +39,11 @@ public abstract class RecordBuiltins {
 		}
 
 		@Specialization
+		protected Object label(String atom) {
+			return atom;
+		}
+
+		@Specialization
 		protected Object label(DynamicObject record) {
 			return Arity.LABEL_LOCATION.get(record);
 		}
@@ -51,6 +57,11 @@ public abstract class RecordBuiltins {
 		@CreateCast("record")
 		protected OzNode derefValue(OzNode value) {
 			return DerefNodeGen.create(value);
+		}
+
+		@Specialization
+		long width(String atom) {
+			return 0;
 		}
 
 		@Specialization
@@ -177,9 +188,37 @@ public abstract class RecordBuiltins {
 	@NodeChildren({ @NodeChild("record"), @NodeChild("feature"), @NodeChild("fieldValue"), @NodeChild("result") })
 	public static abstract class AdjoinAtIfHasFeatureNode extends OzNode {
 
+		@CreateCast("record")
+		protected OzNode derefValue(OzNode value) {
+			return DerefNodeGen.create(value);
+		}
+
+		@CreateCast("feature")
+		protected OzNode derefFeature(OzNode value) {
+			return DerefNodeGen.create(value);
+		}
+
+		@CreateCast("fieldValue")
+		protected OzNode derefFieldValue(OzNode value) {
+			return DerefNodeGen.create(value);
+		}
+
 		@Specialization
-		Object adjoinAtIfHasFeature(Object record, Object feature, Object fieldValue, OzVar result) {
-			return unimplemented();
+		boolean adjoinAtIfHasFeature(String atom, Object feature, Object fieldValue, OzVar result) {
+			return false;
+		}
+
+		@Specialization
+		boolean adjoinAtIfHasFeature(DynamicObject record, Object feature, Object fieldValue, OzVar result) {
+			Property property = record.getShape().getProperty(feature);
+			if (property != null) {
+				DynamicObject newRecord = record.copy(record.getShape());
+				property.setInternal(newRecord, fieldValue); // Internal to avoid the final check
+				result.bind(newRecord);
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 	}

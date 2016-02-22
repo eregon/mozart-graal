@@ -485,6 +485,11 @@ public abstract class ValueBuiltins {
 		}
 
 		@Specialization
+		boolean hasFeature(String atom, Object feature) {
+			return false;
+		}
+
+		@Specialization
 		boolean hasFeature(DynamicObject record, Object feature) {
 			return record.getShape().hasProperty(feature);
 		}
