@@ -10,7 +10,7 @@ public class OzUniqueName {
 
 	@Override
 	public String toString() {
-		return "<UniqueName " + name + ">";
+		return "<N: " + name + ">";
 	}
 
 }
