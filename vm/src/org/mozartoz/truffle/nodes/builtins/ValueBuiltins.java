@@ -7,6 +7,8 @@ import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzException;
+import org.mozartoz.truffle.runtime.OzUniqueName;
+import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -79,6 +81,11 @@ public abstract class ValueBuiltins {
 
 		@Specialization
 		protected boolean equal(String a, String b) {
+			return a == b;
+		}
+
+		@Specialization
+		protected boolean equal(OzUniqueName a, OzUniqueName b) {
 			return a == b;
 		}
 
@@ -431,8 +438,8 @@ public abstract class ValueBuiltins {
 	public static abstract class IsDetNode extends OzNode {
 
 		@Specialization
-		Object isDet(Object value) {
-			return unimplemented();
+		boolean isDet(OzVar var) {
+			return var.isBound();
 		}
 
 	}
