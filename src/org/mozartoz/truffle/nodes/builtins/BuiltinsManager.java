@@ -92,11 +92,14 @@ public abstract class BuiltinsManager {
 		Map<String, OzFunction> builtins = new HashMap<>(factories.size());
 
 		for (NodeFactory<? extends OzNode> factory : factories) {
-			Builtin builtinAnno = factory.getNodeClass().getAnnotation(Builtin.class);
-			boolean anno = builtinAnno != null;
+			Builtin builtin = factory.getNodeClass().getAnnotation(Builtin.class);
+			if (builtin == null) {
+				builtin = Builtin.DEFAULT;
+			}
+
 			final String builtinName;
-			if (anno && !builtinAnno.name().isEmpty()) {
-				builtinName = builtinAnno.name();
+			if (!builtin.name().isEmpty()) {
+				builtinName = builtin.name();
 			} else {
 				String nodeName = factory.getNodeClass().getSimpleName();
 				builtinName = Character.toLowerCase(nodeName.charAt(0)) + nodeName.substring(1, nodeName.lastIndexOf("Node"));
@@ -110,7 +113,7 @@ public abstract class BuiltinsManager {
 				readArguments[i] = new ReadArgumentNode(i);
 			}
 			OzNode node = factory.createNode(readArguments);
-			if (!(anno && builtinAnno.proc())) {
+			if (!builtin.proc()) {
 				node = BindNodeGen.create(null, new ReadArgumentNode(arity), node);
 			}
 
