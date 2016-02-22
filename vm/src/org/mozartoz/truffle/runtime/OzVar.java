@@ -8,14 +8,15 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 public class OzVar {
 
 	private @CompilationFinal Object value = null;
-	private boolean dead = false;
+
+	/** A circular list of linked OzVar */
+	private OzVar next = this;
 
 	public boolean isBound() {
 		return value != null;
 	}
 
 	public Object getBoundValue(OzNode currentNode) {
-		assert !dead;
 		final Object value = this.value;
 		if (!isBound()) {
 			CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -24,15 +25,25 @@ public class OzVar {
 		return value;
 	}
 
+	public void link(OzVar other) {
+		assert !isBound();
+		assert !other.isBound();
+
+		// Link both circular lists
+		OzVar oldNext = this.next;
+		this.next = other.next;
+		other.next = oldNext;
+	}
+
 	public void bind(Object value) {
-		assert !dead;
 		assert !isBound();
 		assert !(value instanceof OzVar);
 		this.value = value;
-	}
 
-	public void setDead() {
-		this.dead = true;
+		if (!next.isBound()) { // back to the first bind in the circle
+			next.bind(value);
+		}
+		// TODO: next = null; ?
 	}
 
 	@Override
