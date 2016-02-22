@@ -389,7 +389,7 @@ public class Translator {
 			// Nothing to do
 		} else if (matcher instanceof OzPatMatCapture) {
 			FrameSlotAndDepth slot = findVariable(((OzPatMatCapture) matcher).variable());
-			bindings.add(PatternMatchCaptureNodeGen.create(slot, slot.createReadNode(), copy(valueNode)));
+			bindings.add(PatternMatchCaptureNodeGen.create(slot.createReadNode(), copy(valueNode)));
 		} else if (matcher instanceof OzFeature) {
 			Object feature = translateFeature((OzFeature) matcher);
 			checks.add(PatternMatchEqualNodeGen.create(feature, copy(valueNode)));

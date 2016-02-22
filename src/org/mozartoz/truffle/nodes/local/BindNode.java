@@ -26,10 +26,8 @@ public abstract class BindNode extends OzNode {
 	}
 
 	@Specialization(guards = { "!left.isBound()", "!right.isBound()" })
-	Object assignLeft(VirtualFrame frame, OzVar left, OzVar right) {
-		writeLeft.write(frame, right);
-		left.setDead();
-		// TODO: should chain left to right in case it was captured earlier
+	Object unboundUnbound(VirtualFrame frame, OzVar left, OzVar right) {
+		left.link(right);
 		return unit;
 	}
 
