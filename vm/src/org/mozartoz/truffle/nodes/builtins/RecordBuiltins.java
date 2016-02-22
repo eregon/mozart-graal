@@ -2,6 +2,7 @@ package org.mozartoz.truffle.nodes.builtins;
 
 import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzRecord;
@@ -205,11 +206,13 @@ public abstract class RecordBuiltins {
 
 		@Specialization
 		boolean adjoinAtIfHasFeature(String atom, Object feature, Object fieldValue, OzVar result) {
+			assert OzGuards.isFeature(feature);
 			return false;
 		}
 
 		@Specialization
 		boolean adjoinAtIfHasFeature(DynamicObject record, Object feature, Object fieldValue, OzVar result) {
+			assert OzGuards.isFeature(feature);
 			Property property = record.getShape().getProperty(feature);
 			if (property != null) {
 				DynamicObject newRecord = record.copy(record.getShape());
