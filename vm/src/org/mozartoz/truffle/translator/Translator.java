@@ -1,6 +1,5 @@
 package org.mozartoz.truffle.translator;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.mozartoz.bootcompiler.Main;
 import org.mozartoz.bootcompiler.ast.BinaryOp;
 import org.mozartoz.bootcompiler.ast.BindStatement;
 import org.mozartoz.bootcompiler.ast.CallStatement;
@@ -44,17 +42,8 @@ import org.mozartoz.bootcompiler.oz.OzRecordField;
 import org.mozartoz.bootcompiler.oz.OzValue;
 import org.mozartoz.bootcompiler.oz.True;
 import org.mozartoz.bootcompiler.oz.UnitVal;
-import org.mozartoz.bootcompiler.parser.OzParser;
 import org.mozartoz.bootcompiler.symtab.Builtin;
-import org.mozartoz.bootcompiler.symtab.Program;
 import org.mozartoz.bootcompiler.symtab.Symbol;
-import org.mozartoz.bootcompiler.transform.ConstantFolding;
-import org.mozartoz.bootcompiler.transform.Desugar;
-import org.mozartoz.bootcompiler.transform.DesugarClass;
-import org.mozartoz.bootcompiler.transform.DesugarFunctor;
-import org.mozartoz.bootcompiler.transform.Namer;
-import org.mozartoz.bootcompiler.transform.PatternMatcher;
-import org.mozartoz.bootcompiler.transform.Unnester;
 import org.mozartoz.bootcompiler.util.FilePosition;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
@@ -67,8 +56,6 @@ import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.TailNodeGen;
 import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.AddNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.MulNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.SubNodeFactory;
-import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.LabelNodeFactory;
-import org.mozartoz.truffle.nodes.builtins.SystemBuiltinsFactory.ShowNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.UnknownBuiltinNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.DotNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.DotNodeFactory;
@@ -92,7 +79,6 @@ import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
-import org.mozartoz.truffle.nodes.local.BindVarValueNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
@@ -107,9 +93,6 @@ import org.mozartoz.truffle.runtime.OzFunction;
 import org.mozartoz.truffle.runtime.Unit;
 
 import scala.collection.JavaConversions;
-import scala.collection.immutable.HashSet;
-import scala.util.parsing.combinator.Parsers.ParseResult;
-import scala.util.parsing.input.CharSequenceReader;
 import scala.util.parsing.input.Position;
 
 import com.oracle.truffle.api.CallTarget;
@@ -140,6 +123,10 @@ public class Translator {
 	public Translator() {
 	}
 
+	public FrameSlot addRootSymbol(Symbol symbol) {
+		return rootEnvironment.frameDescriptor.addFrameSlot(symbol);
+	}
+
 	private void pushEnvironment(FrameDescriptor frameDescriptor) {
 		environment = new Environment(environment, frameDescriptor);
 	}
@@ -165,77 +152,16 @@ public class Translator {
 				depth++;
 			}
 		}
-		throw new AssertionError(symbol.fullName());
+		throw new Error(symbol.fullName());
 	}
 
-	public OzRootNode parseAndTranslate(Source source) {
-		Program program = new Program(true);
-		program.baseDeclarations().$plus$eq("Show").$plus$eq("Label").$plus$eq("ByNeedDot");
-
-		OzParser parser = new OzParser();
-
-		loadBuiltinModules(program);
-		BuiltinsManager.defineBuiltins();
-
-		// TODO: Could use bootcompiler Main.readerForFile
-		CharSequenceReader reader = new CharSequenceReader(source.getCode());
-		HashSet<String> defines = new HashSet<String>();// .$plus("Show");
-		File file = new File(new File(source.getPath()).getName());
-		ParseResult<Statement> result = parser.parseStatement(reader, file, defines);
-		if (!result.successful()) {
-			System.err.println("Parse error at " + result.next().pos().toString() + "\n" + result + "\n" + result.next().pos().longString());
-			throw new RuntimeException();
-		}
-
-		program.rawCode_$eq(result.get());
-
-		Namer.apply(program);
-		DesugarFunctor.apply(program);
-		DesugarClass.apply(program);
-		Desugar.apply(program);
-		PatternMatcher.apply(program);
-
-		ConstantFolding.apply(program);
-		Unnester.apply(program);
-		// Flattener.apply(program);
-
-		Statement ast = program.rawCode();
-		// System.out.println(ast);
-
-		FrameSlot baseSlot = rootEnvironment.frameDescriptor.addFrameSlot(program.baseEnvSymbol());
-
+	public OzRootNode translateAST(String description, Statement ast, Function<OzNode, OzNode> wrap) {
 		OzNode translated = translate(ast);
+		OzNode wrapped = wrap.apply(translated);
+		OzNode handler = new TopLevelHandlerNode(wrapped);
 
-		OzNode showNode = ShowNodeFactory.create(new ReadArgumentNode(0));
-		OzNode labelNode = BindVarValueNodeGen.create(new ReadArgumentNode(1),
-				LabelNodeFactory.create(new ReadArgumentNode(0)));
-		OzNode byNeedDotNode = BindVarValueNodeGen.create(new ReadArgumentNode(2),
-				DotNodeFactory.create(new ReadArgumentNode(0), new ReadArgumentNode(1)));
-		Arity baseArity = Arity.build("base", "Show", "Label", "ByNeedDot");
-		SourceSection sourceSection = SourceSection.createUnavailable("builtin", "TODO");
-		OzNode initializeBaseNode = new RecordLiteralNode(baseArity, new OzNode[] {
-				new ProcDeclarationNode(sourceSection, new FrameDescriptor(), showNode),
-				new ProcDeclarationNode(sourceSection, new FrameDescriptor(), labelNode),
-				new ProcDeclarationNode(sourceSection, new FrameDescriptor(), byNeedDotNode)
-		});
-		translated =
-				new TopLevelHandlerNode(
-						SequenceNode.sequence(
-								new InitializeTmpNode(baseSlot, initializeBaseNode),
-								translated));
-
-		SourceSection topSourceSection = SourceSection.createUnavailable("top-level", "<top>");
-		return new OzRootNode(topSourceSection, environment.frameDescriptor, translated);
-	}
-
-	private void loadBuiltinModules(Program program) {
-		String[] builtinModules = { "Value", "Number", "Float", "Int", "Exception", "Record", "Name", "Object", "Thread" };
-
-		List<String> builtins = new ArrayList<>();
-		for (String buitinType : builtinModules) {
-			builtins.add("/home/eregon/code/mozart-graal/mozart-graal/builtins/Mod" + buitinType + "-builtin.json");
-		}
-		Main.loadModuleDefs(program, JavaConversions.asScalaBuffer(builtins).toList());
+		SourceSection sourceSection = SourceSection.createUnavailable("top-level", description);
+		return new OzRootNode(sourceSection, environment.frameDescriptor, handler);
 	}
 
 	OzNode translate(Statement statement) {
