@@ -337,6 +337,8 @@ public class Translator {
 			Variable variable = (Variable) expression;
 			if (variable.symbol().name().equals("BOOTMODULES")) {
 				return new LiteralNode(BuiltinsManager.getBootModulesRecord());
+			} else if (variable.symbol().name().equals("Show")) {
+				return new LiteralNode(BuiltinsManager.getBuiltin("System", "show"));
 			}
 			return findVariable(variable.symbol()).createReadNode();
 		} else if (expression instanceof UnboundExpression) {
