@@ -1,10 +1,14 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzChunk;
 
+import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ChunkBuiltins {
 
@@ -13,9 +17,14 @@ public abstract class ChunkBuiltins {
 	@NodeChild("underlying")
 	public static abstract class NewChunkNode extends OzNode {
 
+		@CreateCast("underlying")
+		protected OzNode derefUnderlying(OzNode value) {
+			return DerefNodeGen.create(value);
+		}
+
 		@Specialization
-		Object newChunk(Object underlying) {
-			return unimplemented();
+		OzChunk newChunk(DynamicObject underlying) {
+			return new OzChunk(underlying);
 		}
 
 	}
