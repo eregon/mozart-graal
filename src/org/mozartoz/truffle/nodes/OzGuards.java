@@ -3,6 +3,7 @@ package org.mozartoz.truffle.nodes;
 import java.math.BigInteger;
 
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
 
@@ -31,12 +32,16 @@ public class OzGuards {
 		return value instanceof String;
 	}
 
+	public static boolean isName(Object value) {
+		return value instanceof OzName;
+	}
+
 	public static boolean isUniqueName(Object value) {
 		return value instanceof OzUniqueName;
 	}
 
 	public static boolean isFeature(Object value) {
-		return isLong(value) || isAtom(value) || isUniqueName(value);
+		return isLong(value) || isAtom(value) || isName(value) || isUniqueName(value);
 	}
 
 	public static boolean isCons(Object value) {

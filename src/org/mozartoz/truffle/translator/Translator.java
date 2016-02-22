@@ -168,8 +168,8 @@ public class Translator {
 		throw new AssertionError(symbol.fullName());
 	}
 
-	public OzRootNode parseAndTranslate(String code) {
-		Program program = new Program(false);
+	public OzRootNode parseAndTranslate(Source source) {
+		Program program = new Program(true);
 		program.baseDeclarations().$plus$eq("Show").$plus$eq("Label").$plus$eq("ByNeedDot");
 
 		OzParser parser = new OzParser();
@@ -177,9 +177,11 @@ public class Translator {
 		loadBuiltinModules(program);
 		BuiltinsManager.defineBuiltins();
 
-		CharSequenceReader reader = new CharSequenceReader(code);
+		// TODO: Could use bootcompiler Main.readerForFile
+		CharSequenceReader reader = new CharSequenceReader(source.getCode());
 		HashSet<String> defines = new HashSet<String>();// .$plus("Show");
-		ParseResult<Statement> result = parser.parseStatement(reader, new File("test.oz"), defines);
+		File file = new File(new File(source.getPath()).getName());
+		ParseResult<Statement> result = parser.parseStatement(reader, file, defines);
 		if (!result.successful()) {
 			System.err.println("Parse error at " + result.next().pos().toString() + "\n" + result + "\n" + result.next().pos().longString());
 			throw new RuntimeException();

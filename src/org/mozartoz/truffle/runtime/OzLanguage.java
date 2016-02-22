@@ -28,8 +28,8 @@ public class OzLanguage extends TruffleLanguage<Object> {
 	}
 
 	@Override
-	protected CallTarget parse(Source code, Node context, String... argumentNames) throws IOException {
-		OzRootNode rootNode = new Translator().parseAndTranslate(code.getCode());
+	protected CallTarget parse(Source source, Node context, String... argumentNames) throws IOException {
+		OzRootNode rootNode = new Translator().parseAndTranslate(source);
 		return Truffle.getRuntime().createCallTarget(rootNode);
 	}
 
