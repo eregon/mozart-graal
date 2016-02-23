@@ -104,7 +104,11 @@ trait OzPreprocessor {
           preprocess(state)
 
         case PreprocessorDirectiveWithArg("insert", fileName) =>
-          val file0 = new File(currentFile.getParentFile, fileName)
+          val file0 = if (new File(fileName).isAbsolute()) {
+            new File(fileName)
+          } else {
+            new File(currentFile.getParentFile, fileName)
+          }
 
           val file = {
             if (file0.exists()) file0
