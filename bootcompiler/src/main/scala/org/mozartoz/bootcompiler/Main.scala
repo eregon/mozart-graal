@@ -119,6 +119,20 @@ object Main {
     writeFileLines(new File(baseDeclsFileName), program.baseDeclarations)
   }
 
+  def buildBaseEnvProgram(fileName: String, moduleDefs: List[String], defines: Set[String]) = {
+    val (program, bootModules) = createProgram(moduleDefs, None, true)
+    val functor = parseExpression(readerForFile(fileName), new File(fileName), defines)
+    ProgramBuilder.buildBaseEnvProgram(program, bootModules, functor)
+    program
+  }
+
+  def buildNormalProgram(fileName: String, moduleDefs: List[String], baseDeclsFileName: String, defines: Set[String]) = {
+    val (program, _) = createProgram(moduleDefs, Some(baseDeclsFileName))
+    val statement = parseStatement(readerForFile(fileName), new File(fileName), defines)
+    program.rawCode = statement
+    program
+  }
+
   /** Creates a new Program */
   private def createProgram(moduleDefs: List[String],
       baseDeclsFileName: Option[String], isBaseEnvironment: Boolean = false) = {
@@ -295,7 +309,10 @@ object Main {
    */
   private def compile(prog: Program, fileName: String) {
     applyTransforms(prog)
+    checkCompileErrors(prog, fileName)
+  }
 
+  def checkCompileErrors(prog: Program, fileName: String) {
     if (prog.hasErrors) {
       Console.err.println(
           "There were errors while compiling %s" format fileName)
