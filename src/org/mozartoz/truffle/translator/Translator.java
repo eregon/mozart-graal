@@ -272,6 +272,8 @@ public class Translator {
 			Variable variable = (Variable) expression;
 			if (variable.symbol().name().equals("BOOTMODULES")) {
 				return new LiteralNode(BuiltinsManager.getBootModulesRecord());
+			} else if (variable.symbol().name().equals("MODBOOT")) {
+				return new LiteralNode(BuiltinsManager.getBootModule("Boot_Boot"));
 			} else if (variable.symbol().name().equals("Show")) {
 				return new LiteralNode(BuiltinsManager.getBuiltin("System", "show"));
 			}
