@@ -59,8 +59,13 @@ public abstract class OSBuiltins {
 	public static abstract class GetEnvNode extends OzNode {
 
 		@Specialization
-		Object getEnv(Object var) {
-			return unimplemented();
+		Object getEnv(String var) {
+			String value = System.getenv(var);
+			if (value != null) {
+				return value.intern();
+			} else {
+				return false;
+			}
 		}
 
 	}
