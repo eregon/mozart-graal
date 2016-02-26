@@ -1,11 +1,17 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzCons;
 
+import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.HiddenKey;
+import com.oracle.truffle.api.object.Property;
 
 public abstract class VirtualStringBuiltins {
 
@@ -36,9 +42,37 @@ public abstract class VirtualStringBuiltins {
 	@NodeChildren({ @NodeChild("value"), @NodeChild("tail") })
 	public static abstract class ToCharListNode extends OzNode {
 
+		@CreateCast("value")
+		protected OzNode derefValue(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
+		@CreateCast("tail")
+		protected OzNode derefTail(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
+		public abstract Object executeToCharList(Object value, Object tail);
+
 		@Specialization
-		Object toCharList(Object value, Object tail) {
-			return unimplemented();
+		Object toCharList(String atom, Object tail) {
+			Object list = tail;
+			for (int i = atom.length() - 1; i >= 0; i--) {
+				list = new OzCons((long) atom.charAt(i), list);
+			}
+			return list;
+		}
+
+		@Specialization
+		Object toCharList(DynamicObject record, Object tail) {
+			Object list = tail;
+			for (Property property : record.getShape().getPropertyListInternal(false)) {
+				if (!(property.getKey() instanceof HiddenKey)) {
+					Object value = property.get(record, record.getShape());
+					list = executeToCharList(value, list);
+				}
+			}
+			return list;
 		}
 
 	}

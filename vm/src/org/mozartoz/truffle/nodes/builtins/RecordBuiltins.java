@@ -5,6 +5,7 @@ import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzVar;
 
@@ -23,9 +24,24 @@ public abstract class RecordBuiltins {
 	@NodeChild("value")
 	public static abstract class IsRecordNode extends OzNode {
 
+		@CreateCast("value")
+		protected OzNode derefValue(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
 		@Specialization
-		Object isRecord(Object value) {
-			return unimplemented();
+		boolean isRecord(String atom) {
+			return true;
+		}
+
+		@Specialization
+		boolean isRecord(OzCons value) {
+			return true;
+		}
+
+		@Specialization
+		boolean isRecord(DynamicObject value) {
+			return true;
 		}
 
 	}
