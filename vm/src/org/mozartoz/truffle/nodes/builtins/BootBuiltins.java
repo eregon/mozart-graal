@@ -5,6 +5,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class BootBuiltins {
 
@@ -13,8 +14,8 @@ public abstract class BootBuiltins {
 	public static abstract class GetInternalNode extends OzNode {
 
 		@Specialization
-		Object getInternal(Object name) {
-			return unimplemented();
+		DynamicObject getInternal(String name) {
+			return BuiltinsManager.getBootModule("Boot_" + name);
 		}
 
 	}

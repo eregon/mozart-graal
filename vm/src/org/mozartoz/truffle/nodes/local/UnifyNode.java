@@ -3,6 +3,7 @@ package org.mozartoz.truffle.nodes.local;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.EqualNode;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -41,7 +42,7 @@ public abstract class UnifyNode extends OzNode {
 	Object unify(Object a, Object b) {
 		if (!equal(a, b)) {
 			CompilerDirectives.transferToInterpreter();
-			throw new RuntimeException("Failed unification: " + a + " != " + b);
+			throw new OzException(this, "Failed unification: " + a + " != " + b);
 		}
 		return unit;
 	}

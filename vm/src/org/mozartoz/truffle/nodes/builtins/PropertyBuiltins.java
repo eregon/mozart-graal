@@ -1,5 +1,8 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzVar;
 
@@ -9,6 +12,12 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 
 public abstract class PropertyBuiltins {
+
+	private static final Map<String, Object> PROPERTIES = new HashMap<>();
+
+	static {
+		PROPERTIES.put("platform.os", System.getProperty("os.name"));
+	}
 
 	@GenerateNodeFactory
 	@NodeChild("property")
@@ -37,8 +46,14 @@ public abstract class PropertyBuiltins {
 	public static abstract class GetNode extends OzNode {
 
 		@Specialization
-		Object get(Object property, OzVar result) {
-			return unimplemented();
+		boolean get(String property, OzVar result) {
+			if (PROPERTIES.containsKey(property)) {
+				result.bind(PROPERTIES.get(property));
+				return true;
+			} else {
+				result.bind(unit);
+				return false;
+			}
 		}
 
 	}
