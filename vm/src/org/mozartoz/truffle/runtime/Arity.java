@@ -49,6 +49,22 @@ public class Arity {
 		return object.getShape() == shape && LABEL_LOCATION.get(object) == label;
 	}
 
+	public boolean matchesOpen(DynamicObject object) {
+		Shape a = object.getShape();
+		Shape b = shape;
+		return a.isRelated(b) && a.getPropertyCount() >= b.getPropertyCount() && isAncestorShape(b, a);
+	}
+
+	private boolean isAncestorShape(Shape shape, Shape ancestor) {
+		while (shape != null) {
+			if (shape == ancestor) {
+				return true;
+			}
+			shape = shape.getParent();
+		}
+		return false;
+	}
+
 	public DynamicObjectFactory createFactory() {
 		return shape.createFactory();
 	}
