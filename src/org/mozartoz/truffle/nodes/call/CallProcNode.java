@@ -13,6 +13,7 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
 
 @NodeChildren({ @NodeChild("function") })
 public abstract class CallProcNode extends OzNode {
@@ -29,11 +30,18 @@ public abstract class CallProcNode extends OzNode {
 	}
 
 	@Specialization(guards = "function.callTarget == cachedCallTarget")
-	protected Object call(VirtualFrame frame, OzFunction function,
+	protected Object callDirect(VirtualFrame frame, OzFunction function,
 			@Cached("function.callTarget") CallTarget cachedCallTarget,
 			@Cached("create(cachedCallTarget)") DirectCallNode callNode) {
 		final Object[] arguments = executeArgumentsNode.executeValues(frame);
 		return callNode.call(frame, OzArguments.pack(function.declarationFrame, arguments));
+	}
+
+	@Specialization
+	protected Object callIndirect(VirtualFrame frame, OzFunction function,
+			@Cached("create()") IndirectCallNode callNode) {
+		final Object[] arguments = executeArgumentsNode.executeValues(frame);
+		return callNode.call(frame, function.callTarget, OzArguments.pack(function.declarationFrame, arguments));
 	}
 
 }

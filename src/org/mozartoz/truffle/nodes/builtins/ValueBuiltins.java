@@ -9,8 +9,10 @@ import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.runtime.Unit;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -70,18 +72,34 @@ public abstract class ValueBuiltins {
 		}
 
 		@Specialization
+		protected boolean equal(Unit a, Unit b) {
+			return true;
+		}
+
+		@TruffleBoundary
+		@Specialization
 		protected boolean equal(OzCons a, OzCons b) {
 			return executeEqual(a.getHead(), b.getHead()) && executeEqual(a.getTail(), b.getTail());
 		}
 
-		@Specialization
-		protected boolean equal(OzCons a, String b) {
+		@Specialization(guards = { "!isCons(b)", "!isRecord(b)" })
+		protected boolean equal(OzCons a, Object b) {
+			return false;
+		}
+
+		@Specialization(guards = "!isRecord(b)")
+		protected boolean equal(DynamicObject record, Object b) {
 			return false;
 		}
 
 		@Specialization
 		protected boolean equal(String a, String b) {
 			return a == b;
+		}
+
+		@Specialization(guards = "!isAtom(b)")
+		protected boolean equal(String a, Object b) {
+			return false;
 		}
 
 		@Specialization
@@ -512,9 +530,19 @@ public abstract class ValueBuiltins {
 	@NodeChildren({ @NodeChild("record"), @NodeChild("feature"), @NodeChild("def") })
 	public static abstract class CondSelectNode extends OzNode {
 
+		@CreateCast("record")
+		protected OzNode derefRecord(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
+		@CreateCast("feature")
+		protected OzNode derefFeature(OzNode feature) {
+			return DerefNodeGen.create(feature);
+		}
+
 		@Specialization
-		Object condSelect(Object record, Object feature, Object def) {
-			return unimplemented();
+		Object condSelect(DynamicObject record, Object feature, Object def) {
+			return record.get(feature, def);
 		}
 
 	}
