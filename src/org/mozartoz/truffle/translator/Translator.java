@@ -3,6 +3,7 @@ package org.mozartoz.truffle.translator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,8 @@ import org.mozartoz.bootcompiler.oz.OzFeature;
 import org.mozartoz.bootcompiler.oz.OzInt;
 import org.mozartoz.bootcompiler.oz.OzLiteral;
 import org.mozartoz.bootcompiler.oz.OzPatMatCapture;
+import org.mozartoz.bootcompiler.oz.OzPatMatConjunction;
+import org.mozartoz.bootcompiler.oz.OzPatMatOpenRecord;
 import org.mozartoz.bootcompiler.oz.OzPatMatWildcard;
 import org.mozartoz.bootcompiler.oz.OzRecord;
 import org.mozartoz.bootcompiler.oz.OzRecordField;
@@ -86,6 +89,7 @@ import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchCaptureNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNodeGen;
+import org.mozartoz.truffle.nodes.pattern.PatternMatchOpenRecordNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -211,8 +215,11 @@ public class Translator {
 			assert !(elseStatement instanceof NoElseStatement);
 			OzNode elseNode = translate(elseStatement);
 
+			List<MatchStatementClause> clauses = new ArrayList<>(toJava(matchStatement.clauses()));
+			Collections.reverse(clauses);
+
 			OzNode caseNode = elseNode;
-			for (MatchStatementClause clause : toJava(matchStatement.clauses())) {
+			for (MatchStatementClause clause : clauses) {
 				assert !clause.hasGuard();
 				ReadLocalVariableNode value = new ReadLocalVariableNode(valueSlot);
 				List<OzNode> checks = new ArrayList<>();
@@ -322,6 +329,10 @@ public class Translator {
 		} else if (matcher instanceof OzPatMatCapture) {
 			FrameSlotAndDepth slot = findVariable(((OzPatMatCapture) matcher).variable());
 			bindings.add(PatternMatchCaptureNodeGen.create(slot.createReadNode(), copy(valueNode)));
+		} else if (matcher instanceof OzPatMatConjunction) {
+			for (OzValue part : toJava(((OzPatMatConjunction) matcher).parts())) {
+				translateMatcher(part, valueNode, checks, bindings);
+			}
 		} else if (matcher instanceof OzFeature) {
 			Object feature = translateFeature((OzFeature) matcher);
 			checks.add(PatternMatchEqualNodeGen.create(feature, copy(valueNode)));
@@ -342,6 +353,11 @@ public class Translator {
 					translateMatcher(field.value(), dotNode, checks, bindings);
 				}
 			}
+		} else if (matcher instanceof OzPatMatOpenRecord) {
+			OzPatMatOpenRecord record = (OzPatMatOpenRecord) matcher;
+			Arity arity = buildArity(record.arity());
+			checks.add(PatternMatchOpenRecordNodeGen.create(arity, copy(valueNode)));
+
 		} else {
 			throw unknown("pattern matcher", matcher);
 		}
