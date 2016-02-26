@@ -23,8 +23,8 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class BuiltinsManager {
 
-	// Order is from Base.oz
 	private static final String[] MODULES = {
+			// Base.oz
 			"Value",
 			"Literal",
 			"Cell",
@@ -52,6 +52,8 @@ public abstract class BuiltinsManager {
 			"System",
 			"Property",
 			"WeakReference",
+			// Init.oz
+			"Boot",
 	};
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
@@ -67,6 +69,11 @@ public abstract class BuiltinsManager {
 		// Create a new node tree for every call site
 		RootNode rootNode = NodeUtil.cloneNode(((RootCallTarget) fun.callTarget).getRootNode());
 		return new OzFunction(Truffle.getRuntime().createCallTarget(rootNode), null);
+	}
+
+	public static DynamicObject getBootModule(String name) {
+		assert BOOT_MODULES.containsKey(name);
+		return BOOT_MODULES.get(name);
 	}
 
 	public static DynamicObject getBootModulesRecord() {
