@@ -54,6 +54,7 @@ public abstract class BuiltinsManager {
 			"WeakReference",
 			// Init.oz
 			"Boot",
+			"OS",
 	};
 
 	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
