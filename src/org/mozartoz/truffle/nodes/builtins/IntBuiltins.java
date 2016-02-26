@@ -21,9 +21,14 @@ public abstract class IntBuiltins {
 	@NodeChild("value")
 	public static abstract class IsIntNode extends OzNode {
 
+		@CreateCast("value")
+		protected OzNode derefValue(OzNode var) {
+			return DerefNodeGen.create(var);
+		}
+
 		@Specialization
-		Object isInt(Object value) {
-			return unimplemented();
+		boolean isInt(long value) {
+			return true;
 		}
 
 	}
