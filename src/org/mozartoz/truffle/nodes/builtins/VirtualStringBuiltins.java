@@ -47,12 +47,23 @@ public abstract class VirtualStringBuiltins {
 		public abstract Object executeToCharList(Object value, Object tail);
 
 		@Specialization
+		Object toCharList(long codePoint, Object tail) {
+			return new OzCons(codePoint, tail);
+		}
+
+		@Specialization
 		Object toCharList(String atom, Object tail) {
 			Object list = tail;
 			for (int i = atom.length() - 1; i >= 0; i--) {
 				list = new OzCons((long) atom.charAt(i), list);
 			}
 			return list;
+		}
+
+		@Specialization
+		Object toCharList(OzCons cons, Object tail) {
+			return executeToCharList(cons.getHead(),
+					executeToCharList(cons.getTail(), tail));
 		}
 
 		@Specialization

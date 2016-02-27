@@ -360,7 +360,11 @@ public class Translator {
 			OzPatMatOpenRecord record = (OzPatMatOpenRecord) matcher;
 			Arity arity = buildArity(record.arity());
 			checks.add(PatternMatchOpenRecordNodeGen.create(arity, copy(valueNode)));
-
+			for (OzRecordField field : toJava(record.fields())) {
+				Object feature = translateFeature(field.feature());
+				DotNode dotNode = DotNodeFactory.create(deref(copy(valueNode)), new LiteralNode(feature));
+				translateMatcher(field.value(), dotNode, checks, bindings);
+			}
 		} else {
 			throw unknown("pattern matcher", matcher);
 		}
