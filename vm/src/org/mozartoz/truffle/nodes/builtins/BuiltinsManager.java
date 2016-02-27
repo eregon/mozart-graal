@@ -9,7 +9,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
-import org.mozartoz.truffle.runtime.OzFunction;
+import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzRecord;
 
 import com.oracle.truffle.api.CallTarget;
@@ -58,19 +58,19 @@ public abstract class BuiltinsManager {
 			"OS",
 	};
 
-	private static final Map<String, OzFunction> BUILTINS = new HashMap<>();
+	private static final Map<String, OzProc> BUILTINS = new HashMap<>();
 	private static final Map<String, DynamicObject> BOOT_MODULES = new HashMap<>();
 	private static DynamicObject BOOT_MODULES_RECORD;
 
-	public static OzFunction getBuiltin(String moduleName, String builtinName) {
+	public static OzProc getBuiltin(String moduleName, String builtinName) {
 		String name = moduleName + "." + builtinName;
-		OzFunction fun = BUILTINS.get(name);
+		OzProc fun = BUILTINS.get(name);
 		if (fun == null) {
 			throw new Error("No builtin " + name);
 		}
 		// Create a new node tree for every call site
 		RootNode rootNode = NodeUtil.cloneNode(((RootCallTarget) fun.callTarget).getRootNode());
-		return new OzFunction(Truffle.getRuntime().createCallTarget(rootNode), null);
+		return new OzProc(Truffle.getRuntime().createCallTarget(rootNode), null);
 	}
 
 	public static DynamicObject getBootModule(String name) {
@@ -102,7 +102,7 @@ public abstract class BuiltinsManager {
 
 	private static void installBuiltins(String module, List<NodeFactory<? extends OzNode>> factories) {
 		// The builtins of this module only, indexed by the builtin name
-		Map<String, OzFunction> builtins = new HashMap<>(factories.size());
+		Map<String, OzProc> builtins = new HashMap<>(factories.size());
 
 		for (NodeFactory<? extends OzNode> factory : factories) {
 			Builtin builtin = factory.getNodeClass().getAnnotation(Builtin.class);
@@ -132,7 +132,7 @@ public abstract class BuiltinsManager {
 
 			OzRootNode rootNode = new OzRootNode(sourceSection, new FrameDescriptor(), node);
 			CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-			OzFunction function = new OzFunction(callTarget, null);
+			OzProc function = new OzProc(callTarget, null);
 			assert !BUILTINS.containsKey(name) : name;
 			BUILTINS.put(name, function);
 			builtins.put(builtinName.intern(), function);

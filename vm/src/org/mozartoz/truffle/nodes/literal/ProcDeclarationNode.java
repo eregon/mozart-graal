@@ -2,7 +2,7 @@ package org.mozartoz.truffle.nodes.literal;
 
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
-import org.mozartoz.truffle.runtime.OzFunction;
+import org.mozartoz.truffle.runtime.OzProc;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -22,7 +22,7 @@ public class ProcDeclarationNode extends OzNode {
 
 	@Override
 	public Object execute(VirtualFrame frame) {
-		return new OzFunction(callTarget, frame.materialize());
+		return new OzProc(callTarget, frame.materialize());
 	}
 
 }
