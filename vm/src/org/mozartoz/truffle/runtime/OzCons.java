@@ -20,7 +20,7 @@ public class OzCons {
 
 	@Override
 	public String toString() {
-		return head.toString() + "|" + tail.toString();
+		return head + "|" + tail;
 	}
 
 }
