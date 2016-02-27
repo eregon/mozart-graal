@@ -13,4 +13,9 @@ public class OzFunction {
 		this.declarationFrame = declarationFrame;
 	}
 
+	@Override
+	public String toString() {
+		return "<Proc>";
+	}
+
 }
