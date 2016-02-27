@@ -1,20 +1,22 @@
 package org.mozartoz.truffle.runtime;
 
+import com.oracle.truffle.api.object.DynamicObject;
+
 public class OzChunk {
 
-	private final Object underlying;
+	private final DynamicObject underlying;
 
-	public OzChunk(Object underlying) {
+	public OzChunk(DynamicObject underlying) {
 		this.underlying = underlying;
 	}
 
-	public Object getUnderlying() {
+	public DynamicObject getUnderlying() {
 		return underlying;
 	}
 
 	@Override
 	public String toString() {
-		return "<Chunk " + underlying + ">";
+		return "<Chunk>";
 	}
 
 }

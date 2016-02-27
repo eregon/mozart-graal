@@ -20,6 +20,7 @@ public abstract class PropertyBuiltins {
 
 	static {
 		PROPERTIES.put("platform.os", System.getProperty("os.name"));
+		PROPERTIES.put("platform.name", System.getProperty("os.name"));
 		PROPERTIES.put("oz.home", Loader.PROJECT_ROOT);
 		PROPERTIES.put("oz.version", "3.0.0-alpha");
 		PROPERTIES.put("oz.search.path", ".");
