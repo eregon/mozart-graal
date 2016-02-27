@@ -1,12 +1,12 @@
 package org.mozartoz.truffle.nodes.builtins;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.RaiseErrorNodeFactory;
 import org.mozartoz.truffle.runtime.OzException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -40,17 +40,12 @@ public abstract class ExceptionBuiltins {
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class RaiseErrorNode extends OzNode {
 
 		public abstract Object executeRaiseError(Object value);
-
-		@CreateCast("value")
-		protected OzNode derefValue(OzNode value) {
-			return DerefNodeGen.create(value);
-		}
 
 		@Specialization
 		@TruffleBoundary

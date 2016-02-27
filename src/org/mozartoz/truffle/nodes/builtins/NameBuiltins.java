@@ -1,5 +1,7 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzUniqueName;
@@ -33,6 +35,7 @@ public abstract class NameBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("atom")
 	public static abstract class NewUniqueNode extends OzNode {

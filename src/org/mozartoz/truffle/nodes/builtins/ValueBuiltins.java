@@ -1,8 +1,9 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import java.math.BigInteger;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -14,7 +15,6 @@ import org.mozartoz.truffle.runtime.Unit;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -25,7 +25,7 @@ import com.oracle.truffle.api.object.Shape;
 
 public abstract class ValueBuiltins {
 
-	@Builtin(name = "==")
+	@Builtin(name = "==", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class EqualNode extends OzNode {
@@ -35,16 +35,6 @@ public abstract class ValueBuiltins {
 		}
 
 		public abstract boolean executeEqual(Object a, Object b);
-
-		@CreateCast("left")
-		protected OzNode derefLeft(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("right")
-		protected OzNode derefRight(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization
 		protected boolean equal(boolean a, boolean b) {
@@ -109,22 +99,12 @@ public abstract class ValueBuiltins {
 
 	}
 
-	@Builtin(name = "\\=")
+	@Builtin(name = "\\=", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class NotEqualNode extends OzNode {
 
 		@Child EqualNode equalNode = EqualNode.create();
-
-		@CreateCast("left")
-		protected OzNode derefLeft(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("right")
-		protected OzNode derefRight(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization
 		boolean notEqual(Object left, Object right) {
@@ -133,20 +113,10 @@ public abstract class ValueBuiltins {
 
 	}
 
-	@Builtin(name = "<")
+	@Builtin(name = "<", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class LesserThanNode extends OzNode {
-
-		@CreateCast("left")
-		protected OzNode derefLeft(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("right")
-		protected OzNode derefRight(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization
 		protected boolean lesserThan(long a, long b) {
@@ -155,20 +125,10 @@ public abstract class ValueBuiltins {
 
 	}
 
-	@Builtin(name = "=<")
+	@Builtin(name = "=<", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class LesserThanOrEqualNode extends OzNode {
-
-		@CreateCast("left")
-		protected OzNode derefLeft(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("right")
-		protected OzNode derefRight(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization
 		protected boolean lesserThanOrEqual(long a, long b) {
@@ -177,20 +137,10 @@ public abstract class ValueBuiltins {
 
 	}
 
-	@Builtin(name = ">=")
+	@Builtin(name = ">=", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class GreaterThanOrEqualNode extends OzNode {
-
-		@CreateCast("left")
-		protected OzNode derefLeft(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("right")
-		protected OzNode derefRight(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization
 		protected boolean greaterThanOrEqual(long a, long b) {
@@ -199,20 +149,10 @@ public abstract class ValueBuiltins {
 
 	}
 
-	@Builtin(name = ">")
+	@Builtin(name = ">", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class GreaterThanNode extends OzNode {
-
-		@CreateCast("left")
-		protected OzNode derefLeft(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("right")
-		protected OzNode derefRight(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization
 		protected boolean greaterThan(long a, long b) {
@@ -226,20 +166,10 @@ public abstract class ValueBuiltins {
 
 	}
 
-	@Builtin(name = ".")
+	@Builtin(name = ".", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("record"), @NodeChild("feature") })
 	public static abstract class DotNode extends OzNode {
-
-		@CreateCast("record")
-		protected OzNode derefRecord(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("feature")
-		protected OzNode derefFeature(OzNode feature) {
-			return DerefNodeGen.create(feature);
-		}
 
 		@Specialization(guards = "feature == 1")
 		protected Object getHead(OzCons cons, long feature) {
@@ -500,19 +430,10 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("record"), @NodeChild("feature") })
 	public static abstract class HasFeatureNode extends OzNode {
-
-		@CreateCast("record")
-		protected OzNode derefRecord(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("feature")
-		protected OzNode derefFeature(OzNode feature) {
-			return DerefNodeGen.create(feature);
-		}
 
 		@Specialization
 		boolean hasFeature(String atom, Object feature) {
@@ -526,19 +447,10 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(deref = { 1, 2 })
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("record"), @NodeChild("feature"), @NodeChild("def") })
 	public static abstract class CondSelectNode extends OzNode {
-
-		@CreateCast("record")
-		protected OzNode derefRecord(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("feature")
-		protected OzNode derefFeature(OzNode feature) {
-			return DerefNodeGen.create(feature);
-		}
 
 		@Specialization
 		Object condSelect(DynamicObject record, Object feature, Object def) {

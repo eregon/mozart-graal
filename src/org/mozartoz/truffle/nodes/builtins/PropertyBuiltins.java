@@ -1,14 +1,14 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.translator.Loader;
 
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -26,20 +26,10 @@ public abstract class PropertyBuiltins {
 		PROPERTIES.put("oz.search.load", ".");
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("property"), @NodeChild("value") })
 	public static abstract class RegisterValueNode extends OzNode {
-
-		@CreateCast("property")
-		protected OzNode derefProperty(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("value")
-		protected OzNode derefValue(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization
 		Object registerValue(String property, Object value) {
@@ -50,7 +40,7 @@ public abstract class PropertyBuiltins {
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("property"), @NodeChild("value") })
 	public static abstract class RegisterConstantNode extends OzNode {
@@ -62,14 +52,10 @@ public abstract class PropertyBuiltins {
 
 	}
 
+	@Builtin(deref = 1)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("property"), @NodeChild("result") })
 	public static abstract class GetNode extends OzNode {
-
-		@CreateCast("property")
-		protected OzNode derefProperty(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization
 		boolean get(String property, OzVar result) {
@@ -84,19 +70,10 @@ public abstract class PropertyBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("property"), @NodeChild("value") })
 	public static abstract class PutNode extends OzNode {
-
-		@CreateCast("property")
-		protected OzNode derefProperty(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("value")
-		protected OzNode derefValue(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization
 		boolean put(String property, Object value) {

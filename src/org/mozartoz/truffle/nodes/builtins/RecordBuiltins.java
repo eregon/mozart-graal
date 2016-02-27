@@ -1,7 +1,8 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import org.mozartoz.truffle.nodes.DerefIfBoundNode;
-import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
@@ -9,7 +10,6 @@ import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzVar;
 
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -19,15 +19,10 @@ import com.oracle.truffle.api.object.Property;
 
 public abstract class RecordBuiltins {
 
-	@Builtin(name = "is")
+	@Builtin(name = "is", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsRecordNode extends OzNode {
-
-		@CreateCast("value")
-		protected OzNode derefValue(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization
 		boolean isRecord(String atom) {
@@ -46,14 +41,10 @@ public abstract class RecordBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("record")
 	public static abstract class LabelNode extends OzNode {
-
-		@CreateCast("record")
-		protected OzNode derefValue(OzNode value) {
-			return DerefNodeGen.create(value);
-		}
 
 		@Specialization
 		protected Object label(String atom) {
@@ -67,14 +58,10 @@ public abstract class RecordBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("record")
 	public static abstract class WidthNode extends OzNode {
-
-		@CreateCast("record")
-		protected OzNode derefValue(OzNode value) {
-			return DerefNodeGen.create(value);
-		}
 
 		@Specialization
 		long width(String atom) {
@@ -88,14 +75,10 @@ public abstract class RecordBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("record")
 	public static abstract class ArityNode extends OzNode {
-
-		@CreateCast("record")
-		protected OzNode derefValue(OzNode value) {
-			return DerefNodeGen.create(value);
-		}
 
 		@Specialization
 		Object arity(String atom) {
@@ -131,21 +114,12 @@ public abstract class RecordBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("label"), @NodeChild("contents") })
 	public static abstract class MakeDynamicNode extends OzNode {
 
 		@Child DerefIfBoundNode derefNode = DerefIfBoundNode.create();
-
-		@CreateCast("label")
-		protected OzNode derefLabel(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("contents")
-		protected OzNode derefContents(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization
 		protected String makeDynamic(String label, String emptyContents) {
@@ -201,24 +175,10 @@ public abstract class RecordBuiltins {
 
 	}
 
+	@Builtin(deref = { 1, 2, 3 })
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("record"), @NodeChild("feature"), @NodeChild("fieldValue"), @NodeChild("result") })
 	public static abstract class AdjoinAtIfHasFeatureNode extends OzNode {
-
-		@CreateCast("record")
-		protected OzNode derefValue(OzNode value) {
-			return DerefNodeGen.create(value);
-		}
-
-		@CreateCast("feature")
-		protected OzNode derefFeature(OzNode value) {
-			return DerefNodeGen.create(value);
-		}
-
-		@CreateCast("fieldValue")
-		protected OzNode derefFieldValue(OzNode value) {
-			return DerefNodeGen.create(value);
-		}
 
 		@Specialization
 		boolean adjoinAtIfHasFeature(String atom, Object feature, Object fieldValue, OzVar result) {

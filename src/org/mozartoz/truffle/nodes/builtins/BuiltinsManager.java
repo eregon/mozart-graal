@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
@@ -122,7 +123,7 @@ public abstract class BuiltinsManager {
 			int arity = factory.getNodeSignatures().get(0).size();
 			Object[] readArguments = new OzNode[arity];
 			for (int i = 0; i < readArguments.length; i++) {
-				readArguments[i] = new ReadArgumentNode(i);
+				readArguments[i] = readArgumentNode(builtin, i);
 			}
 			OzNode node = factory.createNode(readArguments);
 			if (!builtin.proc()) {
@@ -140,4 +141,23 @@ public abstract class BuiltinsManager {
 		String label = module.toLowerCase().intern();
 		BOOT_MODULES.put(("Boot_" + module).intern(), OzRecord.buildRecord(label, builtins));
 	}
+
+	private static OzNode readArgumentNode(Builtin builtin, int i) {
+		ReadArgumentNode argumentNode = new ReadArgumentNode(i);
+		if (derefInclude(builtin.deref(), i + 1)) {
+			return DerefNodeGen.create(argumentNode);
+		} else {
+			return argumentNode;
+		}
+	}
+
+	private static boolean derefInclude(int[] deref, int i) {
+		for (int e : deref) {
+			if (e == Builtin.ALL || e == i) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 }

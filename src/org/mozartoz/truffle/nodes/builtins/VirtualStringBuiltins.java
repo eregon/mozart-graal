@@ -1,10 +1,10 @@
 package org.mozartoz.truffle.nodes.builtins;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
 
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -38,19 +38,10 @@ public abstract class VirtualStringBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("value"), @NodeChild("tail") })
 	public static abstract class ToCharListNode extends OzNode {
-
-		@CreateCast("value")
-		protected OzNode derefValue(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("tail")
-		protected OzNode derefTail(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		public abstract Object executeToCharList(Object value, Object tail);
 
