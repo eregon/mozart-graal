@@ -94,7 +94,7 @@ import org.mozartoz.truffle.nodes.pattern.PatternMatchOpenRecordNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
-import org.mozartoz.truffle.runtime.OzFunction;
+import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.Unit;
 
 import scala.collection.JavaConversions;
@@ -398,13 +398,13 @@ public class Translator {
 			}
 		} else if (value instanceof OzBuiltin) {
 			Builtin builtin = ((OzBuiltin) value).builtin();
-			OzFunction function = BuiltinsManager.getBuiltin(builtin.moduleName(), builtin.name());
+			OzProc function = BuiltinsManager.getBuiltin(builtin.moduleName(), builtin.name());
 			if (function != null) {
 				return function;
 			} else {
 				OzRootNode rootNode = new OzRootNode(null, null, new UnknownBuiltinNode(builtin.toString()));
 				CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-				return new OzFunction(callTarget, null);
+				return new OzProc(callTarget, null);
 			}
 		}
 		throw unknown("value", value);
