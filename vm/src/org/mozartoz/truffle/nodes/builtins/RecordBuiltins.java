@@ -52,6 +52,11 @@ public abstract class RecordBuiltins {
 		}
 
 		@Specialization
+		protected Object label(OzCons cons) {
+			return "|";
+		}
+
+		@Specialization
 		protected Object label(DynamicObject record) {
 			return Arity.LABEL_LOCATION.get(record);
 		}

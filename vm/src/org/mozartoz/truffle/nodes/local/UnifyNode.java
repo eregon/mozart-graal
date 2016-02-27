@@ -10,6 +10,8 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Property;
 
 @NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 public abstract class UnifyNode extends OzNode {
@@ -31,10 +33,26 @@ public abstract class UnifyNode extends OzNode {
 		return unit;
 	}
 
+	@Specialization(guards = { "!isBound(a)", "!isVar(b)" })
+	Object unify(OzVar a, Object b) {
+		a.bind(b);
+		return unit;
+	}
+
 	@Specialization
 	Object unify(OzCons a, OzCons b) {
 		executeUnify(a.getHead(), b.getHead());
 		executeUnify(a.getTail(), b.getTail());
+		return unit;
+	}
+
+	@Specialization(guards = "a.getShape() == b.getShape()")
+	Object unify(DynamicObject a, DynamicObject b) {
+		for (Property property : a.getShape().getProperties()) {
+			Object aValue = property.get(a, a.getShape());
+			Object bValue = property.get(b, b.getShape());
+			executeUnify(aValue, bValue);
+		}
 		return unit;
 	}
 
