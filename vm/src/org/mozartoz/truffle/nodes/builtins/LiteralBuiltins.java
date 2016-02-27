@@ -1,25 +1,20 @@
 package org.mozartoz.truffle.nodes.builtins;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzName;
 
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
 public abstract class LiteralBuiltins {
 
-	@Builtin(name = "is")
+	@Builtin(name = "is", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsLiteralNode extends OzNode {
-
-		@CreateCast("value")
-		protected OzNode derefValue(OzNode value) {
-			return DerefNodeGen.create(value);
-		}
 
 		@Specialization
 		boolean isLiteral(String atom) {

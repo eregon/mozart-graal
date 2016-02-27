@@ -1,12 +1,12 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import java.math.BigInteger;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.ExactMath;
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -16,15 +16,10 @@ public abstract class IntBuiltins {
 
 	private static final BigInteger ONE = BigInteger.valueOf(1);
 
-	@Builtin(name = "is")
+	@Builtin(name = "is", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsIntNode extends OzNode {
-
-		@CreateCast("value")
-		protected OzNode derefValue(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization
 		boolean isInt(long value) {
@@ -33,15 +28,10 @@ public abstract class IntBuiltins {
 
 	}
 
-	@Builtin(name = "+1")
+	@Builtin(name = "+1", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class AddOneNode extends OzNode {
-
-		@CreateCast("value")
-		protected OzNode derefValue(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization(rewriteOn = ArithmeticException.class)
 		protected long addOne(long n) {
@@ -55,15 +45,10 @@ public abstract class IntBuiltins {
 
 	}
 
-	@Builtin(name = "-1")
+	@Builtin(name = "-1", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class SubOneNode extends OzNode {
-
-		@CreateCast("value")
-		protected OzNode derefValue(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization(rewriteOn = ArithmeticException.class)
 		protected long subOne(long n) {
@@ -77,19 +62,10 @@ public abstract class IntBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class DivNode extends OzNode {
-
-		@CreateCast("left")
-		protected OzNode derefLeft(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("right")
-		protected OzNode derefRight(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization(rewriteOn = ArithmeticException.class)
 		protected long div(long a, long b) {
@@ -103,19 +79,10 @@ public abstract class IntBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class ModNode extends OzNode {
-
-		@CreateCast("left")
-		protected OzNode derefLeft(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
-		@CreateCast("right")
-		protected OzNode derefRight(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
 
 		@Specialization(rewriteOn = ArithmeticException.class)
 		protected long mod(long a, long b) {

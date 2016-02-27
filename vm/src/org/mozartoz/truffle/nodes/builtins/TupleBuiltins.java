@@ -1,12 +1,12 @@
 package org.mozartoz.truffle.nodes.builtins;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzVar;
 
-import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -14,17 +14,13 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 public abstract class TupleBuiltins {
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("label"), @NodeChild("width") })
 	public static abstract class MakeNode extends OzNode {
 
-		@CreateCast("width")
-		protected OzNode derefWidth(OzNode var) {
-			return DerefNodeGen.create(var);
-		}
-
 		@Specialization
-		Object make(Object label, long width) {
+		Object make(String label, long width) {
 			if (width == 0) {
 				return label;
 			}

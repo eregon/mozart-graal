@@ -23,11 +23,20 @@ public @interface Builtin {
 
 		public boolean proc() {
 			return false;
+		}
+
+		@Override
+		public int[] deref() {
+			return new int[0];
 		};
 	};
 
 	String name() default "";
 
 	boolean proc() default false;
+
+	int[] deref() default {};
+
+	public static final int ALL = -1;
 
 }
