@@ -56,14 +56,15 @@ public abstract class CellBuiltins {
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, deref = 1)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("cell"), @NodeChild("newValue") })
 	public static abstract class AssignNode extends OzNode {
 
 		@Specialization
-		Object assign(Object cell, Object newValue) {
-			return unimplemented();
+		Object assign(OzCell cell, Object newValue) {
+			cell.setValue(newValue);
+			return unit;
 		}
 
 	}

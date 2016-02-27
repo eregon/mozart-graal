@@ -30,8 +30,8 @@ public abstract class ChunkBuiltins {
 	public static abstract class IsChunkNode extends OzNode {
 
 		@Specialization
-		Object isChunk(Object value) {
-			return unimplemented();
+		boolean isChunk(OzChunk value) {
+			return true;
 		}
 
 	}

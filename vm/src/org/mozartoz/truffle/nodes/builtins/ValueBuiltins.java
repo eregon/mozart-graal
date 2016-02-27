@@ -6,6 +6,7 @@ import java.math.BigInteger;
 
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
+import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzUniqueName;
@@ -171,6 +172,8 @@ public abstract class ValueBuiltins {
 	@NodeChildren({ @NodeChild("record"), @NodeChild("feature") })
 	public static abstract class DotNode extends OzNode {
 
+		public abstract Object executeDot(Object record, Object feature);
+
 		@Specialization(guards = "feature == 1")
 		protected Object getHead(OzCons cons, long feature) {
 			return cons.getHead();
@@ -205,6 +208,11 @@ public abstract class ValueBuiltins {
 				throw new OzException(this, "record " + record + " has no feature " + feature);
 			}
 			return value;
+		}
+
+		@Specialization
+		protected Object getChunk(OzChunk chunk, Object feature) {
+			return executeDot(chunk.getUnderlying(), feature);
 		}
 
 	}
@@ -443,6 +451,11 @@ public abstract class ValueBuiltins {
 		@Specialization
 		boolean hasFeature(DynamicObject record, Object feature) {
 			return record.getShape().hasProperty(feature);
+		}
+
+		@Specialization
+		boolean hasFeature(OzChunk chunk, Object feature) {
+			return chunk.getUnderlying().getShape().hasProperty(feature);
 		}
 
 	}
