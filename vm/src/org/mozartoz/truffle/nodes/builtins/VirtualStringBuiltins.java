@@ -2,6 +2,7 @@ package org.mozartoz.truffle.nodes.builtins;
 
 import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
+import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
 
@@ -68,13 +69,15 @@ public abstract class VirtualStringBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class ToAtomNode extends OzNode {
 
 		@Specialization
-		Object toAtom(Object value) {
-			return unimplemented();
+		String toAtom(String value) {
+			assert OzGuards.isAtom(value);
+			return value;
 		}
 
 	}

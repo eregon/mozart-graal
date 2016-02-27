@@ -48,6 +48,7 @@ import org.mozartoz.bootcompiler.oz.UnitVal;
 import org.mozartoz.bootcompiler.symtab.Builtin;
 import org.mozartoz.bootcompiler.symtab.Symbol;
 import org.mozartoz.bootcompiler.util.FilePosition;
+import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.TopLevelHandlerNode;
@@ -351,7 +352,7 @@ public class Translator {
 				checks.add(PatternMatchRecordNodeGen.create(arity, copy(valueNode)));
 				for (OzRecordField field : toJava(record.fields())) {
 					Object feature = translateFeature(field.feature());
-					DotNode dotNode = DotNodeFactory.create(copy(valueNode), new LiteralNode(feature));
+					DotNode dotNode = DotNodeFactory.create(deref(copy(valueNode)), new LiteralNode(feature));
 					translateMatcher(field.value(), dotNode, checks, bindings);
 				}
 			}
@@ -443,6 +444,8 @@ public class Translator {
 	}
 
 	private OzNode translateBinaryOp(String operator, OzNode left, OzNode right) {
+		left = deref(left);
+		right = deref(right);
 		switch (operator) {
 		case "+":
 			return AddNodeFactory.create(left, right);
@@ -473,6 +476,10 @@ public class Translator {
 
 	private OzNode copy(OzNode node) {
 		return NodeUtil.cloneNode(node);
+	}
+
+	private OzNode deref(OzNode node) {
+		return DerefNodeGen.create(node);
 	}
 
 	private static <E> Collection<E> toJava(scala.collection.immutable.Iterable<E> scalaIterable) {
