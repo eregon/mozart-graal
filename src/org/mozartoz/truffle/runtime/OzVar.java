@@ -49,7 +49,7 @@ public class OzVar {
 	@Override
 	public String toString() {
 		if (isBound()) {
-			return "<" + value.toString() + ">";
+			return "<" + value + ">";
 		} else {
 			return "_";
 		}

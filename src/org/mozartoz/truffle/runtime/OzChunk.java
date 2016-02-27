@@ -12,4 +12,9 @@ public class OzChunk {
 		return underlying;
 	}
 
+	@Override
+	public String toString() {
+		return "<Chunk " + underlying + ">";
+	}
+
 }

@@ -14,7 +14,7 @@ public class OzCell {
 
 	@Override
 	public String toString() {
-		return "<Cell " + value.toString() + ">";
+		return "<Cell " + value + ">";
 	}
 
 }
