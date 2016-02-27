@@ -1,7 +1,9 @@
 package org.mozartoz.truffle.runtime;
 
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.source.SourceSection;
 
 public class OzProc {
 
@@ -15,7 +17,8 @@ public class OzProc {
 
 	@Override
 	public String toString() {
-		return "<Proc>";
+		SourceSection sourceSection = ((RootCallTarget) callTarget).getRootNode().getSourceSection();
+		return "<Proc@" + sourceSection.getShortDescription() + ">";
 	}
 
 }
