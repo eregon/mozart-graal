@@ -1,6 +1,7 @@
 package org.mozartoz.truffle.nodes.builtins;
 
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzCell;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -15,8 +16,8 @@ public abstract class CellBuiltins {
 	public static abstract class NewCellNode extends OzNode {
 
 		@Specialization
-		Object newCell(Object initial) {
-			return unimplemented();
+		OzCell newCell(Object initial) {
+			return new OzCell(initial);
 		}
 
 	}
