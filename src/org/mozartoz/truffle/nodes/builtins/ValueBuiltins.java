@@ -10,6 +10,7 @@ import org.mozartoz.truffle.runtime.OzCell;
 import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzException;
+import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzUniqueName;
@@ -357,22 +358,28 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(proc = true)
 	@GenerateNodeFactory
+	@NodeChild("value")
 	public static abstract class WaitNeededNode extends OzNode {
 
 		@Specialization
-		Object waitNeeded() {
-			return unimplemented();
+		Object waitNeeded(Object value) {
+			// FIXME: actually wait
+			return unit;
 		}
 
 	}
 
+	@Builtin(proc = true)
 	@GenerateNodeFactory
+	@NodeChild("value")
 	public static abstract class MakeNeededNode extends OzNode {
 
 		@Specialization
-		Object makeNeeded() {
-			return unimplemented();
+		Object makeNeeded(Object value) {
+			// FIXME
+			return unit;
 		}
 
 	}
@@ -481,6 +488,11 @@ public abstract class ValueBuiltins {
 		}
 
 		@Specialization
+		boolean hasFeature(Unit unit, Object feature) {
+			return false;
+		}
+
+		@Specialization
 		boolean hasFeature(DynamicObject record, Object feature) {
 			return record.getShape().hasProperty(feature);
 		}
@@ -509,13 +521,15 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("exception")
 	public static abstract class FailedValueNode extends OzNode {
 
 		@Specialization
-		Object failedValue(Object exception) {
-			return unimplemented();
+		Object failedValue(OzException exception) {
+			// FIXME
+			throw exception;
 		}
 
 	}
@@ -535,8 +549,8 @@ public abstract class ValueBuiltins {
 	public static abstract class NewReadOnlyNode extends OzNode {
 
 		@Specialization
-		Object newReadOnly() {
-			return unimplemented();
+		OzFuture newReadOnly() {
+			return new OzFuture();
 		}
 
 	}

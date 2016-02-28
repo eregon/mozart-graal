@@ -1,23 +1,32 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.call.CallProcNode;
+import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
+import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzThread;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 public abstract class ThreadBuiltins {
 
-	@Builtin(name = "create", proc = true)
+	@Builtin(name = "create", proc = true, deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("target")
 	public static abstract class CreateThreadNode extends OzNode {
 
+		@Child CallProcNode callProcNode = CallProcNodeGen.create(new OzNode[0], null);
+
 		@Specialization
-		Object createThread(Object target) {
-			return unimplemented();
+		Object createThread(VirtualFrame frame, OzProc target) {
+			// FIXME
+			return callProcNode.executeCall(frame, target);
 		}
 
 	}
