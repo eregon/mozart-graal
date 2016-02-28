@@ -46,6 +46,17 @@ public class Arity {
 		return shape.getPropertyCount();
 	}
 
+	public boolean isTupleArity() {
+		int width = getWidth();
+		for (int i = 1; i <= width; i++) {
+			long feature = (long) i;
+			if (!(shape.hasProperty(feature))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public boolean matches(DynamicObject object) {
 		return object.getShape() == shape && LABEL_LOCATION.get(object) == label;
 	}

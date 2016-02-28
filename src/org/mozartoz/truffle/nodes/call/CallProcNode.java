@@ -63,7 +63,7 @@ public abstract class CallProcNode extends OzNode {
 		if (message instanceof String) {
 			name = (String) message;
 		} else {
-			name = (String) OzRecord.getArity((DynamicObject) message).getLabel();
+			name = (String) OzRecord.getLabel((DynamicObject) message);
 		}
 
 		DynamicObject methods = (DynamicObject) self.getClazz().get(ooMeth);

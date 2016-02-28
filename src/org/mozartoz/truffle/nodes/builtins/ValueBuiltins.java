@@ -10,6 +10,7 @@ import org.mozartoz.truffle.runtime.OzCell;
 import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzException;
+import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
@@ -79,6 +80,16 @@ public abstract class ValueBuiltins {
 			return false;
 		}
 
+		@Specialization
+		protected boolean equal(OzName a, OzName b) {
+			return a == b;
+		}
+
+		@Specialization
+		protected boolean equal(OzUniqueName a, OzUniqueName b) {
+			return a == b;
+		}
+
 		@TruffleBoundary
 		@Specialization
 		protected boolean equal(OzCons a, OzCons b) {
@@ -93,11 +104,6 @@ public abstract class ValueBuiltins {
 		@Specialization(guards = "!isRecord(b)")
 		protected boolean equal(DynamicObject record, Object b) {
 			return false;
-		}
-
-		@Specialization
-		protected boolean equal(OzUniqueName a, OzUniqueName b) {
-			return a == b;
 		}
 
 		@Specialization(guards = { "a.getClass() != b.getClass()",
@@ -264,24 +270,29 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(proc = true, deref = 1)
 	@GenerateNodeFactory
-	@NodeChild("reference")
+	@NodeChildren({ @NodeChild("reference"), @NodeChild("newValue") })
 	public static abstract class CatAssignNode extends OzNode {
 
 		@Specialization
-		Object catAssign(Object reference) {
-			return unimplemented();
+		Object catAssign(OzCell cell, Object newValue) {
+			cell.setValue(newValue);
+			return unit;
 		}
 
 	}
 
+	@Builtin(deref = 1)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("reference"), @NodeChild("newValue") })
 	public static abstract class CatExchangeNode extends OzNode {
 
 		@Specialization
-		Object catExchange(Object reference, Object newValue) {
-			return unimplemented();
+		Object catExchange(OzCell cell, Object newValue) {
+			Object oldValue = cell.getValue();
+			cell.setValue(newValue);
+			return oldValue;
 		}
 
 	}
@@ -319,12 +330,19 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(proc = true)
 	@GenerateNodeFactory
+	@NodeChild("value")
 	public static abstract class WaitNode extends OzNode {
 
-		@Specialization
-		Object doWait() {
-			return unimplemented();
+		@Specialization(guards = "!isVar(value)")
+		Object wait(Object value) {
+			return unit;
+		}
+
+		@Specialization(guards = "isBound(var)")
+		Object wait(OzVar var) {
+			return unit;
 		}
 
 	}
@@ -478,6 +496,11 @@ public abstract class ValueBuiltins {
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("record"), @NodeChild("feature"), @NodeChild("def") })
 	public static abstract class CondSelectNode extends OzNode {
+
+		@Specialization
+		Object condSelect(boolean bool, Object feature, Object def) {
+			return def;
+		}
 
 		@Specialization
 		Object condSelect(DynamicObject record, Object feature, Object def) {

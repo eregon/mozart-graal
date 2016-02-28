@@ -9,6 +9,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzDict;
+import org.mozartoz.truffle.runtime.OzException;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -52,24 +53,31 @@ public abstract class DictionaryBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("dict"), @NodeChild("feature") })
 	public static abstract class MemberNode extends OzNode {
 
 		@Specialization
-		Object member(Object dict, Object feature) {
-			return unimplemented();
+		boolean member(OzDict dict, Object feature) {
+			return dict.containsKey(feature);
 		}
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("dict"), @NodeChild("feature") })
 	public static abstract class GetNode extends OzNode {
 
 		@Specialization
-		Object get(Object dict, Object feature) {
-			return unimplemented();
+		Object get(OzDict dict, Object feature) {
+			Object value = dict.get(feature);
+			if (value == null) {
+				throw new OzException(this, "Key not found");
+			} else {
+				return value;
+			}
 		}
 
 	}

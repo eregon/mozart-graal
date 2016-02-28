@@ -25,7 +25,7 @@ public abstract class ExceptionBuiltins {
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class RaiseNode extends OzNode {
@@ -52,6 +52,12 @@ public abstract class ExceptionBuiltins {
 		protected Object raiseError(DynamicObject record) {
 			String message = record.toString();
 			throw new OzException(this, message);
+		}
+
+		@Specialization
+		@TruffleBoundary
+		protected Object raiseError(OzException exception) {
+			throw exception;
 		}
 
 	}

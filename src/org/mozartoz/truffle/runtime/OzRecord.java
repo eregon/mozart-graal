@@ -22,6 +22,10 @@ public abstract class OzRecord {
 		return buildRecord(arity, values);
 	}
 
+	public static Object getLabel(DynamicObject record) {
+		return Arity.LABEL_LOCATION.get(record);
+	}
+
 	public static Arity getArity(DynamicObject record) {
 		return new Arity(Arity.LABEL_LOCATION.get(record), record.getShape());
 	}

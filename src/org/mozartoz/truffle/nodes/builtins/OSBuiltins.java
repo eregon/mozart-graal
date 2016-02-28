@@ -100,8 +100,8 @@ public abstract class OSBuiltins {
 	public static abstract class GetCWDNode extends OzNode {
 
 		@Specialization
-		Object getCWD() {
-			return unimplemented();
+		String getCWD() {
+			return System.getProperty("user.dir").intern();
 		}
 
 	}
