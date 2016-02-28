@@ -13,6 +13,7 @@ import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzObject;
+import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.runtime.Unit;
@@ -88,6 +89,11 @@ public abstract class ValueBuiltins {
 
 		@Specialization
 		protected boolean equal(OzUniqueName a, OzUniqueName b) {
+			return a == b;
+		}
+
+		@Specialization
+		protected boolean equal(OzThread a, OzThread b) {
 			return a == b;
 		}
 
@@ -527,9 +533,9 @@ public abstract class ValueBuiltins {
 	public static abstract class FailedValueNode extends OzNode {
 
 		@Specialization
-		Object failedValue(OzException exception) {
+		Object failedValue(DynamicObject data) {
 			// FIXME
-			throw exception;
+			throw new OzException(this, data);
 		}
 
 	}

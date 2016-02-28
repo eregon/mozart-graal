@@ -96,10 +96,6 @@ public abstract class VirtualStringBuiltins {
 
 		public abstract String executeToAtom(Object value);
 
-		private String toAtom(Object value) {
-			return executeToAtom(derefNode.executeDeref(value));
-		}
-
 		@Specialization
 		String toAtom(String value) {
 			assert OzGuards.isAtom(value);
@@ -111,10 +107,11 @@ public abstract class VirtualStringBuiltins {
 			Object head = cons.getHead();
 			long longHead = (long) head;
 			char c = (char) longHead;
-			if (cons.getTail() == "nil") {
+			Object tail = deref(cons.getTail());
+			if (tail == "nil") {
 				return ("" + c).intern();
 			} else {
-				return (c + toAtom(cons.getTail())).intern();
+				return (c + executeToAtom(tail)).intern();
 			}
 		}
 
@@ -125,10 +122,14 @@ public abstract class VirtualStringBuiltins {
 			for (Property property : record.getShape().getProperties()) {
 				if (!(property.getKey() instanceof HiddenKey)) {
 					Object value = property.get(record, record.getShape());
-					builder.append(toAtom(value));
+					builder.append(executeToAtom(deref(value)));
 				}
 			}
 			return builder.toString().intern();
+		}
+
+		private Object deref(Object value) {
+			return derefNode.executeDeref(value);
 		}
 
 	}

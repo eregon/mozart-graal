@@ -28,7 +28,7 @@ public class TryNode extends OzNode {
 			return body.execute(frame);
 		} catch (OzException exception) {
 			exceptionProfile.enter();
-			writeExceptionVarNode.write(frame, exception);
+			writeExceptionVarNode.write(frame, exception.getData());
 			return catchBody.execute(frame);
 		}
 	}
