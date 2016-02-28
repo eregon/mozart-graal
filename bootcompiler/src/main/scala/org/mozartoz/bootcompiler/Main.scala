@@ -126,7 +126,7 @@ object Main {
     program
   }
 
-  def buildNormalProgram(fileName: String, moduleDefs: List[String], baseDeclsFileName: String, defines: Set[String]) = {
+  def buildMainProgram(fileName: String, moduleDefs: List[String], baseDeclsFileName: String, defines: Set[String]) = {
     val (program, _) = createProgram(moduleDefs, Some(baseDeclsFileName))
     val statement = parseStatement(readerForFile(fileName), new File(fileName), defines)
     program.rawCode = statement
