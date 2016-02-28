@@ -133,6 +133,13 @@ object Main {
     program
   }
 
+  def buildModuleProgram(fileName: String, moduleDefs: List[String], baseDeclsFileName: String, defines: Set[String]) = {
+    val (program, _) = createProgram(moduleDefs, Some(baseDeclsFileName))
+    val functor = parseExpression(readerForFile(fileName), new File(fileName), defines)
+    ProgramBuilder.buildModuleProgram(program, functor)
+    program
+  }
+
   /** Creates a new Program */
   private def createProgram(moduleDefs: List[String],
       baseDeclsFileName: Option[String], isBaseEnvironment: Boolean = false) = {
