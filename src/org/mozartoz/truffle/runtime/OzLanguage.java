@@ -29,7 +29,7 @@ public class OzLanguage extends TruffleLanguage<Object> {
 
 	@Override
 	protected CallTarget parse(Source source, Node context, String... argumentNames) throws IOException {
-		OzRootNode rootNode = Loader.getInstance().parse(source);
+		OzRootNode rootNode = Loader.getInstance().parseMain(source);
 		return Truffle.getRuntime().createCallTarget(rootNode);
 	}
 

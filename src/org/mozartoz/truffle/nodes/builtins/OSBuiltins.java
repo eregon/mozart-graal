@@ -2,23 +2,40 @@ package org.mozartoz.truffle.nodes.builtins;
 
 import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
+import java.io.File;
+
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltins.ToAtomNode;
+import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.source.Source;
 
 public abstract class OSBuiltins {
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("url")
 	public static abstract class BootURLLoadNode extends OzNode {
 
+		@Child ToAtomNode toAtomNode = ToAtomNodeFactory.create(null);
+
 		@Specialization
-		Object bootURLLoad(Object url) {
-			return unimplemented();
+		Object bootURLLoad(Object urlVS) {
+			String url = toAtomNode.executeToAtom(urlVS);
+			assert url.startsWith("x-oz://system/");
+			assert url.endsWith(".ozf");
+			String name = url.substring("x-oz://system/".length(), url.length() - 1);
+			String path = Loader.MAIN_LIB_DIR + "/sys/" + name;
+			assert new File(path).exists();
+			Source source = Loader.createSource(path);
+			Loader loader = Loader.getInstance();
+			return loader.execute(loader.parseFunctor(source));
 		}
 
 	}
