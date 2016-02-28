@@ -29,6 +29,7 @@ public class Arity {
 	private final Shape shape;
 
 	public Arity(Object label, Shape shape) {
+		assert OzGuards.isLiteral(label);
 		this.label = label;
 		this.shape = shape;
 	}

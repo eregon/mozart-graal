@@ -45,13 +45,14 @@ public abstract class CellBuiltins {
 
 	}
 
+	@Builtin(deref = 1)
 	@GenerateNodeFactory
 	@NodeChild("cell")
 	public static abstract class AccessNode extends OzNode {
 
 		@Specialization
-		Object access(Object cell) {
-			return unimplemented();
+		Object access(OzCell cell) {
+			return cell.getValue();
 		}
 
 	}

@@ -6,9 +6,11 @@ import java.math.BigInteger;
 
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
+import org.mozartoz.truffle.runtime.OzCell;
 import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzException;
+import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.runtime.Unit;
@@ -67,6 +69,16 @@ public abstract class ValueBuiltins {
 			return true;
 		}
 
+		@Specialization
+		protected boolean equal(String a, String b) {
+			return a == b;
+		}
+
+		@Specialization(guards = "!isAtom(b)")
+		protected boolean equal(String a, Object b) {
+			return false;
+		}
+
 		@TruffleBoundary
 		@Specialization
 		protected boolean equal(OzCons a, OzCons b) {
@@ -84,18 +96,14 @@ public abstract class ValueBuiltins {
 		}
 
 		@Specialization
-		protected boolean equal(String a, String b) {
-			return a == b;
-		}
-
-		@Specialization(guards = "!isAtom(b)")
-		protected boolean equal(String a, Object b) {
-			return false;
-		}
-
-		@Specialization
 		protected boolean equal(OzUniqueName a, OzUniqueName b) {
 			return a == b;
+		}
+
+		@Specialization(guards = { "a.getClass() != b.getClass()",
+				"!isLong(a)", "!isBigInteger(a)", "!isAtom(a)", "!isCons(a)", "!isRecord(a)" })
+		protected boolean equal(Object a, Object b) {
+			return false;
 		}
 
 	}
@@ -215,6 +223,11 @@ public abstract class ValueBuiltins {
 			return executeDot(chunk.getUnderlying(), feature);
 		}
 
+		@Specialization
+		protected Object getObject(OzObject object, Object feature) {
+			return executeDot(object.getFeatures(), feature);
+		}
+
 	}
 
 	@GenerateNodeFactory
@@ -239,13 +252,14 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("reference")
 	public static abstract class CatAccessNode extends OzNode {
 
 		@Specialization
-		Object catAccess(Object reference) {
-			return unimplemented();
+		Object catAccess(OzCell cell) {
+			return cell.getValue();
 		}
 
 	}

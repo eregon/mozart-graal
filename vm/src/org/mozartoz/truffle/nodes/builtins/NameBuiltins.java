@@ -42,7 +42,7 @@ public abstract class NameBuiltins {
 
 		@Specialization
 		OzUniqueName newUnique(String atom) {
-			return new OzUniqueName(atom);
+			return OzUniqueName.get(atom);
 		}
 
 	}
