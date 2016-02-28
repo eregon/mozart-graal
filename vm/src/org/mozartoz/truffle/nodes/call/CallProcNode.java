@@ -2,6 +2,7 @@ package org.mozartoz.truffle.nodes.call;
 
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzObject;
@@ -34,6 +35,8 @@ public abstract class CallProcNode extends OzNode {
 		return DerefNodeGen.create(var);
 	}
 
+	public abstract Object executeCall(VirtualFrame frame, OzProc function);
+
 	@Specialization(guards = "function.callTarget == cachedCallTarget")
 	protected Object callDirect(VirtualFrame frame, OzProc function,
 			@Cached("function.callTarget") CallTarget cachedCallTarget,
@@ -55,16 +58,17 @@ public abstract class CallProcNode extends OzNode {
 	protected Object callObject(VirtualFrame frame, OzObject self,
 			@Cached("create()") IndirectCallNode callNode,
 			@Cached("create()") DerefNode derefNode) {
-		final Object[] messages = executeArgumentsNode.executeValues(frame);
-		assert messages.length == 1;
-		Object message = derefNode.executeDeref(messages[0]);
+		final Object[] args = executeArgumentsNode.executeValues(frame);
+		assert args.length == 1;
+		Object message = derefNode.executeDeref(args[0]);
 
-		String name;
+		final Object name;
 		if (message instanceof String) {
-			name = (String) message;
+			name = message;
 		} else {
-			name = (String) OzRecord.getLabel((DynamicObject) message);
+			name = OzRecord.getLabel((DynamicObject) message);
 		}
+		assert OzGuards.isLiteral(name);
 
 		DynamicObject methods = (DynamicObject) self.getClazz().get(ooMeth);
 		OzProc method = (OzProc) methods.get(name);
