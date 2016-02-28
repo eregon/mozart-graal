@@ -3,7 +3,6 @@ package org.mozartoz.truffle.nodes.builtins;
 import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.RaiseErrorNodeFactory;
 import org.mozartoz.truffle.runtime.OzException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -30,12 +29,10 @@ public abstract class ExceptionBuiltins {
 	@NodeChild("value")
 	public static abstract class RaiseNode extends OzNode {
 
-		@Child RaiseErrorNode raiseErrorNode = RaiseErrorNodeFactory.create(null);
-
+		@TruffleBoundary
 		@Specialization
-		Object raise(Object value) {
-			// TODO: should wrap in error(Value)
-			return raiseErrorNode.executeRaiseError(value);
+		Object raise(DynamicObject data) {
+			throw new OzException(this, data);
 		}
 
 	}
@@ -45,19 +42,10 @@ public abstract class ExceptionBuiltins {
 	@NodeChild("value")
 	public static abstract class RaiseErrorNode extends OzNode {
 
-		public abstract Object executeRaiseError(Object value);
-
 		@Specialization
 		@TruffleBoundary
-		protected Object raiseError(DynamicObject record) {
-			String message = record.toString();
-			throw new OzException(this, message);
-		}
-
-		@Specialization
-		@TruffleBoundary
-		protected Object raiseError(OzException exception) {
-			throw exception;
+		protected Object raiseError(Object error) {
+			throw new OzException(this, OzException.newError(error));
 		}
 
 	}
