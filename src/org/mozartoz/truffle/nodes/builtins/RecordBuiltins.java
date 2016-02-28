@@ -131,8 +131,8 @@ public abstract class RecordBuiltins {
 			return label;
 		}
 
-		@Specialization
-		protected DynamicObject makeDynamic(String label, DynamicObject contents) {
+		@Specialization(guards = "isLiteral(label)")
+		protected DynamicObject makeDynamic(Object label, DynamicObject contents) {
 			int width = OzRecord.getArity(contents).getWidth();
 			assert width % 2 == 0;
 			int size = width / 2;

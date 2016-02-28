@@ -1,6 +1,7 @@
 package org.mozartoz.truffle.nodes.builtins;
 
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzThread;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -38,8 +39,8 @@ public abstract class ThreadBuiltins {
 	public static abstract class ThisThreadNode extends OzNode {
 
 		@Specialization
-		Object thisThread() {
-			return unimplemented();
+		OzThread thisThread() {
+			return OzThread.MAIN_THREAD;
 		}
 
 	}

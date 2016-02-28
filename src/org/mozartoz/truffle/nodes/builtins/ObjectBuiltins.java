@@ -1,22 +1,57 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.OzChunk;
+import org.mozartoz.truffle.runtime.OzObject;
+import org.mozartoz.truffle.runtime.OzRecord;
+import org.mozartoz.truffle.runtime.OzUniqueName;
+import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Property;
 
 public abstract class ObjectBuiltins {
 
-	@Builtin(name = "new")
+	@Builtin(name = "new", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("clazz")
 	public static abstract class NewObjectNode extends OzNode {
 
+		static final OzUniqueName ooAttr = OzUniqueName.get("ooAttr");
+		static final OzUniqueName ooFeat = OzUniqueName.get("ooFeat");
+
+		@Child DerefNode derefNode = DerefNode.create();
+
 		@Specialization
-		Object newObject(Object clazz) {
-			return unimplemented();
+		OzObject newObject(OzChunk clazz) {
+			DynamicObject classDesc = clazz.getUnderlying();
+			Object attr = classDesc.get(ooAttr);
+			Object feat = classDesc.get(ooFeat);
+
+			assert attr instanceof String;
+
+			assert feat instanceof DynamicObject;
+			DynamicObject featRecord = (DynamicObject) feat;
+			Arity featArity = OzRecord.getArity(featRecord);
+			Object[] values = new Object[featArity.getWidth()];
+			for (int i = 0; i < values.length; i++) {
+				values[i] = new OzVar();
+			}
+			DynamicObject features = OzRecord.buildRecord(featArity, values);
+
+			for (Property property : featRecord.getShape().getProperties()) {
+				Object value = property.get(featRecord, featRecord.getShape());
+			}
+
+			return new OzObject(classDesc, features);
 		}
 
 	}

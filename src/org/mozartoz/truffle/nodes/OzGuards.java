@@ -4,6 +4,7 @@ import java.math.BigInteger;
 
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzName;
+import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
 
@@ -40,8 +41,12 @@ public class OzGuards {
 		return value instanceof OzUniqueName;
 	}
 
+	public static boolean isLiteral(Object value) {
+		return isAtom(value) || isName(value) || isUniqueName(value);
+	}
+
 	public static boolean isFeature(Object value) {
-		return isLong(value) || isAtom(value) || isName(value) || isUniqueName(value);
+		return isLong(value) || isLiteral(value);
 	}
 
 	public static boolean isCons(Object value) {
@@ -50,6 +55,10 @@ public class OzGuards {
 
 	public static boolean isRecord(Object value) {
 		return value instanceof DynamicObject;
+	}
+
+	public static boolean isProc(Object value) {
+		return value instanceof OzProc;
 	}
 
 	public static boolean isVar(Object value) {
