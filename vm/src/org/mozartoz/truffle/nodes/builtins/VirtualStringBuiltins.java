@@ -2,9 +2,11 @@ package org.mozartoz.truffle.nodes.builtins;
 
 import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzRecord;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -68,6 +70,7 @@ public abstract class VirtualStringBuiltins {
 
 		@Specialization
 		Object toCharList(DynamicObject record, Object tail) {
+			assert OzRecord.getLabel(record) == "#";
 			Object list = tail;
 			for (Property property : record.getShape().getPropertyListInternal(false)) {
 				if (!(property.getKey() instanceof HiddenKey)) {
@@ -85,10 +88,39 @@ public abstract class VirtualStringBuiltins {
 	@NodeChild("value")
 	public static abstract class ToAtomNode extends OzNode {
 
+		@Child DerefNode derefNode = DerefNode.create();
+
+		public abstract String executeToAtom(Object value);
+
+		private String toAtom(Object value) {
+			return executeToAtom(derefNode.executeDeref(value));
+		}
+
 		@Specialization
 		String toAtom(String value) {
 			assert OzGuards.isAtom(value);
 			return value;
+		}
+
+		@Specialization
+		String toAtom(OzCons cons) {
+			Object head = cons.getHead();
+			long longHead = (long) head;
+			char c = (char) longHead;
+			return c + toAtom(cons.getTail());
+		}
+
+		@Specialization
+		String toAtom(DynamicObject record) {
+			assert OzRecord.getLabel(record) == "#";
+			StringBuilder builder = new StringBuilder();
+			for (Property property : record.getShape().getPropertyListInternal(false)) {
+				if (!(property.getKey() instanceof HiddenKey)) {
+					Object value = property.get(record, record.getShape());
+					builder.append(toAtom(value));
+				}
+			}
+			return builder.toString().intern();
 		}
 
 	}

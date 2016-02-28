@@ -97,13 +97,19 @@ public abstract class RecordBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("record")
 	public static abstract class CloneNode extends OzNode {
 
 		@Specialization
-		Object clone(Object record) {
-			return unimplemented();
+		DynamicObject clone(DynamicObject record) {
+			Arity arity = OzRecord.getArity(record);
+			Object[] values = new Object[arity.getWidth()];
+			for (int i = 0; i < values.length; i++) {
+				values[i] = new OzVar();
+			}
+			return OzRecord.buildRecord(arity, values);
 		}
 
 	}

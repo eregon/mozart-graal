@@ -11,6 +11,7 @@ import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class TupleBuiltins {
 
@@ -36,14 +37,15 @@ public abstract class TupleBuiltins {
 
 	}
 
-	@Builtin(name = "is")
+	@Builtin(name = "is", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsTupleNode extends OzNode {
 
 		@Specialization
-		Object isTuple(Object value) {
-			return unimplemented();
+		boolean isTuple(DynamicObject record) {
+			Arity arity = OzRecord.getArity(record);
+			return arity.isTupleArity();
 		}
 
 	}
