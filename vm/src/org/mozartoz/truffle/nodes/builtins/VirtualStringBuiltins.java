@@ -64,8 +64,12 @@ public abstract class VirtualStringBuiltins {
 
 		@Specialization
 		Object toCharList(OzCons cons, Object tail) {
-			return executeToCharList(cons.getHead(),
-					executeToCharList(cons.getTail(), tail));
+			if (cons.getTail() == "nil") {
+				return executeToCharList(cons.getHead(), tail);
+			} else {
+				return executeToCharList(cons.getHead(),
+						executeToCharList(cons.getTail(), tail));
+			}
 		}
 
 		@Specialization
@@ -107,14 +111,18 @@ public abstract class VirtualStringBuiltins {
 			Object head = cons.getHead();
 			long longHead = (long) head;
 			char c = (char) longHead;
-			return c + toAtom(cons.getTail());
+			if (cons.getTail() == "nil") {
+				return ("" + c).intern();
+			} else {
+				return (c + toAtom(cons.getTail())).intern();
+			}
 		}
 
 		@Specialization
 		String toAtom(DynamicObject record) {
 			assert OzRecord.getLabel(record) == "#";
 			StringBuilder builder = new StringBuilder();
-			for (Property property : record.getShape().getPropertyListInternal(false)) {
+			for (Property property : record.getShape().getProperties()) {
 				if (!(property.getKey() instanceof HiddenKey)) {
 					Object value = property.get(record, record.getShape());
 					builder.append(toAtom(value));
