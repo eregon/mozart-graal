@@ -1,6 +1,7 @@
 package org.mozartoz.truffle.translator;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 
 import org.mozartoz.bootcompiler.Main;
@@ -21,6 +22,7 @@ import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
+import org.mozartoz.truffle.runtime.OzLanguage;
 
 import scala.collection.JavaConversions;
 import scala.collection.immutable.HashSet;
@@ -36,7 +38,8 @@ public class Loader {
 
 	public static final String PROJECT_ROOT = getProjectRoot();
 	static final String MODULE_DEFS_DIR = PROJECT_ROOT + "/builtins";
-	static final String BASE_FILE_NAME = "/home/eregon/code/mozart2/lib/main/base/Base.oz";
+	public static final String MAIN_LIB_DIR = "/home/eregon/code/mozart2/lib/main";
+	static final String BASE_FILE_NAME = MAIN_LIB_DIR + "/base/Base.oz";
 	static final String BASE_DECLS_FILE_NAME = PROJECT_ROOT + "/baseenv.txt";
 
 	// public static final PolyglotEngine ENGINE = PolyglotEngine.newBuilder().build();
@@ -77,11 +80,11 @@ public class Loader {
 		});
 	}
 
-	public OzRootNode parse(Source source) {
+	public OzRootNode parseMain(Source source) {
 		DynamicObject base = loadBase();
 
 		String fileName = new File(source.getPath()).getName();
-		Program program = Main.buildNormalProgram(fileName, moduleDefs(), BASE_DECLS_FILE_NAME, defines());
+		Program program = Main.buildMainProgram(source.getPath(), moduleDefs(), BASE_DECLS_FILE_NAME, defines());
 		Statement ast = compile(program, fileName);
 
 		Translator translator = new Translator();
@@ -93,11 +96,40 @@ public class Loader {
 		});
 	}
 
-	public void run(Source source) {
-		execute(parse(source));
+	public OzRootNode parseFunctor(Source source) {
+		DynamicObject base = loadBase();
+
+		String fileName = new File(source.getPath()).getName();
+		Program program = Main.buildModuleProgram(source.getPath(), moduleDefs(), BASE_DECLS_FILE_NAME, defines());
+		Statement ast = compile(program, fileName);
+
+		Translator translator = new Translator();
+		FrameSlot baseSlot = translator.addRootSymbol(program.baseEnvSymbol());
+		FrameSlot topLevelResultSlot = translator.addRootSymbol(program.topLevelResultSymbol());
+		return translator.translateAST(fileName, ast, node -> {
+			return SequenceNode.sequence(
+					new InitializeTmpNode(baseSlot, new LiteralNode(base)),
+					new InitializeVarNode(topLevelResultSlot),
+					node,
+					DerefNodeGen.create(new ReadLocalVariableNode(topLevelResultSlot)));
+		});
 	}
 
-	private static Object execute(OzRootNode rootNode) {
+	public void run(Source source) {
+		execute(parseMain(source));
+	}
+
+	public static Source createSource(String path) {
+		Source source;
+		try {
+			source = Source.fromFileName(path);
+		} catch (IOException e) {
+			throw new Error(e);
+		}
+		return source.withMimeType(OzLanguage.MIME_TYPE);
+	}
+
+	public Object execute(OzRootNode rootNode) {
 		return Truffle.getRuntime().createCallTarget(rootNode).call();
 	}
 
