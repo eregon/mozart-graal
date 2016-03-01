@@ -32,6 +32,7 @@ public abstract class OSBuiltins {
 			assert url.endsWith(".ozf");
 			String name = url.substring("x-oz://system/".length(), url.length() - 1);
 			String path = Loader.MAIN_LIB_DIR + "/sys/" + name;
+			System.out.println("Reading " + path);
 			assert new File(path).exists();
 			Source source = Loader.createSource(path);
 			Loader loader = Loader.getInstance();

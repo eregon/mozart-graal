@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
@@ -144,15 +145,17 @@ public abstract class BuiltinsManager {
 
 	private static OzNode readArgumentNode(Builtin builtin, int i) {
 		ReadArgumentNode argumentNode = new ReadArgumentNode(i);
-		if (derefInclude(builtin.deref(), i + 1)) {
+		if (annoArrayInclude(builtin.deref(), i + 1)) {
 			return DerefNodeGen.create(argumentNode);
+		} else if (annoArrayInclude(builtin.tryDeref(), i + 1)) {
+			return DerefIfBoundNodeGen.create(argumentNode);
 		} else {
 			return argumentNode;
 		}
 	}
 
-	private static boolean derefInclude(int[] deref, int i) {
-		for (int e : deref) {
+	private static boolean annoArrayInclude(int[] array, int i) {
+		for (int e : array) {
 			if (e == Builtin.ALL || e == i) {
 				return true;
 			}

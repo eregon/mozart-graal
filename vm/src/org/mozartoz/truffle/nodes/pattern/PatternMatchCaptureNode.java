@@ -17,7 +17,7 @@ public abstract class PatternMatchCaptureNode extends OzNode {
 		return DerefIfBoundNodeGen.create(value);
 	}
 
-	@Specialization(guards = "!isVar(value)")
+	@Specialization(guards = "!isVariable(value)")
 	Object capture(OzVar var, Object value) {
 		var.bind(value);
 		return unit;

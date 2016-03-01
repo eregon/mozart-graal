@@ -342,7 +342,7 @@ public abstract class ValueBuiltins {
 	@NodeChild("value")
 	public static abstract class WaitNode extends OzNode {
 
-		@Specialization(guards = "!isVar(value)")
+		@Specialization(guards = "!isVariable(value)")
 		Object wait(Object value) {
 			return unit;
 		}
@@ -354,12 +354,19 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(proc = true)
 	@GenerateNodeFactory
+	@NodeChild("value")
 	public static abstract class WaitQuietNode extends OzNode {
 
-		@Specialization
-		Object waitQuiet() {
-			return unimplemented();
+		@Specialization(guards = "!isVariable(value)")
+		Object wait(Object value) {
+			return unit;
+		}
+
+		@Specialization(guards = "isBound(var)")
+		Object wait(OzVar var) {
+			return unit;
 		}
 
 	}
@@ -443,7 +450,7 @@ public abstract class ValueBuiltins {
 			return var.isBound();
 		}
 
-		@Specialization(guards = "!isVar(value)")
+		@Specialization(guards = "!isVariable(value)")
 		boolean isDet(Object value) {
 			return true;
 		}
@@ -561,13 +568,25 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(proc = true, tryDeref = 2)
 	@GenerateNodeFactory
-	@NodeChild("readOnly")
+	@NodeChildren({ @NodeChild("readOnly"), @NodeChild("value") })
 	public static abstract class BindReadOnlyNode extends OzNode {
 
-		@Specialization
-		Object bindReadOnly(Object readOnly) {
-			return unimplemented();
+		@Specialization(guards = "!isBound(future)")
+		Object bindReadOnly(OzFuture future, Object value) {
+			future.bind(value);
+			return unit;
+		}
+
+		@Specialization(guards = "linkedToFuture(var)")
+		Object bindReadOnly(OzVar var, Object value) {
+			var.findFuture().bind(value);
+			return unit;
+		}
+
+		boolean linkedToFuture(OzVar var) {
+			return var.findFuture() != null;
 		}
 
 	}

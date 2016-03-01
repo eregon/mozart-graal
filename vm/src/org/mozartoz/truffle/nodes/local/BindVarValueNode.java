@@ -10,7 +10,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 @NodeChildren({ @NodeChild("var"), @NodeChild("value") })
 public abstract class BindVarValueNode extends OzNode {
 
-	@Specialization(guards = "!isVar(value)")
+	@Specialization(guards = "!isVariable(value)")
 	Object bindLeft(OzVar var, Object value) {
 		var.bind(value);
 		return unit;

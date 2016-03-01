@@ -2,6 +2,7 @@ package org.mozartoz.truffle.nodes.local;
 
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.runtime.Variable;
 import org.mozartoz.truffle.translator.FrameSlotAndDepth;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -24,7 +25,7 @@ public abstract class BindNode extends OzNode {
 	}
 
 	@Specialization(guards = { "!left.isBound()", "!right.isBound()" })
-	Object unboundUnbound(VirtualFrame frame, OzVar left, OzVar right) {
+	Object unboundUnbound(VirtualFrame frame, Variable left, Variable right) {
 		left.link(right);
 		return unit;
 	}
@@ -35,7 +36,7 @@ public abstract class BindNode extends OzNode {
 		return unit;
 	}
 
-	@Specialization(guards = { "!left.isBound()", "!isVar(right)" })
+	@Specialization(guards = { "!left.isBound()", "!isVariable(right)" })
 	Object bindLeftValue(VirtualFrame frame, OzVar left, Object right) {
 		left.bind(right);
 		// TODO: Also write the value directly to the frame slot if writeLeft not null?
@@ -48,23 +49,23 @@ public abstract class BindNode extends OzNode {
 		return unit;
 	}
 
-	@Specialization(guards = { "!isVar(left)", "!right.isBound()" })
+	@Specialization(guards = { "!isVariable(left)", "!right.isBound()" })
 	Object bindRightValue(VirtualFrame frame, Object left, OzVar right) {
 		right.bind(left);
 		return unit;
 	}
 
-	@Specialization(guards = { "!isVar(left)", "!isVar(right)" })
+	@Specialization(guards = { "!isVariable(left)", "!isVariable(right)" })
 	Object unifyValues(VirtualFrame frame, Object left, Object right) {
 		return unifyValues(left, right);
 	}
 
-	@Specialization(guards = { "isBound(left)", "!isVar(right)" })
+	@Specialization(guards = { "isBound(left)", "!isVariable(right)" })
 	Object unifyVarValue(VirtualFrame frame, OzVar left, Object right) {
 		return unifyValues(left.getBoundValue(this), right);
 	}
 
-	@Specialization(guards = { "!isVar(left)", "isBound(right)" })
+	@Specialization(guards = { "!isVariable(left)", "isBound(right)" })
 	Object unifyValueVar(VirtualFrame frame, Object left, OzVar right) {
 		return unifyValues(left, right.getBoundValue(this));
 	}
