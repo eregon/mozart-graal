@@ -3,14 +3,18 @@ package org.mozartoz.truffle.nodes;
 import java.math.BigInteger;
 
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.runtime.Variable;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
 public class OzGuards {
+
+	// Type guards
 
 	public static boolean isLong(Object value) {
 		return value instanceof Long;
@@ -22,10 +26,6 @@ public class OzGuards {
 
 	public static boolean isNil(Object value) {
 		return value == "nil";
-	}
-
-	public static boolean isInterned(String str) {
-		return str.intern() == str;
 	}
 
 	public static boolean isAtom(Object value) {
@@ -65,8 +65,22 @@ public class OzGuards {
 		return value instanceof OzVar;
 	}
 
-	public static boolean isBound(OzVar var) {
-		return var.isBound();
+	public static boolean isFuture(Object value) {
+		return value instanceof OzFuture;
+	}
+
+	public static boolean isVariable(Object value) {
+		return value instanceof Variable;
+	}
+
+	// Guards on specific types
+
+	public static boolean isInterned(String str) {
+		return str.intern() == str;
+	}
+
+	public static boolean isBound(Variable variable) {
+		return variable.isBound();
 	}
 
 }

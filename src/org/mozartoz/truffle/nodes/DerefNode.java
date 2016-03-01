@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes;
 
+import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -19,7 +20,7 @@ public abstract class DerefNode extends OzNode {
 		return value;
 	}
 
-	@Specialization(guards = "!isVar(value)")
+	@Specialization(guards = "!isVariable(value)")
 	Object deref(Object value) {
 		return value;
 	}
@@ -27,6 +28,11 @@ public abstract class DerefNode extends OzNode {
 	@Specialization
 	Object deref(OzVar var) {
 		return var.getBoundValue(this);
+	}
+
+	@Specialization
+	Object deref(OzFuture future) {
+		return future.getBoundValue(this);
 	}
 
 }

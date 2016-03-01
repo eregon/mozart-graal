@@ -11,6 +11,9 @@ import java.lang.annotation.Target;
 public @interface Builtin {
 
 	public static final Builtin DEFAULT = new Builtin() {
+
+		private final int[] EMPTY_INT_ARRAY = new int[0];
+
 		@Override
 		public Class<? extends Annotation> annotationType() {
 			return Builtin.class;
@@ -27,7 +30,12 @@ public @interface Builtin {
 
 		@Override
 		public int[] deref() {
-			return new int[0];
+			return EMPTY_INT_ARRAY;
+		}
+
+		@Override
+		public int[] tryDeref() {
+			return EMPTY_INT_ARRAY;
 		};
 	};
 
@@ -36,6 +44,8 @@ public @interface Builtin {
 	boolean proc() default false;
 
 	int[] deref() default {};
+
+	int[] tryDeref() default {};
 
 	public static final int ALL = -1;
 

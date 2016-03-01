@@ -27,13 +27,13 @@ public abstract class UnifyNode extends OzNode {
 
 	public abstract Object executeUnify(Object a, Object b);
 
-	@Specialization(guards = { "!isVar(a)", "!isBound(b)" })
+	@Specialization(guards = { "!isVariable(a)", "!isBound(b)" })
 	Object unify(Object a, OzVar b) {
 		b.bind(a);
 		return unit;
 	}
 
-	@Specialization(guards = { "!isBound(a)", "!isVar(b)" })
+	@Specialization(guards = { "!isBound(a)", "!isVariable(b)" })
 	Object unify(OzVar a, Object b) {
 		a.bind(b);
 		return unit;
@@ -56,7 +56,7 @@ public abstract class UnifyNode extends OzNode {
 		return unit;
 	}
 
-	@Specialization(guards = { "!isVar(a)", "!isVar(b)", "!isCons(a)", "!isCons(b)" })
+	@Specialization(guards = { "!isVariable(a)", "!isVariable(b)", "!isCons(a)", "!isCons(b)" })
 	Object unify(Object a, Object b) {
 		if (!equal(a, b)) {
 			CompilerDirectives.transferToInterpreter();
