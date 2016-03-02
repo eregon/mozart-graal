@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.translator.Loader;
 
@@ -29,6 +30,14 @@ public abstract class PropertyBuiltins {
 
 	public static void setApplicationURL(String appURL) {
 		PROPERTIES.put("application.url", appURL);
+	}
+
+	public static void setApplicationArgs(String[] args) {
+		Object list = "nil";
+		for (int i = args.length-1; i >=0; i--) {
+			list = new OzCons(args[i].intern(), list);
+		}
+		PROPERTIES.put("application.args", list);
 	}
 
 	@Builtin(proc = true, deref = ALL)

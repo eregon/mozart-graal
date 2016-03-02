@@ -1,8 +1,13 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
+import java.io.PrintStream;
 import java.math.BigInteger;
 
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltins.ToAtomNode;
+import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.runtime.Unit;
@@ -103,13 +108,25 @@ public abstract class SystemBuiltins {
 
 	}
 
+	@Builtin(proc = true, deref = ALL)
 	@GenerateNodeFactory
-	@NodeChildren({ @NodeChild("value"), @NodeChild("toStdErr") })
+	@NodeChildren({ @NodeChild("value"), @NodeChild("toStdErr"), @NodeChild("newLine") })
 	public static abstract class PrintVSNode extends OzNode {
 
+		@Child ToAtomNode toAtomNode = ToAtomNodeFactory.create(null);
+
 		@Specialization
-		Object printVS(Object value, Object toStdErr) {
-			return unimplemented();
+		Object printVS(Object value, boolean toStdErr, boolean newLine) {
+			String buffer = toAtomNode.executeToAtom(value);
+			@SuppressWarnings("resource")
+			PrintStream stream = toStdErr ? System.err : System.out;
+			if (newLine) {
+				stream.println(buffer);
+			} else {
+				stream.print(buffer);
+				stream.flush();
+			}
+			return unit;
 		}
 
 	}

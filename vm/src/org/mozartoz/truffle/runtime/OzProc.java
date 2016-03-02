@@ -15,6 +15,18 @@ public class OzProc {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof OzProc)) {
+			return false;
+		}
+		OzProc proc = (OzProc) obj;
+		return callTarget.getRootNode().getSourceSection() == proc.callTarget.getRootNode().getSourceSection();
+	}
+
+	@Override
 	public String toString() {
 		SourceSection sourceSection = callTarget.getRootNode().getSourceSection();
 		return "<Proc@" + sourceSection.getShortDescription() + ">";
