@@ -48,7 +48,7 @@ public abstract class ObjectBuiltins {
 			DynamicObject features = OzRecord.buildRecord(featArity, values);
 
 			for (Property property : featRecord.getShape().getProperties()) {
-				Object value = property.get(featRecord, featRecord.getShape());
+				property.get(featRecord, featRecord.getShape());
 			}
 
 			return new OzObject(classDesc, features);
