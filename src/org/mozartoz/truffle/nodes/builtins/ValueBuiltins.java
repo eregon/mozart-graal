@@ -109,6 +109,22 @@ public abstract class ValueBuiltins {
 			return executeEqual(a.getHead(), b.getHead()) && executeEqual(a.getTail(), b.getTail());
 		}
 
+		@TruffleBoundary
+		@Specialization
+		protected boolean equal(DynamicObject a, DynamicObject b) {
+			if (a.getShape() != b.getShape()) {
+				return false;
+			}
+			for (Property property : a.getShape().getProperties()) {
+				Object aValue = property.get(a, a.getShape());
+				Object bValue = property.get(b, b.getShape());
+				if (!executeEqual(aValue, bValue)) {
+					return false;
+				}
+			}
+			return true;
+		}
+
 		@Specialization(guards = { "!isCons(b)", "!isRecord(b)" })
 		protected boolean equal(OzCons a, Object b) {
 			return false;

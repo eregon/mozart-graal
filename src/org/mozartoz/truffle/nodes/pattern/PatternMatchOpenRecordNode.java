@@ -28,6 +28,11 @@ public abstract class PatternMatchOpenRecordNode extends OzNode {
 		return true;
 	}
 
+	@Specialization(guards = "!arity.matchesOpen(record)")
+	boolean patternNoMatchOpen(DynamicObject record) {
+		return false;
+	}
+
 	@Specialization(guards = "!isRecord(object)")
 	boolean patternMatchOpen(Object object) {
 		return false;
