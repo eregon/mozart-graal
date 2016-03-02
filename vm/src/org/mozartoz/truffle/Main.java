@@ -11,7 +11,11 @@ public class Main {
 		// Loader.getInstance().run(source);
 
 		Source source = Loader.createSource("simple_runner.oz");
-		Loader.getInstance().runFunctor(source, Loader.MOZART2_DIR + "/platform-test/base/int.oz");
+		String BASE_TESTS = Loader.MOZART2_DIR + "/platform-test/base/";
+		Loader.getInstance().runFunctor(source,
+				BASE_TESTS + "int.oz",
+				BASE_TESTS + "dictionary.oz",
+				BASE_TESTS + "record.oz");
 	}
 
 }

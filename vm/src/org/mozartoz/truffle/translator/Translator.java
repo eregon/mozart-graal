@@ -260,14 +260,16 @@ public class Translator {
 			List<RecordField> fields = new ArrayList<>(toJava(record.fields()));
 			if (record.isCons()) {
 				return buildCons(translate(fields.get(0).value()), translate(fields.get(1).value()));
-			} else {
-				if (record.hasConstantArity()) {
-					OzNode[] values = new OzNode[fields.size()];
-					for (int i = 0; i < values.length; i++) {
-						values[i] = translate(fields.get(i).value());
-					}
-					return new RecordLiteralNode(buildArity(record.getConstantArity()), values);
+			} else if (record.hasConstantArity()) {
+				Arity arity = buildArity(record.getConstantArity());
+				if (fields.isEmpty()) {
+					return new LiteralNode(arity.getLabel());
 				}
+				OzNode[] values = new OzNode[fields.size()];
+				for (int i = 0; i < values.length; i++) {
+					values[i] = translate(fields.get(i).value());
+				}
+				return new RecordLiteralNode(arity, values);
 			}
 		} else if (expression instanceof Variable) {
 			Variable variable = (Variable) expression;

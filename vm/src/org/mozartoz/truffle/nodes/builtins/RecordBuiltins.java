@@ -7,6 +7,7 @@ import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzVar;
 
@@ -139,6 +140,11 @@ public abstract class RecordBuiltins {
 
 		@Specialization
 		protected String makeDynamic(String label, String emptyContents) {
+			return label;
+		}
+
+		@Specialization
+		protected OzName makeDynamic(OzName label, String emptyContents) {
 			return label;
 		}
 
