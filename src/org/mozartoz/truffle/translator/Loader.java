@@ -38,9 +38,29 @@ public class Loader {
 
 	public static final String PROJECT_ROOT = getProjectRoot();
 	static final String MODULE_DEFS_DIR = PROJECT_ROOT + "/builtins";
-	public static final String MAIN_LIB_DIR = "/home/eregon/code/mozart2/lib/main";
+	public static final String MOZART2_DIR = "/home/eregon/code/mozart2";
+	public static final String MAIN_LIB_DIR = MOZART2_DIR + "/lib/main";
 	static final String BASE_FILE_NAME = MAIN_LIB_DIR + "/base/Base.oz";
 	static final String BASE_DECLS_FILE_NAME = PROJECT_ROOT + "/baseenv.txt";
+
+	public static final String[] SYSTEM_FUNCTORS = new String[] {
+			MAIN_LIB_DIR + "/sys/Property.oz",
+			MAIN_LIB_DIR + "/sys/Space.oz",
+			MAIN_LIB_DIR + "/sys/Pickle.oz",
+			MAIN_LIB_DIR + "/support/CompilerSupport.oz",
+			MAIN_LIB_DIR + "/support/ErrorListener.oz",
+			MAIN_LIB_DIR + "/support/Listener.oz",
+			MAIN_LIB_DIR + "/support/Narrator.oz",
+			MAIN_LIB_DIR + "/support/ObjectSupport.oz",
+			MAIN_LIB_DIR + "/support/Type.oz",
+			MAIN_LIB_DIR + "/sp/Error.oz",
+			MAIN_LIB_DIR + "/sp/ErrorFormatters.oz",
+			MAIN_LIB_DIR + "/op/Open.oz",
+			MAIN_LIB_DIR + "/cp/Combinator.oz",
+			MAIN_LIB_DIR + "/cp/RecordC.oz",
+			MAIN_LIB_DIR + "/ap/Application.oz",
+			MOZART2_DIR + "/vm/boostenv/lib/OS.oz",
+	};
 
 	// public static final PolyglotEngine ENGINE = PolyglotEngine.newBuilder().build();
 

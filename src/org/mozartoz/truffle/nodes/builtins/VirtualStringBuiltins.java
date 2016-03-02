@@ -97,9 +97,9 @@ public abstract class VirtualStringBuiltins {
 		public abstract String executeToAtom(Object value);
 
 		@Specialization
-		String toAtom(String value) {
-			assert OzGuards.isAtom(value);
-			return value;
+		String toAtom(String atom) {
+			assert OzGuards.isAtom(atom);
+			return atom;
 		}
 
 		@Specialization
@@ -134,13 +134,14 @@ public abstract class VirtualStringBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class LengthNode extends OzNode {
 
 		@Specialization
-		Object length(Object value) {
-			return unimplemented();
+		long length(String atom) {
+			return atom.length();
 		}
 
 	}
