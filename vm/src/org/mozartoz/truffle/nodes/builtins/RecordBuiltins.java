@@ -103,6 +103,11 @@ public abstract class RecordBuiltins {
 	public static abstract class CloneNode extends OzNode {
 
 		@Specialization
+		String clone(String atom) {
+			return atom;
+		}
+
+		@Specialization
 		DynamicObject clone(DynamicObject record) {
 			Arity arity = OzRecord.getArity(record);
 			Object[] values = new Object[arity.getWidth()];

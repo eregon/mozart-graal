@@ -72,7 +72,7 @@ public abstract class BuiltinsManager {
 		}
 		// Create a new node tree for every call site
 		RootNode rootNode = NodeUtil.cloneNode(fun.callTarget.getRootNode());
-		return new OzProc(Truffle.getRuntime().createCallTarget(rootNode), null);
+		return new OzProc(Truffle.getRuntime().createCallTarget(rootNode), null, fun.arity);
 	}
 
 	public static DynamicObject getBootModule(String name) {
@@ -130,11 +130,12 @@ public abstract class BuiltinsManager {
 			OzNode node = factory.createNode(readArguments);
 			if (!builtin.proc()) {
 				node = BindNodeGen.create(null, new ReadArgumentNode(arity), node);
+				arity++;
 			}
 
 			OzRootNode rootNode = new OzRootNode(sourceSection, new FrameDescriptor(), node);
 			RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-			OzProc function = new OzProc(callTarget, null);
+			OzProc function = new OzProc(callTarget, null, arity);
 			assert !BUILTINS.containsKey(name) : name;
 			BUILTINS.put(name, function);
 			builtins.put(builtinName.intern(), function);
