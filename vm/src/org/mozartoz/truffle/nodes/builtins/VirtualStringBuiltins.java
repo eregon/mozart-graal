@@ -46,12 +46,9 @@ public abstract class VirtualStringBuiltins {
 	@NodeChildren({ @NodeChild("value"), @NodeChild("tail") })
 	public static abstract class ToCharListNode extends OzNode {
 
-		public abstract Object executeToCharList(Object value, Object tail);
+		@Child DerefNode derefNode = DerefNode.create();
 
-		@Specialization
-		Object toCharList(long codePoint, Object tail) {
-			return new OzCons(codePoint, tail);
-		}
+		public abstract Object executeToCharList(Object value, Object tail);
 
 		@Specialization
 		Object toCharList(String atom, Object tail) {
@@ -64,11 +61,13 @@ public abstract class VirtualStringBuiltins {
 
 		@Specialization
 		Object toCharList(OzCons cons, Object tail) {
-			if (cons.getTail() == "nil") {
-				return executeToCharList(cons.getHead(), tail);
+			Object head = cons.getHead();
+			assert head instanceof Long;
+			Object consTail = deref(cons.getTail());
+			if (consTail == "nil") {
+				return new OzCons(head, tail);
 			} else {
-				return executeToCharList(cons.getHead(),
-						executeToCharList(cons.getTail(), tail));
+				return new OzCons(head, executeToCharList(consTail, tail));
 			}
 		}
 
@@ -79,10 +78,14 @@ public abstract class VirtualStringBuiltins {
 			for (Property property : record.getShape().getPropertyListInternal(false)) {
 				if (!(property.getKey() instanceof HiddenKey)) {
 					Object value = property.get(record, record.getShape());
-					list = executeToCharList(value, list);
+					list = executeToCharList(deref(value), list);
 				}
 			}
 			return list;
+		}
+
+		private Object deref(Object value) {
+			return derefNode.executeDeref(value);
 		}
 
 	}
