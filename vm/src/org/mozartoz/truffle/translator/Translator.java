@@ -100,7 +100,7 @@ import org.mozartoz.truffle.runtime.Unit;
 import scala.collection.JavaConversions;
 import scala.util.parsing.input.Position;
 
-import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
@@ -403,7 +403,7 @@ public class Translator {
 				return function;
 			} else {
 				OzRootNode rootNode = new OzRootNode(null, null, new UnknownBuiltinNode(builtin.toString()));
-				CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+				RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 				return new OzProc(callTarget, null);
 			}
 		}
