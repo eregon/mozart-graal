@@ -173,7 +173,7 @@ public class Loader {
 	}
 
 	private List<String> moduleDefs() {
-		return javaListToScalaList(Collections.singletonList(MODULE_DEFS_DIR)).toList();
+		return javaListToScalaList(Collections.singletonList(MODULE_DEFS_DIR));
 	}
 
 	private Set<String> defines() {
