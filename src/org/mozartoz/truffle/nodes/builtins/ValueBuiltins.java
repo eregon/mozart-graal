@@ -100,7 +100,7 @@ public abstract class ValueBuiltins {
 
 		@Specialization
 		protected boolean equal(OzProc a, OzProc b) {
-			return a == b;
+			return a.equals(b);
 		}
 
 		@TruffleBoundary

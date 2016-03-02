@@ -50,10 +50,13 @@ public abstract class OSBuiltins {
 			}
 
 			System.out.println("Loading " + path);
-			assert new File(path).exists();
-			Source source = Loader.createSource(path);
-			Loader loader = Loader.getInstance();
-			return loader.execute(loader.parseFunctor(source));
+			if (new File(path).exists()) {
+				Source source = Loader.createSource(path);
+				Loader loader = Loader.getInstance();
+				return loader.execute(loader.parseFunctor(source));
+			} else {
+				return url.intern();
+			}
 		}
 
 	}

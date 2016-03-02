@@ -141,10 +141,11 @@ public class Loader {
 		execute(parseMain(source));
 	}
 
-	public void runFunctor(Source source) {
+	public void runFunctor(Source source, String... args) {
 		Object initFunctor = execute(parseFunctor(createSource(INIT_FUNCTOR)));
 
 		PropertyBuiltins.setApplicationURL(source.getPath());
+		PropertyBuiltins.setApplicationArgs(args);
 		execute(InitFunctor.apply(initFunctor));
 	}
 
