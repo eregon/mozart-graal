@@ -39,7 +39,7 @@ public abstract class PropertyBuiltins {
 
 	public static void setApplicationArgs(String[] args) {
 		Object list = "nil";
-		for (int i = args.length-1; i >=0; i--) {
+		for (int i = args.length - 1; i >= 0; i--) {
 			list = new OzCons(args[i].intern(), list);
 		}
 		PROPERTIES.put("application.args", list);

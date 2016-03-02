@@ -178,9 +178,9 @@ public class Translator {
 		} else if (statement instanceof LocalStatement) {
 			LocalStatement local = (LocalStatement) statement;
 			FrameDescriptor frameDescriptor = environment.frameDescriptor;
+			// MatchStatement guards are transformed in nested if conditions, at the cost of duplicating the continuation every time.
+			// In this case, the variable might be reused it seems.
 			OzNode[] decls = map(local.declarations(), variable -> {
-				// MatchStatement guards are transformed in nested if conditions, at the cost of duplicating the continuation every time.
-				// In this case, the variable might be reused it seems.
 				FrameSlot slot = frameDescriptor.findOrAddFrameSlot(variable.symbol());
 				return new InitializeVarNode(slot);
 			});
