@@ -13,6 +13,7 @@ import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzObject;
+import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
@@ -94,6 +95,11 @@ public abstract class ValueBuiltins {
 
 		@Specialization
 		protected boolean equal(OzThread a, OzThread b) {
+			return a == b;
+		}
+
+		@Specialization
+		protected boolean equal(OzProc a, OzProc b) {
 			return a == b;
 		}
 
