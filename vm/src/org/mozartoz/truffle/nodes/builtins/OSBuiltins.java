@@ -214,7 +214,7 @@ public abstract class OSBuiltins {
 
 		@Specialization
 		Object stdin() {
-			return unimplemented();
+			return System.in;
 		}
 
 	}
@@ -224,7 +224,7 @@ public abstract class OSBuiltins {
 
 		@Specialization
 		Object stdout() {
-			return unimplemented();
+			return System.out;
 		}
 
 	}
@@ -234,7 +234,7 @@ public abstract class OSBuiltins {
 
 		@Specialization
 		Object stderr() {
-			return unimplemented();
+			return System.err;
 		}
 
 	}
