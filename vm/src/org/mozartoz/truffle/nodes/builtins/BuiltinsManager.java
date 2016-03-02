@@ -57,6 +57,7 @@ public abstract class BuiltinsManager {
 			// Init.oz
 			"Boot",
 			"OS",
+			"Debug",
 	};
 
 	private static final Map<String, OzProc> BUILTINS = new HashMap<>();
@@ -75,7 +76,7 @@ public abstract class BuiltinsManager {
 	}
 
 	public static DynamicObject getBootModule(String name) {
-		assert BOOT_MODULES.containsKey(name);
+		assert BOOT_MODULES.containsKey(name) : name;
 		return BOOT_MODULES.get(name);
 	}
 
