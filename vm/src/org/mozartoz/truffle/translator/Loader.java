@@ -17,6 +17,7 @@ import org.mozartoz.bootcompiler.transform.Unnester;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
+import org.mozartoz.truffle.nodes.builtins.PropertyBuiltins;
 import org.mozartoz.truffle.nodes.control.SequenceNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
@@ -42,6 +43,7 @@ public class Loader {
 	public static final String MAIN_LIB_DIR = MOZART2_DIR + "/lib/main";
 	static final String BASE_FILE_NAME = MAIN_LIB_DIR + "/base/Base.oz";
 	static final String BASE_DECLS_FILE_NAME = PROJECT_ROOT + "/baseenv.txt";
+	static final String INIT_FUNCTOR = MAIN_LIB_DIR + "/init/Init.oz";
 
 	public static final String[] SYSTEM_FUNCTORS = new String[] {
 			MAIN_LIB_DIR + "/sys/Property.oz",
@@ -137,6 +139,13 @@ public class Loader {
 
 	public void run(Source source) {
 		execute(parseMain(source));
+	}
+
+	public void runFunctor(Source source) {
+		Object initFunctor = execute(parseFunctor(createSource(INIT_FUNCTOR)));
+
+		PropertyBuiltins.setApplicationURL(source.getPath());
+		execute(InitFunctor.apply(initFunctor));
 	}
 
 	public static Source createSource(String path) {

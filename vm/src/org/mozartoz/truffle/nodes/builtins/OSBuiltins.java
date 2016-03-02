@@ -28,18 +28,28 @@ public abstract class OSBuiltins {
 		@Specialization
 		Object bootURLLoad(Object urlVS) {
 			String url = toAtomNode.executeToAtom(urlVS);
-			assert url.startsWith("x-oz://system/");
-			assert url.endsWith(".ozf");
-			String name = url.substring("x-oz://system/".length(), url.length() - 1);
 
-			String path = null;
-			for (String systemFunctor : Loader.SYSTEM_FUNCTORS) {
-				if (new File(systemFunctor).getName().equals(name)) {
-					path = systemFunctor;
-				}
+			// Remove final "f"
+			if (url.endsWith(".ozf")) {
+				url = url.substring(0, url.length() - 1);
 			}
 
-			System.out.println("Reading " + path);
+			assert url.endsWith(".oz");
+
+			String path = null;
+			if (url.startsWith("x-oz://system/")) {
+				String name = url.substring("x-oz://system/".length());
+				for (String systemFunctor : Loader.SYSTEM_FUNCTORS) {
+					if (new File(systemFunctor).getName().equals(name)) {
+						path = systemFunctor;
+						break;
+					}
+				}
+			} else {
+				path = url;
+			}
+
+			System.out.println("Loading " + path);
 			assert new File(path).exists();
 			Source source = Loader.createSource(path);
 			Loader loader = Loader.getInstance();
