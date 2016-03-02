@@ -1,11 +1,13 @@
 package org.mozartoz.truffle.nodes.local;
 
+import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.runtime.Variable;
 import org.mozartoz.truffle.translator.FrameSlotAndDepth;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -22,6 +24,16 @@ public abstract class BindNode extends OzNode {
 		if (leftSlot != null) {
 			writeLeft = leftSlot.createWriteNode();
 		}
+	}
+
+	@CreateCast("left")
+	protected OzNode derefLeft(OzNode var) {
+		return DerefIfBoundNodeGen.create(var);
+	}
+
+	@CreateCast("right")
+	protected OzNode derefRight(OzNode var) {
+		return DerefIfBoundNodeGen.create(var);
 	}
 
 	@Specialization(guards = { "!left.isBound()", "!right.isBound()" })

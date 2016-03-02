@@ -1,5 +1,7 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzVar;
 
@@ -7,6 +9,7 @@ import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ReflectionBuiltins {
 
@@ -74,6 +77,19 @@ public abstract class ReflectionBuiltins {
 		@Specialization
 		Object become(Object entity, Object value) {
 			return unimplemented();
+		}
+
+	}
+
+	@Builtin(proc = true, deref = ALL)
+	@GenerateNodeFactory
+	@NodeChildren({ @NodeChild("record"), @NodeChild("feature"), @NodeChild("newValue") })
+	public static abstract class ChangeRecordFieldNode extends OzNode {
+
+		@Specialization
+		Object changeRecordField(DynamicObject record, Object feature, Object newValue) {
+			record.getShape().getProperty(feature).setInternal(record, newValue);
+			return unit;
 		}
 
 	}

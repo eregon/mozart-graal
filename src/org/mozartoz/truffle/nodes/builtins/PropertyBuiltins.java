@@ -25,6 +25,7 @@ public abstract class PropertyBuiltins {
 		PROPERTIES.put("oz.version", "3.0.0-alpha");
 		PROPERTIES.put("oz.search.path", ".");
 		PROPERTIES.put("oz.search.load", ".");
+		PROPERTIES.put("application.url", "application.url");
 	}
 
 	@Builtin(proc = true, deref = ALL)
