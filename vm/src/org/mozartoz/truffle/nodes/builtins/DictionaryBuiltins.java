@@ -82,13 +82,19 @@ public abstract class DictionaryBuiltins {
 
 	}
 
+	@Builtin(deref = { 1, 2 })
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("dict"), @NodeChild("feature"), @NodeChild("defaultValue") })
 	public static abstract class CondGetNode extends OzNode {
 
 		@Specialization
-		Object condGet(Object dict, Object feature, Object defaultValue) {
-			return unimplemented();
+		Object condGet(OzDict dict, Object feature, Object defaultValue) {
+			Object value = dict.get(feature);
+			if (value == null) {
+				return defaultValue;
+			} else {
+				return value;
+			}
 		}
 
 	}
