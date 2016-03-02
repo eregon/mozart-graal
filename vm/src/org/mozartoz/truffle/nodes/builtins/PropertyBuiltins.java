@@ -22,10 +22,15 @@ public abstract class PropertyBuiltins {
 	static {
 		PROPERTIES.put("platform.os", System.getProperty("os.name"));
 		PROPERTIES.put("platform.name", System.getProperty("os.name"));
+
 		PROPERTIES.put("oz.home", Loader.PROJECT_ROOT);
 		PROPERTIES.put("oz.version", "3.0.0-alpha");
 		PROPERTIES.put("oz.search.path", ".");
 		PROPERTIES.put("oz.search.load", ".");
+
+		PROPERTIES.put("limits.bytecode.xregisters", 65536L);
+		PROPERTIES.put("limits.int.max", Long.MAX_VALUE);
+		PROPERTIES.put("limits.int.min", Long.MIN_VALUE);
 	}
 
 	public static void setApplicationURL(String appURL) {
