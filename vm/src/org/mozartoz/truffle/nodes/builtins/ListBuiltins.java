@@ -36,8 +36,8 @@ public abstract class ListBuiltins {
 		@Specialization
 		protected Object tail(OzCons cons) {
 			return cons.getTail();
-	}
+		}
 
-}
+	}
 
 }

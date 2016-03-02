@@ -1,6 +1,5 @@
 package org.mozartoz.truffle.runtime;
 
-
 public class OzFuture extends Variable {
 
 	@Override

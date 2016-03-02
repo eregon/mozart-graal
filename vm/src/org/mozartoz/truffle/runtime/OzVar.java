@@ -1,6 +1,5 @@
 package org.mozartoz.truffle.runtime;
 
-
 public class OzVar extends Variable {
 
 	public OzFuture findFuture() {
