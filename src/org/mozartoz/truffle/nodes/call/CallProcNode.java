@@ -10,7 +10,7 @@ import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 
-import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -39,7 +39,7 @@ public abstract class CallProcNode extends OzNode {
 
 	@Specialization(guards = "function.callTarget == cachedCallTarget")
 	protected Object callDirect(VirtualFrame frame, OzProc function,
-			@Cached("function.callTarget") CallTarget cachedCallTarget,
+			@Cached("function.callTarget") RootCallTarget cachedCallTarget,
 			@Cached("create(cachedCallTarget)") DirectCallNode callNode) {
 		final Object[] arguments = executeArgumentsNode.executeValues(frame);
 		return callNode.call(frame, OzArguments.pack(function.declarationFrame, arguments));

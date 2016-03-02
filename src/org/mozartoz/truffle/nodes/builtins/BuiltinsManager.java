@@ -13,7 +13,6 @@ import org.mozartoz.truffle.nodes.local.BindNodeGen;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzRecord;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.NodeFactory;
@@ -72,7 +71,7 @@ public abstract class BuiltinsManager {
 			throw new Error("No builtin " + name);
 		}
 		// Create a new node tree for every call site
-		RootNode rootNode = NodeUtil.cloneNode(((RootCallTarget) fun.callTarget).getRootNode());
+		RootNode rootNode = NodeUtil.cloneNode(fun.callTarget.getRootNode());
 		return new OzProc(Truffle.getRuntime().createCallTarget(rootNode), null);
 	}
 
@@ -134,7 +133,7 @@ public abstract class BuiltinsManager {
 			}
 
 			OzRootNode rootNode = new OzRootNode(sourceSection, new FrameDescriptor(), node);
-			CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+			RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 			OzProc function = new OzProc(callTarget, null);
 			assert !BUILTINS.containsKey(name) : name;
 			BUILTINS.put(name, function);
