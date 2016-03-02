@@ -43,6 +43,11 @@ public abstract class TupleBuiltins {
 	public static abstract class IsTupleNode extends OzNode {
 
 		@Specialization
+		boolean isTuple(String atom) {
+			return true;
+		}
+
+		@Specialization
 		boolean isTuple(DynamicObject record) {
 			Arity arity = OzRecord.getArity(record);
 			return arity.isTupleArity();

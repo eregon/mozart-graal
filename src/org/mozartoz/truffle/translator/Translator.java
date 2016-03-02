@@ -290,7 +290,8 @@ public class Translator {
 			ProcExpression procExpression = (ProcExpression) expression;
 			FrameDescriptor frameDescriptor = new FrameDescriptor();
 
-			OzNode[] nodes = new OzNode[procExpression.args().size() + 1];
+			int arity = procExpression.args().size();
+			OzNode[] nodes = new OzNode[arity + 1];
 			int i = 0;
 			for (VariableOrRaw variable : toJava(procExpression.args())) {
 				if (variable instanceof Variable) {
@@ -311,7 +312,7 @@ public class Translator {
 
 			OzNode procBody = SequenceNode.sequence(nodes);
 			SourceSection sourceSection = t(expression);
-			return new ProcDeclarationNode(sourceSection, frameDescriptor, procBody);
+			return new ProcDeclarationNode(sourceSection, frameDescriptor, procBody, arity);
 		}
 
 		throw unknown("expression", expression);
@@ -404,7 +405,7 @@ public class Translator {
 			} else {
 				OzRootNode rootNode = new OzRootNode(null, null, new UnknownBuiltinNode(builtin.toString()));
 				RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-				return new OzProc(callTarget, null);
+				return new OzProc(callTarget, null, builtin.arity());
 			}
 		}
 		throw unknown("value", value);

@@ -29,13 +29,14 @@ public abstract class ProcedureBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("procedure")
 	public static abstract class ArityNode extends OzNode {
 
 		@Specialization
-		Object arity(Object procedure) {
-			return unimplemented();
+		long arity(OzProc procedure) {
+			return procedure.arity;
 		}
 
 	}

@@ -8,10 +8,12 @@ public class OzProc {
 
 	public final RootCallTarget callTarget;
 	public final MaterializedFrame declarationFrame;
+	public final int arity;
 
-	public OzProc(RootCallTarget callTarget, MaterializedFrame declarationFrame) {
+	public OzProc(RootCallTarget callTarget, MaterializedFrame declarationFrame, int arity) {
 		this.callTarget = callTarget;
 		this.declarationFrame = declarationFrame;
+		this.arity = arity;
 	}
 
 	@Override

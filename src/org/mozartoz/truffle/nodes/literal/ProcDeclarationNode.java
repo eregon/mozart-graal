@@ -13,16 +13,18 @@ import com.oracle.truffle.api.source.SourceSection;
 public class ProcDeclarationNode extends OzNode {
 
 	private final RootCallTarget callTarget;
+	private final int arity;
 
-	public ProcDeclarationNode(SourceSection sourceSection, FrameDescriptor frameDescriptor, OzNode body) {
+	public ProcDeclarationNode(SourceSection sourceSection, FrameDescriptor frameDescriptor, OzNode body, int arity) {
 		assignSourceSection(sourceSection);
 		OzRootNode rootNode = new OzRootNode(sourceSection, frameDescriptor, body);
 		this.callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+		this.arity = arity;
 	}
 
 	@Override
 	public Object execute(VirtualFrame frame) {
-		return new OzProc(callTarget, frame.materialize());
+		return new OzProc(callTarget, frame.materialize(), arity);
 	}
 
 }
