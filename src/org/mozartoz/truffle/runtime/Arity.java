@@ -95,7 +95,7 @@ public class Arity {
 	public Object asOzList() {
 		Object features = "nil";
 		for (Property property : shape.getPropertyListInternal(false)) {
-			if (!(property.getKey() instanceof HiddenKey)) {
+			if (!property.isHidden()) {
 				features = new OzCons(property.getKey(), features);
 			}
 		}
