@@ -13,7 +13,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.HiddenKey;
 import com.oracle.truffle.api.object.Property;
 
 public abstract class VirtualStringBuiltins {
@@ -76,7 +75,7 @@ public abstract class VirtualStringBuiltins {
 			assert OzRecord.getLabel(record) == "#";
 			Object list = tail;
 			for (Property property : record.getShape().getPropertyListInternal(false)) {
-				if (!(property.getKey() instanceof HiddenKey)) {
+				if (!property.isHidden()) {
 					Object value = property.get(record, record.getShape());
 					list = executeToCharList(deref(value), list);
 				}
@@ -123,7 +122,7 @@ public abstract class VirtualStringBuiltins {
 			assert OzRecord.getLabel(record) == "#";
 			StringBuilder builder = new StringBuilder();
 			for (Property property : record.getShape().getProperties()) {
-				if (!(property.getKey() instanceof HiddenKey)) {
+				if (!property.isHidden()) {
 					Object value = property.get(record, record.getShape());
 					builder.append(executeToAtom(deref(value)));
 				}
