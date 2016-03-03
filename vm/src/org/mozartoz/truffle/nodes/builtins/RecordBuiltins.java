@@ -78,6 +78,11 @@ public abstract class RecordBuiltins {
 		}
 
 		@Specialization
+		long width(OzCons cons) {
+			return 2;
+		}
+
+		@Specialization
 		long width(DynamicObject record) {
 			return OzRecord.getArity(record).getWidth();
 		}
@@ -92,6 +97,11 @@ public abstract class RecordBuiltins {
 		@Specialization
 		Object arity(String atom) {
 			return "nil";
+		}
+
+		@Specialization
+		Object arity(OzCons cons) {
+			return Arity.CONS_ARITY.asOzList();
 		}
 
 		@Specialization
@@ -152,7 +162,7 @@ public abstract class RecordBuiltins {
 		}
 
 		@Specialization(guards = "isLiteral(label)")
-		protected DynamicObject makeDynamic(Object label, DynamicObject contents) {
+		protected Object makeDynamic(Object label, DynamicObject contents) {
 			int width = OzRecord.getArity(contents).getWidth();
 			assert width % 2 == 0;
 			int size = width / 2;
@@ -164,7 +174,11 @@ public abstract class RecordBuiltins {
 				map.put(feature, value);
 			}
 
-			return OzRecord.buildRecord(label, map);
+			if (label == "|" && size == 2 && map.containsKey(1L) && map.containsKey(2L)) {
+				return new OzCons(map.get(1L), map.get(2L));
+			} else {
+				return OzRecord.buildRecord(label, map);
+			}
 		}
 
 	}

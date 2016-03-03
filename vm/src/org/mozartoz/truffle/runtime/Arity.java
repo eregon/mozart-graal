@@ -29,6 +29,9 @@ public class Arity {
 
 	public static final Shape BASE = EMPTY.addProperty(LABEL_PROPERTY);
 
+	public static final Arity CONS_ARITY = Arity.build("|", 1L, 2L);
+	static final Shape CONS_SHAPE = CONS_ARITY.getShape();
+
 	private final Object label;
 	private final Shape shape;
 
@@ -48,6 +51,10 @@ public class Arity {
 
 	public int getWidth() {
 		return shape.getPropertyCount();
+	}
+
+	public boolean isConsArity() {
+		return label == "|" && getShape() == CONS_SHAPE;
 	}
 
 	public boolean isTupleArity() {
@@ -87,8 +94,10 @@ public class Arity {
 
 	public Object asOzList() {
 		Object features = "nil";
-		for (Property property : shape.getProperties()) {
-			features = new OzCons(property.getKey(), features);
+		for (Property property : shape.getPropertyListInternal(false)) {
+			if (!(property.getKey() instanceof HiddenKey)) {
+				features = new OzCons(property.getKey(), features);
+			}
 		}
 		return features;
 	}

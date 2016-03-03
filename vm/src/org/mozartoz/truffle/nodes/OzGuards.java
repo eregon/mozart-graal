@@ -46,7 +46,7 @@ public class OzGuards {
 	}
 
 	public static boolean isFeature(Object value) {
-		return isLong(value) || isLiteral(value);
+		return isLong(value) || isBigInteger(value) || isLiteral(value);
 	}
 
 	public static boolean isCons(Object value) {
