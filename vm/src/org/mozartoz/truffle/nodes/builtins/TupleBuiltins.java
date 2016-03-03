@@ -31,6 +31,7 @@ public abstract class TupleBuiltins {
 				features[i] = (long) (i + 1);
 				values[i] = new OzVar();
 			}
+
 			Arity arity = Arity.build(label, features);
 			return OzRecord.buildRecord(arity, values);
 		}

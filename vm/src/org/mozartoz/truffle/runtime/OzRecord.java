@@ -17,8 +17,15 @@ public abstract class OzRecord {
 
 	public static DynamicObject buildRecord(Object label, Map<?, ?> map) {
 		Object[] features = map.keySet().toArray();
+		Arity.sortFeaturesInPlace(features);
 		Arity arity = Arity.build(label, features);
-		Object[] values = map.values().toArray();
+
+		Object[] values = new Object[features.length];
+		int i = 0;
+		for (Object feature : features) {
+			values[i++] = map.get(feature);
+		}
+
 		return buildRecord(arity, values);
 	}
 
@@ -27,7 +34,7 @@ public abstract class OzRecord {
 	}
 
 	public static Arity getArity(DynamicObject record) {
-		return new Arity(Arity.LABEL_LOCATION.get(record), record.getShape());
+		return Arity.forRecord(record);
 	}
 
 }
