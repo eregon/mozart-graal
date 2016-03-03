@@ -17,9 +17,10 @@ public abstract class ExceptionBuiltins {
 	@GenerateNodeFactory
 	public static abstract class FailNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		Object fail() {
-			return unimplemented();
+			throw new OzException(this, OzException.newFailure());
 		}
 
 	}
@@ -42,8 +43,8 @@ public abstract class ExceptionBuiltins {
 	@NodeChild("value")
 	public static abstract class RaiseErrorNode extends OzNode {
 
-		@Specialization
 		@TruffleBoundary
+		@Specialization
 		protected Object raiseError(Object error) {
 			throw new OzException(this, OzException.newError(error));
 		}
