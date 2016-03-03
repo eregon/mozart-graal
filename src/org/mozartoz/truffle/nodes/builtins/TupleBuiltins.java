@@ -4,6 +4,7 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzVar;
 
@@ -25,6 +26,7 @@ public abstract class TupleBuiltins {
 			if (width == 0) {
 				return label;
 			}
+
 			Object[] features = new Object[(int) width];
 			Object[] values = new Object[(int) width];
 			for (int i = 0; i < features.length; i++) {
@@ -33,7 +35,11 @@ public abstract class TupleBuiltins {
 			}
 
 			Arity arity = Arity.build(label, features);
-			return OzRecord.buildRecord(arity, values);
+			if (arity.isConsArity()) {
+				return new OzCons(values[0], values[1]);
+			} else {
+				return OzRecord.buildRecord(arity, values);
+			}
 		}
 
 	}
