@@ -3,7 +3,7 @@ package org.mozartoz.truffle.runtime;
 import java.util.HashMap;
 import java.util.Map;
 
-public class OzUniqueName {
+public class OzUniqueName implements Comparable<OzUniqueName> {
 
 	private static final Map<String, OzUniqueName> TABLE = new HashMap<>();
 
@@ -15,6 +15,11 @@ public class OzUniqueName {
 
 	private OzUniqueName(String name) {
 		this.name = name;
+	}
+
+	@Override
+	public int compareTo(OzUniqueName other) {
+		return name.compareTo(other.name);
 	}
 
 	@Override

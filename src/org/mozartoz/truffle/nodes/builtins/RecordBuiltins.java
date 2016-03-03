@@ -2,6 +2,9 @@ package org.mozartoz.truffle.nodes.builtins;
 
 import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
@@ -153,13 +156,15 @@ public abstract class RecordBuiltins {
 			int width = OzRecord.getArity(contents).getWidth();
 			assert width % 2 == 0;
 			int size = width / 2;
-			Object[] features = new Object[size];
-			Object[] values = new Object[size];
+			Map<Object, Object> map = new HashMap<Object, Object>(size);
+
 			for (int i = 0; i < size; i++) {
-				features[i] = derefNode.executeDerefIfBound(contents.get((long) i * 2 + 1));
-				values[i] = derefNode.executeDerefIfBound(contents.get((long) i * 2 + 2));
+				Object feature = derefNode.executeDerefIfBound(contents.get((long) i * 2 + 1));
+				Object value = derefNode.executeDerefIfBound(contents.get((long) i * 2 + 2));
+				map.put(feature, value);
 			}
-			return OzRecord.buildRecord(Arity.build(label, features), values);
+
+			return OzRecord.buildRecord(label, map);
 		}
 
 	}

@@ -1,6 +1,10 @@
 package org.mozartoz.truffle.runtime;
 
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.List;
 
 import org.mozartoz.truffle.nodes.OzGuards;
 
@@ -28,7 +32,7 @@ public class Arity {
 	private final Object label;
 	private final Shape shape;
 
-	public Arity(Object label, Shape shape) {
+	private Arity(Object label, Shape shape) {
 		assert OzGuards.isLiteral(label);
 		this.label = label;
 		this.shape = shape;
@@ -89,9 +93,48 @@ public class Arity {
 		return features;
 	}
 
+	private static final List<Class<?>> FEATURES_TYPES_ORDER = Arrays.asList(
+			Long.class,
+			BigInteger.class,
+			String.class,
+			OzUniqueName.class,
+			OzName.class
+	);
+
+	private static final Comparator<Object> COMPARE_FEATURES = new Comparator<Object>() {
+		@SuppressWarnings("unchecked")
+		@Override
+		public int compare(Object a, Object b) {
+			if (a.getClass() == b.getClass()) {
+				return ((Comparable<Object>) a).compareTo((Comparable<Object>) b);
+			} else {
+				assert FEATURES_TYPES_ORDER.contains(a.getClass());
+				assert FEATURES_TYPES_ORDER.contains(b.getClass());
+				return Integer.compare(
+						FEATURES_TYPES_ORDER.indexOf(a.getClass()),
+						FEATURES_TYPES_ORDER.indexOf(b.getClass()));
+			}
+		}
+	};
+
+	public static void sortFeaturesInPlace(Object[] features) {
+		Arrays.sort(features, COMPARE_FEATURES);
+	}
+
+	public static Object[] sortFeatures(Object[] features) {
+		Object[] sorted = features.clone();
+		sortFeaturesInPlace(sorted);
+		return sorted;
+	}
+
+	private static boolean isSortedFeatures(Object[] features) {
+		return Arrays.equals(features, sortFeatures(features));
+	}
+
 	private static final Object SOME_OBJECT = new Object();
 
 	public static Arity build(Object label, Object... features) {
+		assert isSortedFeatures(features);
 		Shape shape = Arity.BASE;
 		for (Object feature : features) {
 			assert OzGuards.isFeature(feature);
@@ -102,6 +145,10 @@ public class Arity {
 
 	public static Arity forAtom(String atom) {
 		return new Arity(atom, BASE);
+	}
+
+	public static Arity forRecord(DynamicObject record) {
+		return new Arity(LABEL_LOCATION.get(record), record.getShape());
 	}
 
 }
