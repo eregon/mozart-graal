@@ -6,6 +6,7 @@ import java.math.BigInteger;
 
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
+import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCell;
 import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -27,6 +28,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 
@@ -239,7 +241,7 @@ public abstract class ValueBuiltins {
 				return property.get(record, cachedShape);
 			} else {
 				CompilerDirectives.transferToInterpreter();
-				throw new OzException(this, "record " + record + " has no feature " + cachedFeature);
+				throw noFieldError(record, cachedFeature);
 			}
 		}
 
@@ -248,7 +250,7 @@ public abstract class ValueBuiltins {
 			Object value = record.get(feature);
 			if (value == null) {
 				CompilerDirectives.transferToInterpreter();
-				throw new OzException(this, "record " + record + " has no feature " + feature);
+				throw noFieldError(record, feature);
 			}
 			return value;
 		}
@@ -261,6 +263,13 @@ public abstract class ValueBuiltins {
 		@Specialization
 		protected Object getObject(OzObject object, Object feature) {
 			return executeDot(object.getFeatures(), feature);
+		}
+
+		static final DynamicObjectFactory KERNEL_ERROR_FACTORY = Arity.build("kernel", 1L, 2L, 3L).createFactory();
+
+		private OzException noFieldError(DynamicObject record, Object feature) {
+			DynamicObject info = KERNEL_ERROR_FACTORY.newInstance("kernel", ".", record, feature);
+			return new OzException(this, OzException.newError(info));
 		}
 
 	}
