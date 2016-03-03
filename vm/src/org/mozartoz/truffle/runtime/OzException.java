@@ -9,10 +9,14 @@ public class OzException extends RuntimeException {
 
 	static final Arity ERROR_ARITY = Arity.build("error", 1L, "debug");
 	static final Arity SYSTEM_ARITY = Arity.build("system", 1L, "debug");
-	static final Arity FAILURE_ARITY = Arity.build("failure", 1L, "debug");
+	static final Arity FAILURE_ARITY = Arity.build("failure", "debug");
 
 	public static DynamicObject newError(Object error) {
 		return OzRecord.buildRecord(ERROR_ARITY, error, Unit.INSTANCE);
+	}
+
+	public static DynamicObject newFailure() {
+		return OzRecord.buildRecord(FAILURE_ARITY, Unit.INSTANCE);
 	}
 
 	private final DynamicObject data;
