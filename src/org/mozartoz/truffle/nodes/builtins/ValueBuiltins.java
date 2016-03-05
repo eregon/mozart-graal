@@ -5,11 +5,16 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 import java.math.BigInteger;
 
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.builtins.ObjectBuiltins.AttrGetNode;
+import org.mozartoz.truffle.nodes.builtins.ObjectBuiltins.AttrPutNode;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.CatAccessOONodeFactory;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.CatAssignOONodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCell;
 import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzDict;
 import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzName;
@@ -24,6 +29,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -265,6 +271,12 @@ public abstract class ValueBuiltins {
 			return executeDot(object.getFeatures(), feature);
 		}
 
+		@Specialization
+		protected Object getDictionary(OzDict dict, Object feature,
+				@Cached("create()") DictionaryBuiltins.GetNode getNode) {
+			return getNode.executeGet(dict, feature);
+		}
+
 		static final DynamicObjectFactory KERNEL_ERROR_FACTORY = Arity.build("kernel", 1L, 2L, 3L).createFactory();
 
 		private OzException noFieldError(DynamicObject record, Object feature) {
@@ -274,24 +286,28 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(proc = true, deref = { 1, 2 }, tryDeref = 3)
 	@GenerateNodeFactory
-	@NodeChildren({ @NodeChild("value"), @NodeChild("feature") })
+	@NodeChildren({ @NodeChild("value"), @NodeChild("feature"), @NodeChild("newValue") })
 	public static abstract class DotAssignNode extends OzNode {
 
 		@Specialization
-		Object dotAssign(Object value, Object feature) {
-			return unimplemented();
+		Object dotAssign(OzDict dict, Object feature, Object newValue,
+				@Cached("create()") DictionaryBuiltins.PutNode putNode) {
+			return putNode.executePut(dict, feature, newValue);
 		}
 
 	}
 
+	@Builtin(deref = { 1, 2 }, tryDeref = 3)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("value"), @NodeChild("feature"), @NodeChild("newValue") })
 	public static abstract class DotExchangeNode extends OzNode {
 
 		@Specialization
-		Object dotExchange(Object value, Object feature, Object newValue) {
-			return unimplemented();
+		Object dotExchange(OzDict dict, Object feature, Object newValue,
+				@Cached("create()") DictionaryBuiltins.ExchangeFunNode exchangeFunNode) {
+			return exchangeFunNode.executeExchangeFun(dict, feature, newValue);
 		}
 
 	}
@@ -335,35 +351,85 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
+	@ImportStatic(Arity.class)
 	@NodeChildren({ @NodeChild("self"), @NodeChild("reference") })
 	public static abstract class CatAccessOONode extends OzNode {
 
+		public static CatAccessOONode create() {
+			return CatAccessOONodeFactory.create(null, null);
+		}
+
+		public abstract Object executeCatAccessOO(OzObject self, Object reference);
+
+		@Specialization(guards = "PAIR_ARITY.matches(pair)")
+		Object catAccessOO(OzObject self, DynamicObject pair,
+				@Cached("create()") DictionaryBuiltins.GetNode getNode) {
+			OzDict dict = (OzDict) pair.get(1L);
+			Object feature = pair.get(2L);
+			return getNode.executeGet(dict, feature);
+		}
+
 		@Specialization
-		Object catAccessOO(Object self, Object reference) {
-			return unimplemented();
+		Object catAccessOO(OzObject self, OzCell cell) {
+			return cell.getValue();
+		}
+
+		@Specialization
+		Object catAccessOO(OzObject self, String attr,
+				@Cached("create()") AttrGetNode attrGetNode) {
+			return attrGetNode.executeAttrGet(self, attr);
 		}
 
 	}
 
+	@Builtin(proc = true, deref = { 1, 2 }, tryDeref = 3)
 	@GenerateNodeFactory
-	@NodeChildren({ @NodeChild("self"), @NodeChild("reference") })
+	@ImportStatic(Arity.class)
+	@NodeChildren({ @NodeChild("self"), @NodeChild("reference"), @NodeChild("newValue") })
 	public static abstract class CatAssignOONode extends OzNode {
 
+		public static CatAssignOONode create() {
+			return CatAssignOONodeFactory.create(null, null, null);
+		}
+
+		public abstract Object executeCatAssignOO(OzObject self, Object reference, Object newValue);
+
+		@Specialization(guards = "PAIR_ARITY.matches(pair)")
+		Object catAssignOO(OzObject self, DynamicObject pair, Object newValue,
+				@Cached("create()") DictionaryBuiltins.PutNode putNode) {
+			OzDict dict = (OzDict) pair.get(1L);
+			Object feature = pair.get(2L);
+			return putNode.executePut(dict, feature, newValue);
+		}
+
 		@Specialization
-		Object catAssignOO(Object self, Object reference) {
-			return unimplemented();
+		Object catAssignOO(OzObject self, OzCell cell, Object newValue) {
+			cell.setValue(newValue);
+			return unit;
+		}
+
+		@Specialization
+		Object catAssignOO(OzObject self, String attr, Object newValue,
+				@Cached("create()") AttrPutNode attrPutNode) {
+			return attrPutNode.executeAttrPut(self, attr, newValue);
 		}
 
 	}
 
+	@Builtin(deref = { 1, 2 }, tryDeref = 3)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("self"), @NodeChild("reference"), @NodeChild("newValue") })
 	public static abstract class CatExchangeOONode extends OzNode {
 
 		@Specialization
-		Object catExchangeOO(Object self, Object reference, Object newValue) {
-			return unimplemented();
+		Object catExchangeOO(OzObject self, Object reference, Object newValue,
+				@Cached("create()") CatAccessOONode catAccessOONode,
+				@Cached("create()") CatAssignOONode catAssignOONode) {
+			Object oldValue = catAccessOONode.executeCatAccessOO(self, reference);
+			catAssignOONode.executeCatAssignOO(self, reference, newValue);
+			return oldValue;
 		}
 
 	}

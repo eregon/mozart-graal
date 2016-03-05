@@ -15,7 +15,8 @@ public class Main {
 		Loader.getInstance().runFunctor(source,
 				BASE_TESTS + "int.oz",
 				BASE_TESTS + "dictionary.oz",
-				BASE_TESTS + "record.oz");
+				BASE_TESTS + "record.oz",
+				BASE_TESTS + "state.oz");
 	}
 
 }

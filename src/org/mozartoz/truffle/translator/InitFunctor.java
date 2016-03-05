@@ -25,7 +25,7 @@ public abstract class InitFunctor {
 				DotNodeFactory.create(new LiteralNode(initFunctor), new LiteralNode("apply")));
 
 		SourceSection sourceSection = SourceSection.createUnavailable("main", "Init.apply");
-		return new OzRootNode(sourceSection, new FrameDescriptor(), node);
+		return new OzRootNode(sourceSection, new FrameDescriptor(), node, 0);
 	}
 
 }

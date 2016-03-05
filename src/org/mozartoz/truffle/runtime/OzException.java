@@ -1,7 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
-import org.mozartoz.truffle.nodes.OzNode;
-
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @SuppressWarnings("serial")
@@ -21,11 +20,11 @@ public class OzException extends RuntimeException {
 
 	private final DynamicObject data;
 
-	public OzException(OzNode currentNode, String message) {
+	public OzException(Node currentNode, String message) {
 		this(currentNode, newError(message.intern()));
 	}
 
-	public OzException(OzNode currentNode, DynamicObject data) {
+	public OzException(Node currentNode, DynamicObject data) {
 		super(data.toString());
 		OzBacktrace backtrace = OzBacktrace.capture(currentNode);
 

@@ -3,10 +3,9 @@ package org.mozartoz.truffle.runtime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mozartoz.truffle.nodes.OzNode;
-
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class OzBacktrace {
@@ -46,7 +45,7 @@ public class OzBacktrace {
 		return builder.toString();
 	}
 
-	public static OzBacktrace capture(OzNode currentNode) {
+	public static OzBacktrace capture(Node currentNode) {
 		List<SourceSection> backtrace = new ArrayList<>();
 		if (currentNode != null) {
 			SourceSection sourceSection = currentNode.getEncapsulatingSourceSection();
