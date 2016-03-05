@@ -23,6 +23,7 @@ import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
+import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzLanguage;
 
 import scala.collection.JavaConversions;
@@ -160,7 +161,8 @@ public class Loader {
 	}
 
 	public Object execute(OzRootNode rootNode) {
-		return Truffle.getRuntime().createCallTarget(rootNode).call();
+		Object[] arguments = OzArguments.pack(null, new Object[0]);
+		return Truffle.getRuntime().createCallTarget(rootNode).call(arguments);
 	}
 
 	private Statement compile(Program program, String fileName) {

@@ -17,7 +17,7 @@ public class ProcDeclarationNode extends OzNode {
 
 	public ProcDeclarationNode(SourceSection sourceSection, FrameDescriptor frameDescriptor, OzNode body, int arity) {
 		assignSourceSection(sourceSection);
-		OzRootNode rootNode = new OzRootNode(sourceSection, frameDescriptor, body);
+		OzRootNode rootNode = new OzRootNode(sourceSection, frameDescriptor, body, arity);
 		this.callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 		this.arity = arity;
 	}

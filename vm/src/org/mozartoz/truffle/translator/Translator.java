@@ -166,7 +166,7 @@ public class Translator {
 		OzNode handler = new TopLevelHandlerNode(wrapped);
 
 		SourceSection sourceSection = SourceSection.createUnavailable("top-level", description);
-		return new OzRootNode(sourceSection, environment.frameDescriptor, handler);
+		return new OzRootNode(sourceSection, environment.frameDescriptor, handler, 0);
 	}
 
 	OzNode translate(Statement statement) {
@@ -405,7 +405,7 @@ public class Translator {
 			if (function != null) {
 				return function;
 			} else {
-				OzRootNode rootNode = new OzRootNode(null, null, new UnknownBuiltinNode(builtin.toString()));
+				OzRootNode rootNode = new OzRootNode(null, null, new UnknownBuiltinNode(builtin.toString()), builtin.arity());
 				RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 				return new OzProc(callTarget, null, builtin.arity());
 			}

@@ -6,6 +6,9 @@ import java.util.Map.Entry;
 
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.builtins.DictionaryBuiltinsFactory.ExchangeFunNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.DictionaryBuiltinsFactory.GetNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.DictionaryBuiltinsFactory.PutNodeFactory;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzDict;
@@ -70,6 +73,12 @@ public abstract class DictionaryBuiltins {
 	@NodeChildren({ @NodeChild("dict"), @NodeChild("feature") })
 	public static abstract class GetNode extends OzNode {
 
+		public static GetNode create() {
+			return GetNodeFactory.create(null, null);
+		}
+
+		public abstract Object executeGet(OzDict dict, Object feature);
+
 		@Specialization
 		Object get(OzDict dict, Object feature) {
 			Object value = dict.get(feature);
@@ -99,10 +108,16 @@ public abstract class DictionaryBuiltins {
 
 	}
 
-	@Builtin(proc = true, deref = { 1, 2 })
+	@Builtin(proc = true, deref = { 1, 2 }, tryDeref = 3)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("dict"), @NodeChild("feature"), @NodeChild("newValue") })
 	public static abstract class PutNode extends OzNode {
+
+		public static PutNode create() {
+			return PutNodeFactory.create(null, null, null);
+		}
+
+		public abstract Object executePut(OzDict dict, Object feature, Object newValue);
 
 		@Specialization
 		Object put(OzDict dict, Object feature, Object newValue) {
@@ -113,13 +128,22 @@ public abstract class DictionaryBuiltins {
 
 	}
 
+	@Builtin(deref = { 1, 2 }, tryDeref = 3)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("dict"), @NodeChild("feature"), @NodeChild("newValue") })
 	public static abstract class ExchangeFunNode extends OzNode {
 
+		public static ExchangeFunNode create() {
+			return ExchangeFunNodeFactory.create(null, null, null);
+		}
+
+		public abstract Object executeExchangeFun(OzDict dict, Object feature, Object newValue);
+
 		@Specialization
-		Object exchangeFun(Object dict, Object feature, Object newValue) {
-			return unimplemented();
+		Object exchangeFun(OzDict dict, Object feature, Object newValue) {
+			Object oldValue = dict.put(feature, newValue);
+			assert oldValue != null;
+			return oldValue;
 		}
 
 	}

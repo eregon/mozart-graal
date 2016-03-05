@@ -32,6 +32,8 @@ public class Arity {
 	public static final Arity CONS_ARITY = Arity.build("|", 1L, 2L);
 	static final Shape CONS_SHAPE = CONS_ARITY.getShape();
 
+	public static final Arity PAIR_ARITY = Arity.build("#", 1L, 2L);
+
 	private final Object label;
 	private final Shape shape;
 

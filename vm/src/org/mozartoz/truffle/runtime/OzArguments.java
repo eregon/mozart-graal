@@ -24,6 +24,10 @@ public class OzArguments {
 		return frame.getArguments()[ARGUMENTS_INDEX + index];
 	}
 
+	public static int getArgumentCount(Frame frame) {
+		return frame.getArguments().length - ARGUMENTS_INDEX;
+	}
+
 	@ExplodeLoop
 	public static Frame getParentFrame(VirtualFrame topFrame, int depth) {
 		Frame frame = topFrame;
