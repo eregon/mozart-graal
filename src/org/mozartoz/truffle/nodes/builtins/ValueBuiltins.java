@@ -5,12 +5,15 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 import java.math.BigInteger;
 
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.builtins.ArrayBuiltins.ArrayGetNode;
+import org.mozartoz.truffle.nodes.builtins.ArrayBuiltins.ArrayPutNode;
 import org.mozartoz.truffle.nodes.builtins.ObjectBuiltins.AttrGetNode;
 import org.mozartoz.truffle.nodes.builtins.ObjectBuiltins.AttrPutNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.CatAccessOONodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.CatAssignOONodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
 import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.OzArray;
 import org.mozartoz.truffle.runtime.OzCell;
 import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -277,6 +280,12 @@ public abstract class ValueBuiltins {
 			return getNode.executeGet(dict, feature);
 		}
 
+		@Specialization
+		protected Object getArray(OzArray array, long feature,
+				@Cached("create()") ArrayGetNode getNode) {
+			return getNode.executeGet(array, feature);
+		}
+
 		static final DynamicObjectFactory KERNEL_ERROR_FACTORY = Arity.build("kernel", 1L, 2L, 3L).createFactory();
 
 		private OzException noFieldError(DynamicObject record, Object feature) {
@@ -297,6 +306,12 @@ public abstract class ValueBuiltins {
 			return putNode.executePut(dict, feature, newValue);
 		}
 
+		@Specialization
+		Object dotAssign(OzArray array, long feature, Object newValue,
+				@Cached("create()") ArrayPutNode putNode) {
+			return putNode.executePut(array, feature, newValue);
+		}
+
 	}
 
 	@Builtin(deref = { 1, 2 }, tryDeref = 3)
@@ -314,12 +329,21 @@ public abstract class ValueBuiltins {
 
 	@Builtin(deref = ALL)
 	@GenerateNodeFactory
+	@ImportStatic(Arity.class)
 	@NodeChild("reference")
 	public static abstract class CatAccessNode extends OzNode {
 
 		@Specialization
 		Object catAccess(OzCell cell) {
 			return cell.getValue();
+		}
+
+		@Specialization(guards = "PAIR_ARITY.matches(pair)")
+		Object catAccess(DynamicObject pair,
+				@Cached("create()") DictionaryBuiltins.GetNode getNode) {
+			OzDict dict = (OzDict) pair.get(1L);
+			Object feature = pair.get(2L);
+			return getNode.executeGet(dict, feature);
 		}
 
 	}

@@ -109,8 +109,7 @@ public class Arity {
 			BigInteger.class,
 			String.class,
 			OzUniqueName.class,
-			OzName.class
-	);
+			OzName.class);
 
 	private static final Comparator<Object> COMPARE_FEATURES = new Comparator<Object>() {
 		@SuppressWarnings("unchecked")
