@@ -19,6 +19,7 @@ import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzDict;
 import org.mozartoz.truffle.runtime.OzException;
+import org.mozartoz.truffle.runtime.OzFailedValue;
 import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzObject;
@@ -458,35 +459,35 @@ public abstract class ValueBuiltins {
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class WaitNode extends OzNode {
 
-		@Specialization(guards = "!isVariable(value)")
+		@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" })
 		Object wait(Object value) {
 			return unit;
 		}
 
-		@Specialization(guards = "isBound(var)")
-		Object wait(OzVar var) {
-			return unit;
+		@Specialization
+		Object wait(OzFailedValue failedValue) {
+			throw new OzException(this, failedValue.getData());
 		}
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class WaitQuietNode extends OzNode {
 
-		@Specialization(guards = "!isVariable(value)")
-		Object wait(Object value) {
+		@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" })
+		Object waitQuiet(Object value) {
 			return unit;
 		}
 
-		@Specialization(guards = "isBound(var)")
-		Object wait(OzVar var) {
+		@Specialization
+		Object waitQuiet(OzFailedValue failedValue) {
 			return unit;
 		}
 
@@ -551,13 +552,14 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsFailedNode extends OzNode {
 
 		@Specialization
-		Object isFailed(Object value) {
-			return unimplemented();
+		boolean isFailed(OzFailedValue failedValue) {
+			return true;
 		}
 
 	}
@@ -578,13 +580,19 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class StatusNode extends OzNode {
 
-		@Specialization
+		@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" })
 		Object status(Object value) {
 			return unimplemented();
+		}
+
+		@Specialization
+		String status(OzFailedValue failedValue) {
+			return "failed";
 		}
 
 	}
@@ -666,9 +674,8 @@ public abstract class ValueBuiltins {
 	public static abstract class FailedValueNode extends OzNode {
 
 		@Specialization
-		Object failedValue(DynamicObject data) {
-			// FIXME
-			throw new OzException(this, data);
+		OzFailedValue failedValue(Object data) {
+			return new OzFailedValue(data);
 		}
 
 	}

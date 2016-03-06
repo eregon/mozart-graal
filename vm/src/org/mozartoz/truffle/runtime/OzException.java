@@ -18,35 +18,36 @@ public class OzException extends RuntimeException {
 		return OzRecord.buildRecord(FAILURE_ARITY, Unit.INSTANCE);
 	}
 
-	private final DynamicObject data;
+	private final Object data;
 
 	public OzException(Node currentNode, String message) {
 		this(currentNode, newError(message.intern()));
 	}
 
-	public OzException(Node currentNode, DynamicObject data) {
+	public OzException(Node currentNode, Object data) {
 		super(data.toString());
 		OzBacktrace backtrace = OzBacktrace.capture(currentNode);
 
-		boolean hasDebug = data.containsKey("debug");
-
-		DynamicObject dataWithDebug;
-		if (hasDebug && data.get("debug") == Unit.INSTANCE) {
-			dataWithDebug = data.copy(data.getShape());
-			dataWithDebug.getShape().getProperty("debug").setInternal(dataWithDebug, backtrace);
-		} else {
-			dataWithDebug = data;
+		Object storedData = data;
+		if (data instanceof DynamicObject) {
+			DynamicObject dataRecord = (DynamicObject) data;
+			boolean hasDebug = dataRecord.containsKey("debug");
+			if (hasDebug && dataRecord.get("debug") == Unit.INSTANCE) {
+				DynamicObject dataWithDebug = dataRecord.copy(dataRecord.getShape());
+				dataWithDebug.getShape().getProperty("debug").setInternal(dataWithDebug, backtrace);
+				storedData = dataWithDebug;
+			}
 		}
 
-		this.data = dataWithDebug;
+		this.data = storedData;
 	}
 
-	public DynamicObject getData() {
+	public Object getData() {
 		return data;
 	}
 
 	public OzBacktrace getBacktrace() {
-		Object debug = data.get("debug");
+		Object debug = ((DynamicObject) data).get("debug");
 		return (OzBacktrace) debug;
 	}
 
