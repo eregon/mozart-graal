@@ -9,7 +9,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ExceptionBuiltins {
 
@@ -32,7 +31,7 @@ public abstract class ExceptionBuiltins {
 
 		@TruffleBoundary
 		@Specialization
-		Object raise(DynamicObject data) {
+		Object raise(Object data) {
 			throw new OzException(this, data);
 		}
 

@@ -3,6 +3,7 @@ package org.mozartoz.truffle.nodes;
 import java.math.BigInteger;
 
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzFailedValue;
 import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzProc;
@@ -59,6 +60,10 @@ public class OzGuards {
 
 	public static boolean isProc(Object value) {
 		return value instanceof OzProc;
+	}
+
+	public static boolean isFailedValue(Object value) {
+		return value instanceof OzFailedValue;
 	}
 
 	public static boolean isVar(Object value) {

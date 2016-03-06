@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes;
 
+import org.mozartoz.truffle.runtime.OzFailedValue;
 import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzVar;
 
@@ -31,6 +32,11 @@ public abstract class DerefIfBoundNode extends OzNode {
 		} else {
 			return future;
 		}
+	}
+
+	@Specialization
+	Object derefIfBound(OzFailedValue failedValue) {
+		return failedValue;
 	}
 
 	@Specialization(guards = "!isVariable(value)")

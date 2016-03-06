@@ -65,9 +65,10 @@ public abstract class ObjectBuiltins {
 				attributes = attrRecord.copy(attrRecord.getShape());
 				for (Property property : attrRecord.getShape().getProperties()) {
 					Object defaultValue = property.get(attrRecord, attrRecord.getShape());
-
-					assert defaultValue == ooFreeFlag;
-					property.setInternal(attributes, new OzVar());
+					if (defaultValue == ooFreeFlag) {
+						defaultValue = new OzVar();
+					}
+					property.setInternal(attributes, defaultValue);
 				}
 			} else {
 				throw new Error();
