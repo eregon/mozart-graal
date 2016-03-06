@@ -14,6 +14,8 @@ public class Main {
 			BASE_TESTS + "record.oz",
 			BASE_TESTS + "state.oz",
 			BASE_TESTS + "exception.oz",
+			BASE_TESTS + "float.oz",
+			//BASE_TESTS + "conversion.oz",
 	};
 
 	public static void main(String[] args) {

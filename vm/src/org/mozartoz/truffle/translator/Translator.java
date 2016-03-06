@@ -34,6 +34,7 @@ import org.mozartoz.bootcompiler.oz.OzArity;
 import org.mozartoz.bootcompiler.oz.OzAtom;
 import org.mozartoz.bootcompiler.oz.OzBuiltin;
 import org.mozartoz.bootcompiler.oz.OzFeature;
+import org.mozartoz.bootcompiler.oz.OzFloat;
 import org.mozartoz.bootcompiler.oz.OzInt;
 import org.mozartoz.bootcompiler.oz.OzLiteral;
 import org.mozartoz.bootcompiler.oz.OzPatMatCapture;
@@ -384,6 +385,8 @@ public class Translator {
 	private Object translateConstantValue(OzValue value) {
 		if (value instanceof OzFeature) {
 			return translateFeature((OzFeature) value);
+		} else if (value instanceof OzFloat) {
+			return ((OzFloat) value).value();
 		} else if (value instanceof OzRecord) {
 			OzRecord ozRecord = (OzRecord) value;
 			if (ozRecord.isCons()) {

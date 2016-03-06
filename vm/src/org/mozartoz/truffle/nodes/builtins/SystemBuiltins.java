@@ -39,13 +39,14 @@ public abstract class SystemBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("value"), @NodeChild("depth"), @NodeChild("width") })
 	public static abstract class GetReprNode extends OzNode {
 
 		@Specialization
-		Object getRepr(Object value, Object depth, Object width) {
-			return unimplemented();
+		String getRepr(Object value, long depth, long width) {
+			return value.toString().intern();
 		}
 
 	}

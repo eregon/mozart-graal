@@ -1,5 +1,7 @@
 package org.mozartoz.truffle.nodes;
 
+import org.mozartoz.truffle.runtime.OzException;
+import org.mozartoz.truffle.runtime.OzFailedValue;
 import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzVar;
 
@@ -20,19 +22,31 @@ public abstract class DerefNode extends OzNode {
 		return value;
 	}
 
-	@Specialization(guards = "!isVariable(value)")
+	@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" })
 	Object deref(Object value) {
 		return value;
 	}
 
 	@Specialization
+	Object deref(OzFailedValue failedValue) {
+		throw new OzException(this, failedValue.getData());
+	}
+
+	@Specialization
 	Object deref(OzVar var) {
-		return var.getBoundValue(this);
+		return check(var.getBoundValue(this));
 	}
 
 	@Specialization
 	Object deref(OzFuture future) {
-		return future.getBoundValue(this);
+		return check(future.getBoundValue(this));
+	}
+
+	private Object check(Object value) {
+		if (value instanceof OzFailedValue) {
+			throw new OzException(this, ((OzFailedValue) value).getData());
+		}
+		return value;
 	}
 
 }

@@ -1,5 +1,7 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -9,14 +11,19 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 public abstract class FloatBuiltins {
 
-	@Builtin(name = "is")
+	@Builtin(name = "is", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsFloatNode extends OzNode {
 
 		@Specialization
-		Object isFloat(Object value) {
-			return unimplemented();
+		boolean isFloat(double value) {
+			return true;
+		}
+
+		@Specialization(guards = "!isFloat(value)")
+		boolean isFloat(Object value) {
+			return false;
 		}
 
 	}
@@ -44,13 +51,14 @@ public abstract class FloatBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class ToIntNode extends OzNode {
 
 		@Specialization
-		Object toInt(Object value) {
-			return unimplemented();
+		long toInt(double value) {
+			return Math.round(value);
 		}
 
 	}
@@ -209,13 +217,14 @@ public abstract class FloatBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class RoundNode extends OzNode {
 
 		@Specialization
-		Object round(Object value) {
-			return unimplemented();
+		double round(double value) {
+			return Math.floor(value + 0.5);
 		}
 
 	}
