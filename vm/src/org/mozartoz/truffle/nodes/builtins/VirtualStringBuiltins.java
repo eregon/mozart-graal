@@ -5,9 +5,11 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzRecord;
 
+import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -148,13 +150,19 @@ public abstract class VirtualStringBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class ToFloatNode extends OzNode {
 
+		@CreateCast("value")
+		protected OzNode castValue(OzNode value) {
+			return ToAtomNodeFactory.create(value);
+		}
+
 		@Specialization
-		Object toFloat(Object value) {
-			return unimplemented();
+		double toFloat(String atom) {
+			return Double.valueOf(atom.replace('~', '-'));
 		}
 
 	}

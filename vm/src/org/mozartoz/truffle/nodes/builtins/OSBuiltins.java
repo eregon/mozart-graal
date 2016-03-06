@@ -5,11 +5,11 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 import java.io.File;
 
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltins.ToAtomNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.translator.Loader;
 
+import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -23,12 +23,13 @@ public abstract class OSBuiltins {
 	@NodeChild("url")
 	public static abstract class BootURLLoadNode extends OzNode {
 
-		@Child ToAtomNode toAtomNode = ToAtomNodeFactory.create(null);
+		@CreateCast("url")
+		protected OzNode castURL(OzNode url) {
+			return ToAtomNodeFactory.create(url);
+		}
 
 		@Specialization
-		Object bootURLLoad(Object urlVS) {
-			String url = toAtomNode.executeToAtom(urlVS);
-
+		Object bootURLLoad(String url) {
 			// Remove final "f"
 			if (url.endsWith(".ozf")) {
 				url = url.substring(0, url.length() - 1);

@@ -81,6 +81,11 @@ public abstract class ValueBuiltins {
 		}
 
 		@Specialization
+		protected boolean equal(double a, double b) {
+			return a == b;
+		}
+
+		@Specialization
 		protected boolean equal(Unit a, Unit b) {
 			return true;
 		}
