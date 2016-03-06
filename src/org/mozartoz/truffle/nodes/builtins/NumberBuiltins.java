@@ -26,14 +26,14 @@ public abstract class NumberBuiltins {
 
 	}
 
-	@Builtin(name = "~")
+	@Builtin(name = "~", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("operand")
 	public static abstract class NegNode extends OzNode {
 
 		@Specialization
-		Object neg(Object operand) {
-			return unimplemented();
+		long neg(long value) {
+			return Math.subtractExact(0L, value);
 		}
 
 	}

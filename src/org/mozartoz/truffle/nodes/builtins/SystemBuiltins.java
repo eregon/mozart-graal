@@ -5,9 +5,9 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 import java.io.PrintStream;
 
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltins.ToAtomNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
 
+import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -67,17 +67,19 @@ public abstract class SystemBuiltins {
 	@NodeChildren({ @NodeChild("value"), @NodeChild("toStdErr"), @NodeChild("newLine") })
 	public static abstract class PrintVSNode extends OzNode {
 
-		@Child ToAtomNode toAtomNode = ToAtomNodeFactory.create(null);
+		@CreateCast("value")
+		protected OzNode castValue(OzNode value) {
+			return ToAtomNodeFactory.create(value);
+		}
 
 		@Specialization
-		Object printVS(Object value, boolean toStdErr, boolean newLine) {
-			String buffer = toAtomNode.executeToAtom(value);
+		Object printVS(String value, boolean toStdErr, boolean newLine) {
 			@SuppressWarnings("resource")
 			PrintStream stream = toStdErr ? System.err : System.out;
 			if (newLine) {
-				stream.println(buffer);
+				stream.println(value);
 			} else {
-				stream.print(buffer);
+				stream.print(value);
 				stream.flush();
 			}
 			return unit;
