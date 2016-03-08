@@ -38,10 +38,22 @@ class OzLexical extends Lexical with OzTokens with ImplicitConversions {
     | quotedKeepQuotes('`') ^^ Identifier
   )
 
-  def floatLiteral =
-    stringOf1(digit) ~ stringOf1('.', digit) ^^ {
-      case int ~ fract => FloatLit((int+fract).toDouble)
-    }
+  def floatLiteral = (
+      floatLiteralBase ^^ FloatLit
+    | '~' ~> floatLiteralBase ^^ (x => FloatLit(-x))
+  )
+
+  def floatLiteralBase = (
+      stringOf1(digit) ~ stringOf1('.', digit) ~ ((elem('e') | 'E') ~ floatExponentBase).? ^^ {
+        case int ~ frac ~ None => (int + frac).toDouble
+        case int ~ frac ~ Some(e ~ exp) => { (int + frac + e + exp).toDouble }
+      }
+  )
+
+  def floatExponentBase = (
+      stringOf1(digit)
+    | '~' ~> stringOf1(digit) ^^ (x => "-" + x)
+  )
 
   def integerLiteral = (
       integerLiteralBase ^^ IntLit
