@@ -520,13 +520,19 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsFreeNode extends OzNode {
 
-		@Specialization
-		Object isFree(Object value) {
-			return unimplemented();
+		@Specialization(guards = "!isBound(var)")
+		boolean isFree(OzVar var) {
+			return true;
+		}
+
+		@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" })
+		boolean isFree(Object value) {
+			return false;
 		}
 
 	}
@@ -598,13 +604,33 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class TypeNode extends OzNode {
 
 		@Specialization
-		Object type(Object value) {
-			return unimplemented();
+		String type(long value) {
+			return "int";
+		}
+
+		@Specialization
+		String type(double value) {
+			return "float";
+		}
+
+		@Specialization
+		String type(String atom) {
+			return "atom";
+		}
+
+		@Specialization
+		String type(DynamicObject record) {
+			if (Arity.forRecord(record).isTupleArity()) {
+				return "tuple";
+			} else {
+				return "record";
+			}
 		}
 
 	}

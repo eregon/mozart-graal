@@ -26,6 +26,16 @@ public abstract class IntBuiltins {
 			return true;
 		}
 
+		@Specialization
+		boolean isInt(BigInteger value) {
+			return true;
+		}
+
+		@Specialization(guards = { "!isLong(value)", "!isBigInteger(value)" })
+		boolean isInt(Object value) {
+			return false;
+		}
+
 	}
 
 	@Builtin(name = "+1", deref = ALL)
