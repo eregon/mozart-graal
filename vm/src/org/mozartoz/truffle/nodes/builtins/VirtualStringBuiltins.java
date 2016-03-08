@@ -162,7 +162,11 @@ public abstract class VirtualStringBuiltins {
 
 		@Specialization
 		double toFloat(String atom) {
-			return Double.valueOf(atom.replace('~', '-'));
+			try {
+				return Double.valueOf(atom.replace('~', '-'));
+			} catch (Exception e) {
+				throw kernelError("stringNoFloat", atom);
+			}
 		}
 
 	}

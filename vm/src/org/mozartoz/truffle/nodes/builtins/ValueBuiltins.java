@@ -38,7 +38,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 
@@ -292,11 +291,8 @@ public abstract class ValueBuiltins {
 			return getNode.executeGet(array, feature);
 		}
 
-		static final DynamicObjectFactory KERNEL_ERROR_FACTORY = Arity.build("kernel", 1L, 2L, 3L).createFactory();
-
 		private OzException noFieldError(DynamicObject record, Object feature) {
-			DynamicObject info = KERNEL_ERROR_FACTORY.newInstance("kernel", ".", record, feature);
-			return new OzException(this, OzException.newError(info));
+			throw kernelError(".", record, feature);
 		}
 
 	}
