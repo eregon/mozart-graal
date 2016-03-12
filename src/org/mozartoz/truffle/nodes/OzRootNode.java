@@ -35,4 +35,9 @@ public class OzRootNode extends RootNode {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return OzRootNode.class.getSimpleName() + "@" + getSourceSection();
+	}
+
 }
