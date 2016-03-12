@@ -10,17 +10,18 @@ object Builtin {
 
   /** Parameter kind */
   type ParamKind = ParamKind.Value
+
+  def create(moduleName: String, name: String, arity: Int) = new Builtin(moduleName, name, Nil, arity, None)
 }
 
 /** Builtin procedure of the host VM */
 class Builtin(val moduleName: String, val name: String,
     val paramKinds: List[Builtin.ParamKind],
+    val arity: Int,
     val inlineAs: Option[Int]) {
 
   override def toString() =
     moduleName + "." + (if (name.charAt(0).isLetter) name else "'" + name + "'")
-
-  val arity = paramKinds.size
 
   val inlineable = inlineAs.isDefined
   def inlineOpCode = inlineAs.get

@@ -294,7 +294,7 @@ object Main {
         }
 
         val builtin = new Builtin(
-            modName, biName, paramKinds, inlineAs)
+            modName, biName, paramKinds, paramKinds.size, inlineAs)
 
         prog.builtins.register(builtin)
 
