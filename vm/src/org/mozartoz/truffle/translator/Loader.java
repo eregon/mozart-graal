@@ -40,7 +40,7 @@ public class Loader {
 
 	public static final String PROJECT_ROOT = getProjectRoot();
 	static final String MODULE_DEFS_DIR = PROJECT_ROOT + "/builtins";
-	public static final String MOZART2_DIR = "/home/eregon/code/mozart2";
+	public static final String MOZART2_DIR = new File(PROJECT_ROOT).getParent() + "/mozart2";
 	public static final String MAIN_LIB_DIR = MOZART2_DIR + "/lib/main";
 	static final String BASE_FILE_NAME = MAIN_LIB_DIR + "/base/Base.oz";
 	static final String BASE_DECLS_FILE_NAME = PROJECT_ROOT + "/baseenv.txt";
