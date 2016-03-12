@@ -14,6 +14,7 @@ import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzDict;
 import org.mozartoz.truffle.runtime.OzException;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -61,6 +62,7 @@ public abstract class DictionaryBuiltins {
 	@NodeChildren({ @NodeChild("dict"), @NodeChild("feature") })
 	public static abstract class MemberNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		boolean member(OzDict dict, Object feature) {
 			return dict.containsKey(feature);
@@ -79,6 +81,7 @@ public abstract class DictionaryBuiltins {
 
 		public abstract Object executeGet(OzDict dict, Object feature);
 
+		@TruffleBoundary
 		@Specialization
 		Object get(OzDict dict, Object feature) {
 			Object value = dict.get(feature);
@@ -96,6 +99,7 @@ public abstract class DictionaryBuiltins {
 	@NodeChildren({ @NodeChild("dict"), @NodeChild("feature"), @NodeChild("defaultValue") })
 	public static abstract class CondGetNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		Object condGet(OzDict dict, Object feature, Object defaultValue) {
 			Object value = dict.get(feature);
@@ -119,6 +123,7 @@ public abstract class DictionaryBuiltins {
 
 		public abstract Object executePut(OzDict dict, Object feature, Object newValue);
 
+		@TruffleBoundary
 		@Specialization
 		Object put(OzDict dict, Object feature, Object newValue) {
 			assert OzGuards.isFeature(feature);
@@ -139,6 +144,7 @@ public abstract class DictionaryBuiltins {
 
 		public abstract Object executeExchangeFun(OzDict dict, Object feature, Object newValue);
 
+		@TruffleBoundary
 		@Specialization
 		Object exchangeFun(OzDict dict, Object feature, Object newValue) {
 			Object oldValue = dict.put(feature, newValue);
@@ -164,6 +170,7 @@ public abstract class DictionaryBuiltins {
 	@NodeChildren({ @NodeChild("dict"), @NodeChild("feature") })
 	public static abstract class RemoveNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		Object remove(OzDict dict, Object feature) {
 			dict.remove(feature);
@@ -189,6 +196,7 @@ public abstract class DictionaryBuiltins {
 	@NodeChild("dict")
 	public static abstract class KeysNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		Object keys(OzDict dict) {
 			Object keys = "nil";
@@ -207,6 +215,7 @@ public abstract class DictionaryBuiltins {
 
 		static final DynamicObjectFactory PAIR_FACTORY = Arity.build("#", 1L, 2L).createFactory();
 
+		@TruffleBoundary
 		@Specialization
 		Object entries(OzDict dict) {
 			Object entries = "nil";
