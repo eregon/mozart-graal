@@ -1,25 +1,28 @@
 package org.mozartoz.bootcompiler
 package symtab
 
-import scala.collection.mutable.{ ListBuffer, ArrayBuffer, HashMap }
+import scala.collection.mutable.{ Buffer, ListBuffer, ArrayBuffer, HashMap }
 import scala.util.parsing.input.{ Position, NoPosition, Positional }
 
 import ast._
 import util._
 
 /** Program to be compiled */
-class Program(val isBaseEnvironment: Boolean = false) {
+class Program(
+    val isBaseEnvironment: Boolean = false,
+
+    /** Builtin manager */
+    val builtins: Builtins = new Builtins,
+
+    /** Variables declared by the base environment */
+    val baseDeclarations: Buffer[String] = new ArrayBuffer[String]) {
+
   /** Before flattening, abstract syntax tree of the whole program */
   var rawCode: Statement = SkipStatement()
 
   /** Returns `true` if the program is currently represented as a full AST */
   def isRawCode = rawCode ne null
 
-  /** Builtin manager */
-  val builtins = new Builtins
-
-  /** Variables declared by the base environment */
-  val baseDeclarations = new ArrayBuffer[String]
 
   /** Map of base symbols (only in base environment mode) */
   val baseSymbols = new HashMap[String, Symbol]

@@ -2,7 +2,9 @@ package org.mozartoz.bootcompiler
 
 import java.io.{ Console => _, _ }
 
+import scala.collection.mutable.Buffer
 import scala.collection.mutable.ListBuffer
+import scala.collection.immutable.HashSet
 import scala.collection.immutable.PagedSeq
 import scala.util.parsing.combinator._
 import scala.util.parsing.input._
@@ -119,23 +121,24 @@ object Main {
     writeFileLines(new File(baseDeclsFileName), program.baseDeclarations)
   }
 
-  def buildBaseEnvProgram(fileName: String, moduleDefs: List[String], defines: Set[String]) = {
-    val (program, bootModules) = createProgram(moduleDefs, None, true)
-    val functor = parseExpression(readerForFile(fileName), new File(fileName), defines)
-    ProgramBuilder.buildBaseEnvProgram(program, bootModules, functor)
+  /** Called from Java */
+  def buildBaseEnvProgram(fileName: String, builtins: Builtins, baseDecls: Buffer[String]) = {
+    val program = new Program(true, builtins, baseDecls)
+    val functor = parseExpression(readerForFile(fileName), new File(fileName), HashSet.empty)
+    ProgramBuilder.buildModuleProgram(program, functor)
     program
   }
 
-  def buildMainProgram(fileName: String, moduleDefs: List[String], baseDeclsFileName: String, defines: Set[String]) = {
-    val (program, _) = createProgram(moduleDefs, Some(baseDeclsFileName))
-    val statement = parseStatement(readerForFile(fileName), new File(fileName), defines)
+  def buildMainProgram(fileName: String, builtins: Builtins, baseDecls: Buffer[String]) = {
+    val program = new Program(false, builtins, baseDecls)
+    val statement = parseStatement(readerForFile(fileName), new File(fileName), HashSet.empty)
     program.rawCode = statement
     program
   }
 
-  def buildModuleProgram(fileName: String, moduleDefs: List[String], baseDeclsFileName: String, defines: Set[String]) = {
-    val (program, _) = createProgram(moduleDefs, Some(baseDeclsFileName))
-    val functor = parseExpression(readerForFile(fileName), new File(fileName), defines)
+  def buildModuleProgram(fileName: String, builtins: Builtins, baseDecls: Buffer[String]) = {
+    val program = new Program(false, builtins, baseDecls)
+    val functor = parseExpression(readerForFile(fileName), new File(fileName), HashSet.empty)
     ProgramBuilder.buildModuleProgram(program, functor)
     program
   }
