@@ -12,6 +12,7 @@ import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzRecord;
+import org.mozartoz.truffle.translator.BuiltinsRegistry;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -136,9 +137,11 @@ public abstract class BuiltinsManager {
 			OzRootNode rootNode = new OzRootNode(sourceSection, new FrameDescriptor(), node, arity);
 			RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 			OzProc function = new OzProc(callTarget, null, arity);
+
 			assert !BUILTINS.containsKey(name) : name;
 			BUILTINS.put(name, function);
 			builtins.put(builtinName.intern(), function);
+			BuiltinsRegistry.register(module, builtinName, arity);
 		}
 
 		String label = module.toLowerCase().intern();
