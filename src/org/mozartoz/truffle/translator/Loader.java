@@ -2,7 +2,6 @@ package org.mozartoz.truffle.translator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 
 import org.mozartoz.bootcompiler.Main;
 import org.mozartoz.bootcompiler.ast.Statement;
@@ -26,11 +25,6 @@ import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzLanguage;
 
-import scala.collection.JavaConversions;
-import scala.collection.immutable.HashSet;
-import scala.collection.immutable.List;
-import scala.collection.immutable.Set;
-
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -39,11 +33,10 @@ import com.oracle.truffle.api.source.Source;
 public class Loader {
 
 	public static final String PROJECT_ROOT = getProjectRoot();
-	static final String MODULE_DEFS_DIR = PROJECT_ROOT + "/builtins";
 	public static final String MOZART2_DIR = new File(PROJECT_ROOT).getParent() + "/mozart2";
+
 	public static final String MAIN_LIB_DIR = MOZART2_DIR + "/lib/main";
 	static final String BASE_FILE_NAME = MAIN_LIB_DIR + "/base/Base.oz";
-	static final String BASE_DECLS_FILE_NAME = PROJECT_ROOT + "/baseenv.txt";
 	static final String INIT_FUNCTOR = MAIN_LIB_DIR + "/init/Init.oz";
 
 	public static final String[] SYSTEM_FUNCTORS = new String[] {
@@ -82,15 +75,19 @@ public class Loader {
 	public DynamicObject loadBase() {
 		if (base == null) {
 			OzRootNode baseRootNode = parseBase();
-			Object result = execute(baseRootNode);
+			Object baseFunctor = execute(baseRootNode);
+
+			OzRootNode applyBase = BaseFunctor.apply(baseFunctor);
+			Object result = execute(applyBase);
 			assert result instanceof DynamicObject;
+
 			base = (DynamicObject) result;
 		}
 		return base;
 	}
 
 	private OzRootNode parseBase() {
-		Program program = Main.buildBaseEnvProgram(BASE_FILE_NAME, moduleDefs(), defines());
+		Program program = Main.buildBaseEnvProgram(BASE_FILE_NAME, BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
 		Statement ast = compile(program, "the base environment");
 
 		Translator translator = new Translator();
@@ -107,7 +104,7 @@ public class Loader {
 		DynamicObject base = loadBase();
 
 		String fileName = new File(source.getPath()).getName();
-		Program program = Main.buildMainProgram(source.getPath(), moduleDefs(), BASE_DECLS_FILE_NAME, defines());
+		Program program = Main.buildMainProgram(source.getPath(), BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
 		Statement ast = compile(program, fileName);
 
 		Translator translator = new Translator();
@@ -123,7 +120,7 @@ public class Loader {
 		DynamicObject base = loadBase();
 
 		String fileName = new File(source.getPath()).getName();
-		Program program = Main.buildModuleProgram(source.getPath(), moduleDefs(), BASE_DECLS_FILE_NAME, defines());
+		Program program = Main.buildModuleProgram(source.getPath(), BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
 		Statement ast = compile(program, fileName);
 
 		Translator translator = new Translator();
@@ -182,18 +179,6 @@ public class Loader {
 		Unnester.apply(program);
 
 		return program.rawCode();
-	}
-
-	private List<String> moduleDefs() {
-		return javaListToScalaList(Collections.singletonList(MODULE_DEFS_DIR));
-	}
-
-	private Set<String> defines() {
-		return new HashSet<String>();
-	}
-
-	static <T> List<T> javaListToScalaList(java.util.List<T> javaList) {
-		return JavaConversions.asScalaBuffer(javaList).toList();
 	}
 
 	private static String getProjectRoot() {
