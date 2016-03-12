@@ -25,7 +25,7 @@ functor
 export
    Return
 import
-   System RecordC(width: WidthC)
+   System
 
 define
    Return =
@@ -66,15 +66,6 @@ define
 
               try _={Id f(3:a)}.1 fail catch error(kernel('.' ...) ...) then skip end
 
-% ^
-              {Eq f(a)^1 a}
-
-              local X=f(...) in
-                 X^1=67
-                 {Eq X.1 67}
-                 {Eq {Label X} f}
-              end
-
 
 % AdjoinAt
               {Eq {AdjoinAt f 1 test} f(test)}
@@ -106,11 +97,6 @@ define
               {Eq {Adjoin a(b c) '|'} b|c}
               {Eq {Adjoin b|c a|d} a|d}
 
-% `.` suspends for Open
-              local X=f(...) in
-                 thread {Eq X.a i} end
-                 X^a=i
-              end
 
 % bigint feature
               local
@@ -124,25 +110,7 @@ define
                  {Eq a(X:a Y:b) a(XX:a YY:b)}
                  {Neq a(X:a Y:b) a(X:a Z:b)}
 
-                 {Eq a(X:a ...).X a}
-                 local
-                    R = a(X:a Y:b ...)
-                 in
-                    {Eq R.X a}
-                    {Eq R.Y b}
-                 end
                  {Eq a(X:a).XX a}
-                 {Eq a(X:a ...).XX a}
-                 {Eq a(X:a ...).X a}
-                 {Eq a(XX:a ...).X a}
-
-                 local
-                    R1=a(X:a ...) R2=a(XX:a ...)
-                 in
-                    {WidthC R1 1}
-                    {WidthC R2 1}
-                    {Eq R1 R2}
-                 end
               end
 
 % Record.toList
