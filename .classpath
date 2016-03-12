@@ -9,8 +9,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/bootcompiler"/>
-	<classpathentry kind="lib" path="/home/eregon/.ivy2/cache/org.scala-lang.modules/scala-parser-combinators_2.11/bundles/scala-parser-combinators_2.11-1.0.2.jar"/>
-	<classpathentry kind="lib" path="/home/eregon/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.2.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/oracle/truffle/truffle-dsl-processor/0.11/truffle-dsl-processor-0.11.jar" sourcepath="/M2_REPO/com/oracle/truffle/truffle-dsl-processor/0.10/truffle-dsl-processor-0.10-sources.jar"/>
+	<classpathentry kind="lib" path="/bootcompiler/target/scala-2.11/bootcompiler-assembly-2.0-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
