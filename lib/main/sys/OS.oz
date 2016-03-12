@@ -657,8 +657,8 @@ define
          {CompatOpen {URLToFilename URL} ['O_RDONLY'] nil}
       end
    in
-      {Boot_Reflection.become BURL.localize BURL_localize}
-      {Boot_Reflection.become BURL.open BURL_open}
+      {Boot_Reflection.changeRecordField BURL localize BURL_localize}
+      {Boot_Reflection.changeRecordField BURL open BURL_open}
    end
 
 end
