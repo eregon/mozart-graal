@@ -1,5 +1,7 @@
 package org.mozartoz.truffle;
 
+import java.util.Arrays;
+
 import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.source.Source;
@@ -24,8 +26,15 @@ public class Main {
 		// Source source = Loader.createSource("test.oz");
 		// Loader.getInstance().run(source);
 
-		Source source = Loader.createSource(TEST_RUNNER);
-		Loader.getInstance().runFunctor(source, PASSING_TESTS);
+		if (args.length == 0) {
+			Source source = Loader.createSource(TEST_RUNNER);
+			Loader.getInstance().runFunctor(source, PASSING_TESTS);
+		} else {
+			String functor = args[0];
+			Source source = Loader.createSource(functor);
+			String[] appArgs = Arrays.copyOfRange(args, 0, args.length - 1);
+			Loader.getInstance().runFunctor(source, appArgs);
+		}
 	}
 
 }
