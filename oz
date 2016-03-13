@@ -11,14 +11,14 @@ classpath = entries.map { |path,|
 
 cmd = nil
 
-if ARGV.empty?
-  cmd = ['java', '-cp', classpath, 'org.mozartoz.truffle.Main']
-  puts "$ #{cmd.join(' ')}"
-  exec(*cmd)
-elsif ARGV == %w[classpath]
+if ARGV == %w[classpath]
   puts classpath
   exit
 elsif ARGV == %w[compile]
   cmd = %w[javac -sourcepath src -cp] + [classpath] + %w[-d bin] + Dir["src/**/*.java"]
+  exec(*cmd)
+else
+  cmd = ['java', '-cp', classpath, 'org.mozartoz.truffle.Main'] + ARGV
+  puts "$ #{cmd.join(' ')}"
   exec(*cmd)
 end
