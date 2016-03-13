@@ -33,16 +33,18 @@ abstract class Node extends Product with Positional {
    *  @param handler handler callback
    */
   def walkBreak(handler: Node => Boolean) {
-    if (handler(this)) {
-      def inner(element: Any) {
-        element match {
-          case node:Node => node.walk(handler)
-          case seq:Seq[_] => seq foreach inner
-          case _ => ()
+    walkBreakInner(this, handler)
+  }
+
+  private def walkBreakInner(element: Any, handler: Node => Boolean) {
+    element match {
+      case node:Node => {
+        if (handler(this)) {
+          node.productIterator foreach { walkBreakInner(_, handler) }
         }
       }
-
-      productIterator foreach inner
+      case seq:Seq[_] => seq foreach { walkBreakInner(_, handler) }
+      case _ => ()
     }
   }
 
@@ -53,9 +55,17 @@ abstract class Node extends Product with Positional {
    *  @param handler handler callback
    */
   def walk[U](handler: Node => U) {
-    walkBreak { node =>
-      handler(node)
-      true
+    walkInner(this, handler)
+  }
+
+  private def walkInner[U](element: Any, handler: Node => U) {
+    element match {
+      case node:Node => {
+        handler(node)
+        node.productIterator foreach { walkInner(_, handler) }
+      }
+      case seq:Seq[_] => seq foreach { walkInner(_, handler) }
+      case _ => ()
     }
   }
 }
