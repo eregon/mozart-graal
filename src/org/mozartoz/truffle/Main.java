@@ -7,6 +7,7 @@ import com.oracle.truffle.api.source.Source;
 public class Main {
 
 	private static final String BASE_TESTS = Loader.MOZART2_DIR + "/platform-test/base/";
+	private static final String TEST_RUNNER = Loader.MOZART2_DIR + "/platform-test/simple_runner.oz";
 
 	private static final String[] PASSING_TESTS = {
 			BASE_TESTS + "int.oz",
@@ -23,7 +24,7 @@ public class Main {
 		// Source source = Loader.createSource("test.oz");
 		// Loader.getInstance().run(source);
 
-		Source source = Loader.createSource("simple_runner.oz");
+		Source source = Loader.createSource(TEST_RUNNER);
 		Loader.getInstance().runFunctor(source, PASSING_TESTS);
 	}
 
