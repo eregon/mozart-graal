@@ -15,6 +15,9 @@ cd mozart-dev
 git clone https://github.com/eregon/mozart-graal.git
 cd mozart-graal
 make
-# Launch Eclipse and compile the project with it
+```
+
+Run with
+```bash
 ./oz
 ```

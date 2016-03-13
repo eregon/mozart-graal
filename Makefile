@@ -1,4 +1,4 @@
-.PHONY: default build bootcompiler
+.PHONY: default build bootcompiler compile install_deps test
 
 MOZART2 = ../mozart2
 BOOTCOMPILER_JAR = $(MOZART2)/bootcompiler/target/scala-2.11/bootcompiler-assembly-2.0-SNAPSHOT.jar
@@ -18,5 +18,20 @@ $(BOOTCOMPILER_ECLIPSE): $(MOZART2)
 
 bootcompiler: $(BOOTCOMPILER_JAR) $(BOOTCOMPILER_ECLIPSE)
 
-build: $(MOZART2) bootcompiler
+target:
 	mvn package
+
+install_deps: target
+
+bin:
+	mkdir bin
+
+bin/org/mozartoz/truffle/Main.class: bin
+	./oz compile
+
+compile: bin/org/mozartoz/truffle/Main.class
+
+build: $(MOZART2) bootcompiler install_deps compile test
+
+test:
+	./oz

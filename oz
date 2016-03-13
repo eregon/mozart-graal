@@ -9,4 +9,16 @@ classpath = entries.map { |path,|
   path.sub("M2_REPO", M2_REPO).sub("/bootcompiler", BOOTCOMPILER)
 }.join(':')
 
-exec 'java', '-cp', classpath, 'org.mozartoz.truffle.Main'
+cmd = nil
+
+if ARGV.empty?
+  cmd = ['java', '-cp', classpath, 'org.mozartoz.truffle.Main']
+  puts "$ #{cmd.join(' ')}"
+  exec(*cmd)
+elsif ARGV == %w[classpath]
+  puts classpath
+  exit
+elsif ARGV == %w[compile]
+  cmd = %w[javac -sourcepath src -cp] + [classpath] + %w[-d bin] + Dir["src/**/*.java"]
+  exec(*cmd)
+end
