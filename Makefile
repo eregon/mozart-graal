@@ -31,7 +31,7 @@ bin/org/mozartoz/truffle/Main.class: bin
 
 compile: bin/org/mozartoz/truffle/Main.class
 
-build: $(MOZART2) bootcompiler install_deps compile test
+build: $(MOZART2) bootcompiler install_deps compile
 
 test:
 	./oz
