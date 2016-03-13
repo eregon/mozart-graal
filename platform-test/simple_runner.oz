@@ -23,29 +23,8 @@ functor
 import
    Application
    System(showInfo:Info)
-   Pickle
    Module
-   Compiler
 define
-   fun {CompileFile File}
-      BatchCompiler = {New Compiler.engine init}
-      UI = {New Compiler.interface init(BatchCompiler auto)}
-      R
-   in
-      {Info 'Compiling '#File#' ...'}
-      {BatchCompiler enqueue(setSwitch(showdeclares false))}
-      {BatchCompiler enqueue(setSwitch(threadedqueries false))}
-      {BatchCompiler enqueue(setSwitch(expression true))}
-      {BatchCompiler enqueue(feedFile(File return(result:R)))}
-      {UI sync()}
-      if {UI hasErrors($)} then
-	 {Application.exit 1}
-	 unit
-      else
-	 R
-      end
-   end
-
    proc {NewLine}
       {Info ''}
    end
@@ -70,12 +49,7 @@ define
    TestFiles = {Application.getArgs plain}
 
    for File in TestFiles do
-      CompiledFunctor = if {List.last File} == &f then
-			   {Pickle.load File}
-			else
-			   {CompileFile File}
-			end
-      Applied = {Module.apply [CompiledFunctor]}.1
+      Applied = {Module.link [File]}.1
       Return = Applied.return
       TestCase = {Label Return}
       Tests = if {IsList Return.1} then Return.1 else [Return] end
