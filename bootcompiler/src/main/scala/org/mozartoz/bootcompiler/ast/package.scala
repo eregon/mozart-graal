@@ -62,8 +62,7 @@ package object ast {
 
   /** Builds an Oz List expression from a list of expressions */
   def exprListToListExpr(elems: List[Expression]): Expression = {
-    if (elems.isEmpty) Constant(OzAtom("nil"))
-    else cons(elems.head, exprListToListExpr(elems.tail))
+    elems.foldRight(Constant(OzAtom("nil")): Expression)((e, tail) => cons(e, tail))
   }
 
   /** Builds an Oz Cons pair */
