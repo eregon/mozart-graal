@@ -142,8 +142,10 @@ trait OzPreprocessor {
         new BufferedReader(new FileReader(file))))
   }
 
-  private case class PreprocessorPosition(offset: Int)(
+  case class PreprocessorPosition(offset: Int)(
       underlying: Position, _file: File) extends FilePosition {
+    def getUnderlying = underlying
+
     def line = underlying.line
     def column = underlying.column
 
