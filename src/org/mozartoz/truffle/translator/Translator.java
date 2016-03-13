@@ -46,6 +46,7 @@ import org.mozartoz.bootcompiler.oz.OzRecordField;
 import org.mozartoz.bootcompiler.oz.OzValue;
 import org.mozartoz.bootcompiler.oz.True;
 import org.mozartoz.bootcompiler.oz.UnitVal;
+import org.mozartoz.bootcompiler.parser.OzPreprocessor.PreprocessorPosition;
 import org.mozartoz.bootcompiler.symtab.Builtin;
 import org.mozartoz.bootcompiler.symtab.Symbol;
 import org.mozartoz.bootcompiler.util.FilePosition;
@@ -97,6 +98,7 @@ import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.Unit;
 
 import scala.collection.JavaConversions;
+import scala.util.parsing.input.OffsetPosition;
 import scala.util.parsing.input.Position;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -543,7 +545,11 @@ public class Translator {
 					throw new RuntimeException(e);
 				}
 			});
-			return source.createSection("", filePosition.line());
+
+			PreprocessorPosition preprocessorPosition = (PreprocessorPosition) pos;
+			OffsetPosition offsetPosition = (OffsetPosition) preprocessorPosition.getUnderlying();
+			SourceSection sourceSection = source.createSection("", offsetPosition.offset(), 0);
+			return source.createSection("", sourceSection.getStartLine());
 		} else {
 			return SourceSection.createUnavailable("unavailable", "");
 		}
