@@ -32,7 +32,7 @@ public class Main {
 		} else {
 			String functor = args[0];
 			Source source = Loader.createSource(functor);
-			String[] appArgs = Arrays.copyOfRange(args, 0, args.length - 1);
+			String[] appArgs = Arrays.copyOfRange(args, 1, args.length);
 			Loader.getInstance().runFunctor(source, appArgs);
 		}
 	}
