@@ -9,6 +9,7 @@ import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNo
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.translator.Loader;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -28,6 +29,7 @@ public abstract class OSBuiltins {
 			return ToAtomNodeFactory.create(url);
 		}
 
+		@TruffleBoundary
 		@Specialization
 		Object bootURLLoad(String url) {
 			// Remove final "f"
