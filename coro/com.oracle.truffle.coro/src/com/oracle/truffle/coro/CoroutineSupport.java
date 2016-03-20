@@ -41,13 +41,15 @@ public class CoroutineSupport {
         return COROUTINE_SUPPORT.get();
     }
 
-    // Controls debugging and tracing, for maximum performance the actual if(DEBUG/TRACE) code needs to be commented out
+    // Controls debugging and tracing, for maximum performance the actual if(DEBUG/TRACE) code needs
+    // to be commented out
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
     static final Object TERMINATED = new Object();
 
-    // The thread that this CoroutineSupport belongs to. There's only one CoroutineSupport per Thread
+    // The thread that this CoroutineSupport belongs to.
+    // There's only one CoroutineSupport per Thread
     private final Thread thread;
     // The initial coroutine of the Thread
     private final Coroutine threadCoroutine;

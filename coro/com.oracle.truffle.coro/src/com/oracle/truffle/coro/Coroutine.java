@@ -26,17 +26,18 @@
 package com.oracle.truffle.coro;
 
 /**
- * Implementation of symmetric coroutines. A Coroutine will take part in thread-wide scheduling of coroutines. It transfers control to
- * the next coroutine whenever yield is called.
+ * Implementation of symmetric coroutines. A Coroutine will take part in thread-wide scheduling of
+ * coroutines. It transfers control to the next coroutine whenever yield is called.
  * <p>
- * Similar to {@link Thread} there are two ways to implement a Coroutine: either by implementing a subclass of Coroutine (and overriding
- * {@link #run()}) or by providing a {@link Runnable} to the Coroutine constructor.
+ * Similar to {@link Thread} there are two ways to implement a Coroutine: either by implementing a
+ * subclass of Coroutine (and overriding {@link #run()}) or by providing a {@link Runnable} to the
+ * Coroutine constructor.
  * <p>
  * An implementation of a simple Coroutine might look like this:
  * <p>
  * <hr>
  * <blockquote>
- * 
+ *
  * <pre>
  * class Numbers extends Coroutine {
  *     public void run() {
@@ -47,22 +48,24 @@ package com.oracle.truffle.coro;
  *     }
  * }
  * </pre>
- * 
+ *
  * </blockquote>
  * <hr>
  * <p>
- * A Coroutine is active as soon as it is created, and will run as soon as control is transferred to it:
+ * A Coroutine is active as soon as it is created, and will run as soon as control is transferred to
+ * it:
  * <p>
  * <blockquote>
- * 
+ *
  * <pre>
  * new Numbers();
  * for (int i = 0; i &lt; 10; i++)
  *     yield();
  * </pre>
- * 
+ *
  * </blockquote>
  * <p>
+ *
  * @author Lukas Stadler
  */
 public class Coroutine extends CoroutineBase {
@@ -80,7 +83,7 @@ public class Coroutine extends CoroutineBase {
         this.target = target;
         threadSupport.addCoroutine(this, -1);
     }
-    
+
     public Coroutine(long stacksize) {
         this.target = null;
         threadSupport.addCoroutine(this, stacksize);
@@ -103,11 +106,11 @@ public class Coroutine extends CoroutineBase {
     public static void yield() {
         getCurrentCoroutineSupport().symmetricYield();
     }
-    
+
     public static void yieldTo(Coroutine target) {
         getCurrentCoroutineSupport().symmetricYieldTo(target);
     }
-    
+
     public void stop() {
         getCurrentCoroutineSupport().symmetricStopCoroutine(this);
     }
@@ -118,5 +121,5 @@ public class Coroutine extends CoroutineBase {
         if (target != null) {
             target.run();
         }
-    }    
+    }
 }

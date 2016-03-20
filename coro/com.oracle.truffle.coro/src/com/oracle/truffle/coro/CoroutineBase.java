@@ -51,7 +51,7 @@ public abstract class CoroutineBase {
 
     protected abstract void run();
 
-    @SuppressWarnings({ "unused" })
+    @SuppressWarnings({"unused"})
     private final void startInternal() {
         assert threadSupport.getThread() == Thread.currentThread();
         try {
@@ -65,7 +65,8 @@ public abstract class CoroutineBase {
             }
         } finally {
             finished = true;
-            // use getCurrentCoroutineSupport() because we might have been migrated to another thread!
+            // use getCurrentCoroutineSupport() because we might have been migrated to another
+            // thread!
             if (this instanceof Coroutine) {
                 getCurrentCoroutineSupport().terminateCoroutine();
             } else {
@@ -76,7 +77,8 @@ public abstract class CoroutineBase {
     }
 
     /**
-     * Returns true if this coroutine has reached its end. Under normal circumstances this happens when the {@link #run()} method returns.
+     * Returns true if this coroutine has reached its end. Under normal circumstances this happens
+     * when the {@link #run()} method returns.
      */
     public final boolean isFinished() {
         return finished;
@@ -84,8 +86,7 @@ public abstract class CoroutineBase {
 
     /**
      * @return the thread that this coroutine is associated with
-     * @throws NullPointerException
-     *             if the coroutine has terminated
+     * @throws NullPointerException if the coroutine has terminated
      */
     public Thread getThread() {
         return threadSupport.getThread();

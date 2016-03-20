@@ -29,17 +29,19 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * Implementation of asymmetric coroutines. A AsymCoroutine can be called by any coroutine (Coroutine and AsymCoroutine) and will return to
- * its caller upon {@link #ret()}.
+ * Implementation of asymmetric coroutines. A AsymCoroutine can be called by any coroutine
+ * (Coroutine and AsymCoroutine) and will return to its caller upon {@link #ret()}.
  * <p>
- * Similar to {@link Thread} there are two ways to implement a AsymCoroutine: either by implementing a subclass of AsymCoroutine (and
- * overriding {@link #run()}) or by providing a {@link Runnable} to the AsymCoroutine constructor.
+ * Similar to {@link Thread} there are two ways to implement a AsymCoroutine: either by implementing
+ * a subclass of AsymCoroutine (and overriding {@link #run()}) or by providing a {@link Runnable} to
+ * the AsymCoroutine constructor.
  * <p>
- * An implementation of a simple AsymCoroutine that always returns the average of all its previous inputs might look like this:
+ * An implementation of a simple AsymCoroutine that always returns the average of all its previous
+ * inputs might look like this:
  * <p>
  * <hr>
  * <blockquote>
- * 
+ *
  * <pre>
  * class Average extends AsymCoroutine&lt;Integer, Integer&gt; {
  *     public Integer run(Integer value) {
@@ -51,54 +53,52 @@ import java.util.NoSuchElementException;
  *     }
  * }
  * </pre>
- * 
+ *
  * </blockquote>
  * <hr>
  * <p>
- * This AsymCoroutine can be invoked either by reading and writing the {@link #output} and {@link #input} fields and invoking the
- * {@link #call()} method:
+ * This AsymCoroutine can be invoked either by reading and writing the {@link #output} and
+ * {@link #input} fields and invoking the {@link #call()} method:
  * <p>
  * <blockquote>
- * 
+ *
  * <pre>
  * Average avg = new Average();
  * avg.input = 10;
  * avg.call();
  * System.out.println(avg.output);
  * </pre>
- * 
+ *
  * </blockquote>
  * <p>
  * Another way to invoke this AsymCoroutine is by using the shortcut {@link #call(Object)} methods:
  * <p>
  * <blockquote>
- * 
+ *
  * <pre>
  * Average avg = new Average();
  * System.out.println(avg.call(10));
  * </pre>
- * 
+ *
  * </blockquote>
  * <p>
- * 
+ *
  * @author Lukas Stadler
- * 
- * @param <InT>
- *            input type of this AsymCoroutine, Void if no input value is expected
- * @param <OutT>
- *            output type of this AsymCoroutine, Void if no output is produced
+ *
+ * @param <InT> input type of this AsymCoroutine, Void if no input value is expected
+ * @param <OutT> output type of this AsymCoroutine, Void if no output is produced
  */
 public class AsymCoroutine<InT, OutT> extends CoroutineBase implements Iterable<OutT> {
     CoroutineBase caller;
-    
-    private final AsymRunnable<? super InT, ? extends OutT> target; 
+
+    private final AsymRunnable<? super InT, ? extends OutT> target;
 
     private InT input;
     private OutT output;
 
     public AsymCoroutine() {
         target = null;
-        threadSupport.addCoroutine(this, -1);        
+        threadSupport.addCoroutine(this, -1);
     }
 
     public AsymCoroutine(long stacksize) {
@@ -108,7 +108,7 @@ public class AsymCoroutine<InT, OutT> extends CoroutineBase implements Iterable<
 
     public AsymCoroutine(AsymRunnable<? super InT, ? extends OutT> target) {
         this.target = target;
-        threadSupport.addCoroutine(this, -1);        
+        threadSupport.addCoroutine(this, -1);
     }
 
     public AsymCoroutine(AsymRunnable<? super InT, ? extends OutT> target, long stacksize) {

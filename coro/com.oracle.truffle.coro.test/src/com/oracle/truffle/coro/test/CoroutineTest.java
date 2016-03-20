@@ -30,15 +30,19 @@
 
 package com.oracle.truffle.coro.test;
 
-import com.oracle.truffle.coro.Coroutine;
-import com.oracle.truffle.coro.AsymCoroutine;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
+
+import com.oracle.truffle.coro.AsymCoroutine;
+import com.oracle.truffle.coro.Coroutine;
 
 public class CoroutineTest {
     private StringBuilder seq;
