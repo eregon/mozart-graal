@@ -23,7 +23,7 @@
  * questions.
  */
 
-package java.dyn;
+package com.oracle.truffle.coro;
 
 /**
  * Implementation of symmetric coroutines. A Coroutine will take part in thread-wide scheduling of coroutines. It transfers control to

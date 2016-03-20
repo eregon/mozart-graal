@@ -28,10 +28,10 @@
  * @run junit/othervm test.java.dyn.CoroutineTest
  */
 
-package test.java.dyn;
+package com.oracle.truffle.coro.test;
 
-import java.dyn.Coroutine;
-import java.dyn.AsymCoroutine;
+import com.oracle.truffle.coro.Coroutine;
+import com.oracle.truffle.coro.AsymCoroutine;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 

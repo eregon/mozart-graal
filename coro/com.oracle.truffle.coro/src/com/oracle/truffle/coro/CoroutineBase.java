@@ -23,7 +23,7 @@
  * questions.
  */
 
-package java.dyn;
+package com.oracle.truffle.coro;
 
 public abstract class CoroutineBase {
     transient long data;

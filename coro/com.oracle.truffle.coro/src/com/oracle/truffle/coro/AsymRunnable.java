@@ -23,7 +23,7 @@
  * questions.
  */
 
-package java.dyn;
+package com.oracle.truffle.coro;
 
 public interface AsymRunnable<InT, OutT> {
     public OutT run(AsymCoroutine<? extends InT, ? super OutT> coroutine, InT value);

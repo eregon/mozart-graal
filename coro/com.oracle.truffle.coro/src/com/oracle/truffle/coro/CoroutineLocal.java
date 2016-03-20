@@ -23,7 +23,7 @@
  * questions.
  */
 
-package java.dyn;
+package com.oracle.truffle.coro;
 
 import java.lang.Object;
 import java.lang.Thread;

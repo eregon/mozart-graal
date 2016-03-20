@@ -23,7 +23,7 @@
  * questions.
  */
 
-package java.dyn;
+package com.oracle.truffle.coro;
 
 public class CoroutineExitException extends RuntimeException {
     private static final long serialVersionUID = -2651365020938997924L;

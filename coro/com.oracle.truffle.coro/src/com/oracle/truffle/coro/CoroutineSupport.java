@@ -23,7 +23,7 @@
  * questions.
  */
 
-package java.dyn;
+package com.oracle.truffle.coro;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 

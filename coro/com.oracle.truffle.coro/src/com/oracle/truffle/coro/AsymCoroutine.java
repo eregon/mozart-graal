@@ -23,7 +23,7 @@
  * questions.
  */
 
-package java.dyn;
+package com.oracle.truffle.coro;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
