@@ -136,6 +136,7 @@ public class CoroutineLocal<T> {
      * subclass the map class in InheritableThreadLocal. This technique is preferable to the
      * alternative of embedding instanceof tests in methods.
      */
+    @SuppressWarnings("unused")
     T childValue(T parentValue) {
         throw new UnsupportedOperationException();
     }
@@ -273,6 +274,7 @@ public class CoroutineLocal<T> {
          * @param e the entry at table[i]
          * @return the entry associated with key, or null if no such
          */
+        @SuppressWarnings("all")
         private Entry getEntryAfterMiss(CoroutineLocal key, int i, Entry e) {
             Entry[] tab = table;
             int len = tab.length;
@@ -472,6 +474,7 @@ public class CoroutineLocal<T> {
          *
          * @return true if any stale entries have been removed.
          */
+        @SuppressWarnings("all")
         private boolean cleanSomeSlots(int i, int n) {
             boolean removed = false;
             Entry[] tab = table;

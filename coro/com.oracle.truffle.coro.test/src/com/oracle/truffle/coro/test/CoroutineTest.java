@@ -44,6 +44,7 @@ import org.junit.Test;
 import com.oracle.truffle.coro.AsymCoroutine;
 import com.oracle.truffle.coro.Coroutine;
 
+@SuppressWarnings("unused")
 public class CoroutineTest {
     private StringBuilder seq;
 
@@ -175,7 +176,8 @@ public class CoroutineTest {
     public void asymReturnValue() {
         AsymCoroutine<Integer, Integer> coro = new AsymCoroutine<Integer, Integer>() {
             @Override
-            protected Integer run(Integer value) {
+            protected Integer run(Integer value0) {
+                int value = value0;
                 value = ret(value * 2 + 1);
                 value = ret(value * 2 + 2);
                 value = ret(value * 2 + 3);

@@ -166,7 +166,7 @@ public class CoroutineSupport {
         switchTo(current, target);
     }
 
-    private void moveCoroutine(Coroutine a, Coroutine position) {
+    private static void moveCoroutine(Coroutine a, Coroutine position) {
         // remove a from the ring
         a.last.next = a.next;
         a.next.last = a.last;

@@ -116,6 +116,7 @@ public class AsymCoroutine<InT, OutT> extends CoroutineBase implements Iterable<
         threadSupport.addCoroutine(this, stacksize);
     }
 
+    @SuppressWarnings("hiding")
     public final OutT call(final InT input) {
         this.input = input;
         getCurrentCoroutineSupport().asymmetricCall(this);
@@ -170,7 +171,7 @@ public class AsymCoroutine<InT, OutT> extends CoroutineBase implements Iterable<
 
     @Override
     public final Iterator<OutT> iterator() {
-        return new Iter<OutT>(this);
+        return new Iter<>(this);
     }
 
     @Override
