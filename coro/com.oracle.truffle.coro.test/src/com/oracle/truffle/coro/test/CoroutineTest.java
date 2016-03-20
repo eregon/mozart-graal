@@ -52,6 +52,7 @@ public class CoroutineTest {
     @Test
     public void symSequence() {
         Coroutine coro = new Coroutine() {
+            @Override
             protected void run() {
                 seq.append("c");
                 for (int i = 0; i < 3; i++) {
@@ -79,6 +80,7 @@ public class CoroutineTest {
     public void symMultiSequence() {
         for (int i = 0; i < 10; i++)
             new Coroutine() {
+                @Override
                 protected void run() {
                     seq.append("c");
                     yield();
@@ -98,6 +100,7 @@ public class CoroutineTest {
     @Test
     public void asymSequence() {
         AsymCoroutine<Void, Void> coro = new AsymCoroutine<Void, Void>() {
+            @Override
             protected Void run(Void value) {
                 seq.append(value + "b");
                 Object o = ret();
@@ -130,6 +133,7 @@ public class CoroutineTest {
             final AsymCoroutine<Void, Void> last = coro;
             final int i = j;
             coro = new AsymCoroutine<Void, Void>() {
+                @Override
                 protected Void run(Void value) {
                     seq.append("b" + i);
                     if (last != null)
@@ -166,6 +170,7 @@ public class CoroutineTest {
     @Test
     public void asymReturnValue() {
         AsymCoroutine<Integer, Integer> coro = new AsymCoroutine<Integer, Integer>() {
+            @Override
             protected Integer run(Integer value) {
                 value = ret(value * 2 + 1);
                 value = ret(value * 2 + 2);
@@ -188,6 +193,7 @@ public class CoroutineTest {
     @Test
     public void gcTest1() {
         new Coroutine() {
+            @Override
             protected void run() {
                 seq.append("c");
                 Integer v1 = 1;
@@ -212,6 +218,7 @@ public class CoroutineTest {
     @Test
     public void exceptionTest1() {
         Coroutine coro = new Coroutine() {
+            @Override
             protected void run() {
                 seq.append("c");
                 long temp = System.nanoTime();
@@ -233,6 +240,7 @@ public class CoroutineTest {
     @Test
     public void largeStackframeTest() {
         new Coroutine() {
+            @Override
             protected void run() {
                 seq.append("c");
                 Integer v0 = 10000;
@@ -273,6 +281,7 @@ public class CoroutineTest {
     @Test
     public void shaTest() {
         Coroutine coro = new Coroutine(65536) {
+            @Override
             protected void run() {
                 try {
                     MessageDigest digest = MessageDigest.getInstance("SHA");
@@ -299,6 +308,7 @@ public class CoroutineTest {
             new Coroutine(65536) {
                 int i = 0;
 
+                @Override
                 protected void run() {
                     System.out.println("start");
                     try {

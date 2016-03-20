@@ -111,7 +111,8 @@ public class Coroutine extends CoroutineBase {
     public void stop() {
         getCurrentCoroutineSupport().symmetricStopCoroutine(this);
     }
-    
+
+    @Override
     protected void run() {
         assert Thread.currentThread() == threadSupport.getThread();
         if (target != null) {
