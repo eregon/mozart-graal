@@ -101,15 +101,15 @@ public class Coroutine extends CoroutineBase {
      * Yields execution to the next coroutine in the current threads coroutine queue.
      */
     public static void yield() {
-        Thread.currentThread().getCoroutineSupport().symmetricYield();
+        getCurrentCoroutineSupport().symmetricYield();
     }
     
     public static void yieldTo(Coroutine target) {
-        Thread.currentThread().getCoroutineSupport().symmetricYieldTo(target);
+        getCurrentCoroutineSupport().symmetricYieldTo(target);
     }
     
     public void stop() {
-        Thread.currentThread().getCoroutineSupport().symmetricStopCoroutine(this);
+        getCurrentCoroutineSupport().symmetricStopCoroutine(this);
     }
     
     protected void run() {

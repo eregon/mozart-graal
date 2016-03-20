@@ -118,23 +118,23 @@ public class AsymCoroutine<InT, OutT> extends CoroutineBase implements Iterable<
 
     public final OutT call(final InT input) {
         this.input = input;
-        Thread.currentThread().getCoroutineSupport().asymmetricCall(this);
+        getCurrentCoroutineSupport().asymmetricCall(this);
         return output;
     }
 
     public final OutT call() {
-        Thread.currentThread().getCoroutineSupport().asymmetricCall(this);
+        getCurrentCoroutineSupport().asymmetricCall(this);
         return output;
     }
 
     public final InT ret(final OutT value) {
         output = value;
-        Thread.currentThread().getCoroutineSupport().asymmetricReturn(this);
+        getCurrentCoroutineSupport().asymmetricReturn(this);
         return input;
     }
 
     public final InT ret() {
-        Thread.currentThread().getCoroutineSupport().asymmetricReturn(this);
+        getCurrentCoroutineSupport().asymmetricReturn(this);
         return input;
     }
 

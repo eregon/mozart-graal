@@ -28,6 +28,19 @@ package com.oracle.truffle.coro;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class CoroutineSupport {
+
+    private static final ThreadLocal<CoroutineSupport> COROUTINE_SUPPORT = new ThreadLocal<CoroutineSupport>() {
+        @Override
+        protected CoroutineSupport initialValue() {
+            return new CoroutineSupport(Thread.currentThread());
+        }
+    };
+
+    public static CoroutineSupport currentCoroutineSupport() {
+        // Thread.currentThread().getCoroutineSupport();
+        return COROUTINE_SUPPORT.get();
+    }
+
     // Controls debugging and tracing, for maximum performance the actual if(DEBUG/TRACE) code needs to be commented out
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
@@ -49,9 +62,6 @@ public class CoroutineSupport {
     }
 
     public CoroutineSupport(Thread thread) {
-        if (thread.getCoroutineSupport() != null) {
-            throw new IllegalArgumentException("Cannot instantiate CoroutineThreadSupport for existing Thread");
-        }
         this.thread = thread;
         threadCoroutine = new Coroutine(this, getThreadCoroutine());
         threadCoroutine.next = threadCoroutine;

@@ -49,8 +49,7 @@ public class CoroutineLocal<T> {
     }
 
     public T get() {
-        assert Thread.currentThread().getCoroutineSupport() != null;
-        CoroutineBase t = Thread.currentThread().getCoroutineSupport().getCurrent();
+        CoroutineBase t = CoroutineBase.current();
         CoroutineLocalMap map = getMap(t);
         if (map != null) {
             CoroutineLocalMap.Entry e = map.getEntry(this);
@@ -67,8 +66,7 @@ public class CoroutineLocal<T> {
      */
     private T setInitialValue() {
         T value = initialValue();
-        assert Thread.currentThread().getCoroutineSupport() != null;
-        CoroutineBase t = Thread.currentThread().getCoroutineSupport().getCurrent();
+        CoroutineBase t = CoroutineBase.current();
         CoroutineLocalMap map = getMap(t);
         if (map != null)
             map.set(this, value);
@@ -84,8 +82,7 @@ public class CoroutineLocal<T> {
      * @param value the value to be stored in the current thread's copy of this thread-local.
      */
     public void set(T value) {
-        assert Thread.currentThread().getCoroutineSupport() != null;
-        CoroutineBase t = Thread.currentThread().getCoroutineSupport().getCurrent();
+        CoroutineBase t = CoroutineBase.current();
         CoroutineLocalMap map = getMap(t);
         if (map != null)
             map.set(this, value);
@@ -102,8 +99,7 @@ public class CoroutineLocal<T> {
      * @since 1.5
      */
     public void remove() {
-        assert Thread.currentThread().getCoroutineSupport() != null;
-        CoroutineLocalMap m = getMap(Thread.currentThread().getCoroutineSupport().getCurrent());
+        CoroutineLocalMap m = getMap(CoroutineBase.current());
         if (m != null)
             m.remove(this);
     }
