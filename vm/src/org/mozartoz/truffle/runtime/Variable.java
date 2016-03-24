@@ -9,6 +9,7 @@ import com.oracle.truffle.coro.Coroutine;
 public abstract class Variable {
 
 	private @CompilationFinal Object value = null;
+	private boolean needed = false;
 
 	/** A circular list of linked Variable */
 	private Variable next = this;
@@ -56,8 +57,23 @@ public abstract class Variable {
 		}
 	}
 
+	public boolean isNeeded() {
+		return needed;
+	}
+
+	public void makeNeeded() {
+		this.needed = true;
+
+		Variable var = next;
+		while (var != this) {
+			var.needed = true;
+			var = var.next;
+		}
+	}
+
 	public Object waitValue(OzNode currentNode) {
 		assert !isBound();
+		makeNeeded();
 		while (!isBound()) {
 			Coroutine.yield();
 		}
