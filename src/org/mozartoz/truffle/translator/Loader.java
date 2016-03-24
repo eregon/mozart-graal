@@ -25,6 +25,7 @@ import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzLanguage;
 
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -158,8 +159,9 @@ public class Loader {
 	}
 
 	public Object execute(OzRootNode rootNode) {
+		RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 		Object[] arguments = OzArguments.pack(null, new Object[0]);
-		return Truffle.getRuntime().createCallTarget(rootNode).call(arguments);
+		return callTarget.call(arguments);
 	}
 
 	private Statement compile(Program program, String fileName) {
