@@ -44,7 +44,7 @@ import com.oracle.truffle.coro.Coroutine;
 
 public abstract class ValueBuiltins {
 
-	@Builtin(name = "==", deref = ALL)
+	@Builtin(name = "==", tryDeref = { 1, 2 })
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class EqualNode extends OzNode {
@@ -54,6 +54,18 @@ public abstract class ValueBuiltins {
 		}
 
 		public abstract boolean executeEqual(Object a, Object b);
+
+		@Specialization(guards = { "!isBound(a)", "!isBound(b)" })
+		protected Object equal(OzVar a, OzVar b) {
+			while (!a.isLinkedTo(b) && !a.isBound() && !b.isBound()) {
+				Coroutine.yield();
+			}
+			if (a.isLinkedTo(b)) {
+				return true;
+			} else {
+				return unimplemented();
+			}
+		}
 
 		@Specialization
 		protected boolean equal(boolean a, boolean b) {
@@ -65,12 +77,12 @@ public abstract class ValueBuiltins {
 			return a == b;
 		}
 
-		@Specialization(guards = { "!isLong(b)", "!isBigInteger(b)" })
+		@Specialization(guards = { "!isVariable(b)", "!isLong(b)", "!isBigInteger(b)" })
 		protected boolean equal(long a, Object b) {
 			return false;
 		}
 
-		@Specialization(guards = { "!isLong(a)", "!isBigInteger(a)" })
+		@Specialization(guards = { "!isVariable(a)", "!isLong(a)", "!isBigInteger(a)" })
 		protected boolean equal(Object a, long b) {
 			return false;
 		}
@@ -95,7 +107,7 @@ public abstract class ValueBuiltins {
 			return a == b;
 		}
 
-		@Specialization(guards = "!isAtom(b)")
+		@Specialization(guards = { "!isVariable(b)", "!isAtom(b)" })
 		protected boolean equal(String a, Object b) {
 			return false;
 		}
@@ -142,18 +154,18 @@ public abstract class ValueBuiltins {
 			return true;
 		}
 
-		@Specialization(guards = { "!isCons(b)", "!isRecord(b)" })
+		@Specialization(guards = { "!isVariable(b)", "!isCons(b)", "!isRecord(b)" })
 		protected boolean equal(OzCons a, Object b) {
 			return false;
 		}
 
-		@Specialization(guards = "!isRecord(b)")
+		@Specialization(guards = { "!isVariable(b)", "!isRecord(b)" })
 		protected boolean equal(DynamicObject record, Object b) {
 			return false;
 		}
 
 		@Specialization(guards = { "a.getClass() != b.getClass()",
-				"!isLong(a)", "!isBigInteger(a)", "!isAtom(a)", "!isCons(a)", "!isRecord(a)" })
+				"!isVariable(a)", "!isLong(a)", "!isBigInteger(a)", "!isAtom(a)", "!isCons(a)", "!isRecord(a)" })
 		protected boolean equal(Object a, Object b) {
 			return false;
 		}
@@ -634,6 +646,11 @@ public abstract class ValueBuiltins {
 			return unimplemented();
 		}
 
+		@Specialization(guards = "!isBound(var)")
+		Object status(OzVar var) {
+			return "free";
+		}
+
 		@Specialization
 		String status(OzFailedValue failedValue) {
 			return "failed";
@@ -672,13 +689,14 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsNeededNode extends OzNode {
 
-		@Specialization
-		Object isNeeded(Object value) {
-			return unimplemented();
+		@Specialization(guards = "!isBound(var)")
+		Object isNeeded(OzVar var) {
+			return var.isNeeded();
 		}
 
 	}
