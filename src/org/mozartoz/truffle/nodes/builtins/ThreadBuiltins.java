@@ -24,9 +24,8 @@ public abstract class ThreadBuiltins {
 		@Child CallProcNode callProcNode = CallProcNodeGen.create(new OzNode[0], null);
 
 		@Specialization
-		Object createThread(VirtualFrame frame, OzProc target) {
-			// FIXME
-			return callProcNode.executeCall(frame, target);
+		OzThread createThread(VirtualFrame frame, OzProc target) {
+			return new OzThread(target);
 		}
 
 	}
@@ -49,7 +48,7 @@ public abstract class ThreadBuiltins {
 
 		@Specialization
 		OzThread thisThread() {
-			return OzThread.MAIN_THREAD;
+			return OzThread.getCurrent();
 		}
 
 	}

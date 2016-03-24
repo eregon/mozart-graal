@@ -32,9 +32,14 @@ public abstract class DerefNode extends OzNode {
 		throw new OzException(this, failedValue.getData());
 	}
 
-	@Specialization
+	@Specialization(guards = "isBound(var)")
 	Object deref(OzVar var) {
 		return check(var.getBoundValue(this));
+	}
+
+	@Specialization(guards = "!isBound(var)")
+	Object derefUnbound(OzVar var) {
+		return check(var.waitValue(this));
 	}
 
 	@Specialization
