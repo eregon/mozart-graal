@@ -69,7 +69,14 @@ public abstract class Variable {
 	}
 
 	public boolean isNeeded() {
-		return needed;
+		Variable var = this;
+		do {
+			if (var.needed) {
+				return true;
+			}
+			var = var.next;
+		} while (var != this);
+		return false;
 	}
 
 	public void makeNeeded() {
