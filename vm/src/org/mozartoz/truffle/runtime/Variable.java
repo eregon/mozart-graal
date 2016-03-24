@@ -37,6 +37,17 @@ public abstract class Variable {
 		other.next = oldNext;
 	}
 
+	public boolean isLinkedTo(Variable other) {
+		Variable var = this;
+		do {
+			if (var == other) {
+				return true;
+			}
+			var = var.next;
+		} while (var != this);
+		return false;
+	}
+
 	public Variable getNext() {
 		return next;
 	}
