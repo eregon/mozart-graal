@@ -4,6 +4,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.coro.Coroutine;
 
 public abstract class Variable {
 
@@ -53,6 +54,14 @@ public abstract class Variable {
 			var.setValue(value, this);
 			var = var.next;
 		}
+	}
+
+	public Object waitValue(OzNode currentNode) {
+		assert !isBound();
+		while (!isBound()) {
+			Coroutine.yield();
+		}
+		return getBoundValue(currentNode);
 	}
 
 	@Override

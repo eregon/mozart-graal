@@ -460,14 +460,26 @@ public abstract class ValueBuiltins {
 
 	}
 
-	@Builtin(proc = true, tryDeref = 1)
+	@Builtin(proc = true)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class WaitNode extends OzNode {
 
+		public abstract Object executeWait(Object value);
+
 		@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" })
 		Object wait(Object value) {
 			return unit;
+		}
+
+		@Specialization(guards = "isBound(var)")
+		Object wait(OzVar var) {
+			return executeWait(var.getBoundValue(this));
+		}
+
+		@Specialization(guards = "!isBound(var)")
+		Object waitUnbound(OzVar var) {
+			return executeWait(var.waitValue(this));
 		}
 
 		@Specialization
@@ -477,14 +489,26 @@ public abstract class ValueBuiltins {
 
 	}
 
-	@Builtin(proc = true, tryDeref = 1)
+	@Builtin(proc = true)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class WaitQuietNode extends OzNode {
 
+		public abstract Object executeWaitQuiet(Object value);
+
 		@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" })
 		Object waitQuiet(Object value) {
 			return unit;
+		}
+
+		@Specialization(guards = "isBound(var)")
+		Object waitQuiet(OzVar var) {
+			return executeWaitQuiet(var.getBoundValue(this));
+		}
+
+		@Specialization(guards = "!isBound(var)")
+		Object waitQuietUnbound(OzVar var) {
+			return executeWaitQuiet(var.waitValue(this));
 		}
 
 		@Specialization
