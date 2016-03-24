@@ -40,6 +40,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.coro.Coroutine;
 
 public abstract class ValueBuiltins {
 
@@ -518,27 +519,39 @@ public abstract class ValueBuiltins {
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class WaitNeededNode extends OzNode {
 
-		@Specialization
+		@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" })
 		Object waitNeeded(Object value) {
-			// FIXME: actually wait
+			return unit;
+		}
+
+		@Specialization(guards = "!isBound(var)")
+		Object waitNeeded(OzVar var) {
+			while (!var.isNeeded()) {
+				Coroutine.yield();
+			}
 			return unit;
 		}
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class MakeNeededNode extends OzNode {
 
-		@Specialization
+		@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" })
 		Object makeNeeded(Object value) {
-			// FIXME
+			return unit;
+		}
+
+		@Specialization(guards = "!isBound(var)")
+		Object makeNeeded(OzVar var) {
+			var.makeNeeded();
 			return unit;
 		}
 
