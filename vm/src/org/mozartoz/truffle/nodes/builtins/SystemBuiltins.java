@@ -5,7 +5,9 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 import java.io.PrintStream;
 
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.builtins.SystemBuiltinsFactory.GetReprNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
+import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -28,25 +30,50 @@ public abstract class SystemBuiltins {
 
 	}
 
+	@Builtin(proc = true, tryDeref = 1, deref = { 2, 3 })
 	@GenerateNodeFactory
-	@NodeChildren({ @NodeChild("value"), @NodeChild("toStdErr") })
+	@NodeChildren({ @NodeChild("value"), @NodeChild("toStdErr"), @NodeChild("newLine") })
 	public static abstract class PrintReprNode extends OzNode {
 
-		@Specialization
-		Object printRepr(Object value, Object toStdErr) {
-			return unimplemented();
+		@Child GetReprNode getReprNode = GetReprNodeFactory.create(null, null, null);
+
+		@Specialization(guards = "!isVariable(value)")
+		Object printRepr(Object value, boolean toStdErr, boolean newLine) {
+			String repr = getReprNode.executeGetRepr(value, 10, 1000);
+
+			@SuppressWarnings("resource")
+			PrintStream stream = toStdErr ? System.err : System.out;
+			if (newLine) {
+				stream.println(repr);
+			} else {
+				stream.print(repr);
+				stream.flush();
+			}
+			return unit;
+		}
+
+		@Specialization(guards = "!isBound(var)")
+		Object printRepr(OzVar var, boolean toStdErr, boolean newLine) {
+			return printRepr(var.toString(), toStdErr, newLine);
 		}
 
 	}
 
-	@Builtin(deref = ALL)
+	@Builtin(tryDeref = 1, deref = { 2, 3 })
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("value"), @NodeChild("depth"), @NodeChild("width") })
 	public static abstract class GetReprNode extends OzNode {
 
-		@Specialization
+		public abstract String executeGetRepr(Object value, long depth, long width);
+
+		@Specialization(guards = "!isVariable(value)")
 		String getRepr(Object value, long depth, long width) {
 			return value.toString().intern();
+		}
+
+		@Specialization(guards = "!isBound(var)")
+		String getRepr(OzVar var, long depth, long width) {
+			return var.toString().intern();
 		}
 
 	}
