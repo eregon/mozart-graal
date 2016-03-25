@@ -521,7 +521,7 @@ public abstract class ValueBuiltins {
 
 		@Specialization(guards = "!isBound(var)")
 		Object waitQuietUnbound(OzVar var) {
-			return executeWaitQuiet(var.waitValue(this));
+			return executeWaitQuiet(var.waitValueQuiet(this));
 		}
 
 		@Specialization
