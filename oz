@@ -27,7 +27,8 @@ if ARGV == %w[classpath]
   puts classpath
   exit
 elsif ARGV == %w[compile]
-  cmd = %w[javac -sourcepath src -cp] + [classpath] + %w[-d bin] + Dir["src/**/*.java"]
+  truffle_dsl_processor = bootclasspath[0].sub('/truffle-api.jar', '/truffle-dsl-processor.jar')
+  cmd = %w[javac -sourcepath src -cp] + ["#{truffle_dsl_processor}:#{classpath}"] + %w[-d bin] + Dir["src/**/*.java"]
   exec(*cmd)
 else
   cmd = [JAVACMD, "-Xbootclasspath/p:#{bootclasspath.join(':')}", '-cp', libraries.join(':'), 'org.mozartoz.truffle.Main'] + ARGV
