@@ -20,6 +20,7 @@ public class Main {
 			BASE_TESTS + "float.oz",
 			BASE_TESTS + "conversion.oz",
 			BASE_TESTS + "type.oz",
+			BASE_TESTS + "byneed.oz",
 	};
 
 	public static void main(String[] args) {
