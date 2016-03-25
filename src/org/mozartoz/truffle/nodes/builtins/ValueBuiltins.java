@@ -24,6 +24,7 @@ import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzProc;
+import org.mozartoz.truffle.runtime.OzReadOnly;
 import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
@@ -694,8 +695,13 @@ public abstract class ValueBuiltins {
 	@NodeChild("value")
 	public static abstract class IsNeededNode extends OzNode {
 
+		@Specialization(guards = "!isVariable(value)")
+		boolean isNeeded(Object value) {
+			return true;
+		}
+
 		@Specialization(guards = "!isBound(var)")
-		Object isNeeded(OzVar var) {
+		boolean isNeeded(OzVar var) {
 			return var.isNeeded();
 		}
 
@@ -767,8 +773,8 @@ public abstract class ValueBuiltins {
 	public static abstract class ReadOnlyNode extends OzNode {
 
 		@Specialization
-		Object readOnly(Object variable) {
-			return unimplemented();
+		OzReadOnly readOnly(OzVar variable) {
+			return new OzReadOnly(variable);
 		}
 
 	}

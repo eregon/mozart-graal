@@ -2,6 +2,7 @@ package org.mozartoz.truffle.nodes;
 
 import org.mozartoz.truffle.runtime.OzFailedValue;
 import org.mozartoz.truffle.runtime.OzFuture;
+import org.mozartoz.truffle.runtime.OzReadOnly;
 import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -31,6 +32,15 @@ public abstract class DerefIfBoundNode extends OzNode {
 			return future.getBoundValue(this);
 		} else {
 			return future;
+		}
+	}
+
+	@Specialization
+	Object derefIfBound(OzReadOnly readOnly) {
+		if (readOnly.isBound()) {
+			return readOnly.getBoundValue(this);
+		} else {
+			return readOnly;
 		}
 	}
 
