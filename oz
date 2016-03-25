@@ -21,8 +21,6 @@ bootclasspath, libraries = entries.map { |path|
 
 classpath = "#{bootclasspath.join(':')}:#{libraries.join(':')}"
 
-cmd = nil
-
 if ARGV == %w[classpath]
   puts classpath
   exit
