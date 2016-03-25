@@ -7,12 +7,7 @@
 			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="../truffle/mxbuild/dists/truffle-api.jar" sourcepath="../truffle/mxbuild/dists/truffle-api.src.zip"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/bootcompiler"/>
-	<classpathentry kind="lib" path="/bootcompiler/target/scala-2.11/bootcompiler-assembly-2.0-SNAPSHOT.jar">
-		<accessrules>
-			<accessrule kind="nonaccessible" pattern="org/mozartoz/**/*"/>
-		</accessrules>
-	</classpathentry>
-	<classpathentry kind="lib" path="../graal-coro/truffle/mxbuild/dists/truffle-api.jar" sourcepath="../graal-coro/truffle/mxbuild/dists/truffle-api.src.zip"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
