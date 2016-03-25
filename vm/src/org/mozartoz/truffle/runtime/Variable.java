@@ -81,17 +81,15 @@ public abstract class Variable {
 
 	public void makeNeeded() {
 		this.needed = true;
-
-		Variable var = next;
-		while (var != this) {
-			var.needed = true;
-			var = var.next;
-		}
 	}
 
 	public Object waitValue(OzNode currentNode) {
-		assert !isBound();
 		makeNeeded();
+		return waitValueQuiet(currentNode);
+	}
+
+	public Object waitValueQuiet(OzNode currentNode) {
+		assert !isBound();
 		while (!isBound()) {
 			Coroutine.yield();
 		}
