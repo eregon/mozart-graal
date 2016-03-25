@@ -524,6 +524,14 @@ public class Translator {
 					Position firstArgPos = callStatement.args().head().pos();
 					return t(firstArgPos);
 				}
+			} else if (node instanceof BindStatement) {
+				BindStatement bindStatement = (BindStatement) node;
+				if (bindStatement.left().pos() instanceof FilePosition) {
+					return t(bindStatement.left().pos());
+				}
+				if (bindStatement.right().pos() instanceof FilePosition) {
+					return t(bindStatement.right().pos());
+				}
 			}
 			return t(pos);
 		}
