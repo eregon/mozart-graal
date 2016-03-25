@@ -1,8 +1,11 @@
-.PHONY: default build bootcompiler compile install_deps test
+.PHONY: default build bootcompiler install_deps graal compile test
 
 MOZART2 = ../mozart2
 BOOTCOMPILER_JAR = $(MOZART2)/bootcompiler/target/scala-2.11/bootcompiler-assembly-2.0-SNAPSHOT.jar
 BOOTCOMPILER_ECLIPSE = $(MOZART2)/bootcompiler/.project
+MX = ../mx/mx
+GRAAL = ../graal-coro
+MAIN_CLASS = bin/org/mozartoz/truffle/Main.class
 
 default: build
 
@@ -23,15 +26,24 @@ target:
 
 install_deps: target
 
+$(MX):
+	cd .. && git clone https://github.com/graalvm/mx.git
+
+$(GRAAL): $(MX)
+	cd .. && git clone -b coro https://github.com/eregon/graal-core.git graal-coro
+	cd ../graal-coro && $(MX) --vm server build
+
+graal: $(GRAAL)
+
 bin:
 	mkdir bin
 
-bin/org/mozartoz/truffle/Main.class: bin
+$(MAIN_CLASS): bin
 	./oz compile
 
-compile: bin/org/mozartoz/truffle/Main.class
+compile: $(MAIN_CLASS)
 
-build: $(MOZART2) bootcompiler install_deps compile
+build: $(MOZART2) bootcompiler install_deps graal compile
 
 test:
 	./oz
