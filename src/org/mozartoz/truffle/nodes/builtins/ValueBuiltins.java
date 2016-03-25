@@ -57,15 +57,25 @@ public abstract class ValueBuiltins {
 		public abstract boolean executeEqual(Object a, Object b);
 
 		@Specialization(guards = { "!isBound(a)", "!isBound(b)" })
-		protected Object equal(OzVar a, OzVar b) {
+		protected boolean equal(OzVar a, OzVar b) {
 			while (!a.isLinkedTo(b) && !a.isBound() && !b.isBound()) {
 				Coroutine.yield();
 			}
 			if (a.isLinkedTo(b)) {
 				return true;
 			} else {
-				return unimplemented();
+				throw new OzException(this, "unimplemented");
 			}
+		}
+
+		@Specialization(guards = { "!isBound(a)", "!isVariable(b)" })
+		protected Object equal(OzVar a, Object b) {
+			return executeEqual(a.waitValue(this), b);
+		}
+
+		@Specialization(guards = { "!isVariable(a)", "!isBound(b)" })
+		protected Object equal(Object a, OzVar b) {
+			return executeEqual(a, b.waitValue(this));
 		}
 
 		@Specialization
@@ -768,6 +778,7 @@ public abstract class ValueBuiltins {
 
 	}
 
+	@Builtin(tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("variable")
 	public static abstract class ReadOnlyNode extends OzNode {
@@ -775,6 +786,11 @@ public abstract class ValueBuiltins {
 		@Specialization
 		OzReadOnly readOnly(OzVar variable) {
 			return new OzReadOnly(variable);
+		}
+
+		@Specialization
+		Object readOnly(OzFailedValue failedValue) {
+			return failedValue;
 		}
 
 	}
