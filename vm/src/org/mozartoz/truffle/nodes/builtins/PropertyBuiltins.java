@@ -31,6 +31,8 @@ public abstract class PropertyBuiltins {
 		PROPERTIES.put("limits.bytecode.xregisters", 65536L);
 		PROPERTIES.put("limits.int.max", Long.MAX_VALUE);
 		PROPERTIES.put("limits.int.min", Long.MIN_VALUE);
+
+		PROPERTIES.put("application.gui", false);
 	}
 
 	public static void setApplicationURL(String appURL) {
