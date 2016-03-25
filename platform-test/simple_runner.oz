@@ -31,8 +31,11 @@ define
 
    fun {TestProcedure TestDesc}
       Test = TestDesc.1
+      Keys = TestDesc.keys
    in
-      if {IsProcedure Test} then
+      if {Member space Keys} then
+         proc {$} {Info 'skipped (Space)'} end
+      elseif {IsProcedure Test} then
          case {Procedure.arity Test}
          of 0 then Test
          [] 1 then proc {$} {Test} = true end
