@@ -33,16 +33,16 @@ define
       Test = TestDesc.1
    in
       if {IsProcedure Test} then
-	 case {Procedure.arity Test}
-	 of 0 then Test
-	 [] 1 then proc {$} {Test} = true end
-	 end
+         case {Procedure.arity Test}
+         of 0 then Test
+         [] 1 then proc {$} {Test} = true end
+         end
       else
-	 equal(F Expected) = Test
+         equal(F Expected) = Test
       in
-	 proc {$}
-	    {F} = Expected
-	 end
+         proc {$}
+            {F} = Expected
+         end
       end
    end
 
@@ -57,12 +57,12 @@ define
       {Info 'Testing '#TestCase}
 
       for Test in Tests do
-	 {Info {Label Test}}
-	 %{Show Test.keys}
-	 ActualTest = {TestProcedure Test}
+         {Info {Label Test}}
+         %{Show Test.keys}
+         ActualTest = {TestProcedure Test}
       in
-	 {ActualTest}
-	 {Info '  OK'}
+         {ActualTest}
+         {Info '  OK'}
       end
       {NewLine}
    end
