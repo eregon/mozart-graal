@@ -22,7 +22,7 @@
 functor
 import
    Application
-   System(showInfo:Info)
+   System(showInfo:Info show:Show)
    Module
 define
    proc {NewLine}
@@ -58,10 +58,13 @@ define
 
       for Test in Tests do
          {Info {Label Test}}
-         %{Show Test.keys}
          ActualTest = {TestProcedure Test}
       in
-         {ActualTest}
+         try
+            {ActualTest}
+         catch E then
+            {Show E}
+         end
          {Info '  OK'}
       end
       {NewLine}
