@@ -1,4 +1,4 @@
-.PHONY: default build bootcompiler install_deps graal compile test
+.PHONY: default build bootcompiler graal compile test
 
 MOZART2 = ../mozart2
 BOOTCOMPILER_JAR = $(MOZART2)/bootcompiler/target/scala-2.11/bootcompiler-assembly-2.0-SNAPSHOT.jar
@@ -21,11 +21,6 @@ $(BOOTCOMPILER_ECLIPSE): $(MOZART2)
 
 bootcompiler: $(BOOTCOMPILER_JAR) $(BOOTCOMPILER_ECLIPSE)
 
-target:
-	mvn package
-
-install_deps: target
-
 $(MX):
 	cd .. && git clone https://github.com/graalvm/mx.git
 
@@ -43,7 +38,7 @@ $(MAIN_CLASS): bin
 
 compile: $(MAIN_CLASS)
 
-build: $(MOZART2) bootcompiler install_deps graal compile
+build: $(MOZART2) bootcompiler graal compile
 
 test:
 	./oz
