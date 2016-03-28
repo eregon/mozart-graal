@@ -3,6 +3,10 @@
 M2_REPO = "#{Dir.home}/.m2/repository"
 BOOTCOMPILER = File.expand_path('../../mozart2/bootcompiler', __FILE__)
 
+unless File.exist?('.classpath')
+  parent_dir = File.expand_path('../..', __FILE__)
+  File.write('.classpath', File.read('tool/classpath').gsub('../', "#{parent_dir}/"))
+end
 contents = File.read('.classpath')
 entries = contents.scan(/<classpathentry kind="(?:var|lib|output)" path="([^"]+)"/)
 classpath = entries.map { |path,|
