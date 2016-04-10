@@ -1,5 +1,15 @@
 package org.mozartoz.truffle.runtime;
 
+import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.OzRootNode;
+import org.mozartoz.truffle.nodes.TopLevelHandlerNode;
+import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
+import org.mozartoz.truffle.nodes.literal.LiteralNode;
+
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.coro.Coroutine;
 import com.oracle.truffle.coro.CoroutineLocal;
 
@@ -14,11 +24,11 @@ public class OzThread implements Runnable {
 	}
 
 	private final Coroutine coroutine;
-	private final OzProc proc;
+	private final CallTarget target;
 
 	private OzThread() {
 		coroutine = (Coroutine) Coroutine.current();
-		proc = null;
+		target = null;
 		setInitialOzThread();
 	}
 
@@ -27,7 +37,7 @@ public class OzThread implements Runnable {
 	}
 
 	public OzThread(OzProc proc) {
-		this.proc = proc;
+		this.target = wrap(proc);
 		this.coroutine = new Coroutine(this, 1024 * 1024); // 256 seems OK if we parse outside the coro
 	}
 
@@ -38,7 +48,17 @@ public class OzThread implements Runnable {
 	@Override
 	public void run() {
 		setInitialOzThread();
-		proc.callTarget.call(OzArguments.pack(proc.declarationFrame, new Object[0]));
+		Object[] arguments = OzArguments.pack(null, new Object[0]);
+		target.call(arguments);
+	}
+
+	private static CallTarget wrap(OzProc proc) {
+		OzNode callNode = CallProcNodeGen.create(new OzNode[] {}, new LiteralNode(proc));
+		SourceSection sourceSection = SourceSection.createUnavailable("main", "Thread.create");
+		FrameDescriptor frameDescriptor = new FrameDescriptor();
+		TopLevelHandlerNode topLevelHandler = new TopLevelHandlerNode(callNode);
+		OzRootNode rootNode = new OzRootNode(sourceSection, frameDescriptor, topLevelHandler, 0);
+		return Truffle.getRuntime().createCallTarget(rootNode);
 	}
 
 }

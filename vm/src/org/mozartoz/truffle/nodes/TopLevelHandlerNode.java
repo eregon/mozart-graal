@@ -21,7 +21,12 @@ public class TopLevelHandlerNode extends OzNode {
 			ozException.getBacktrace().showUserBacktrace();
 			ozException.printStackTrace();
 		} catch (Exception exception) {
-			exception.printStackTrace();
+			System.err.println(exception.getMessage());
+			StackTraceElement[] stackTrace = exception.getStackTrace();
+			if (stackTrace.length > 0) {
+				System.err.println(stackTrace[0]);
+			}
+			System.exit(1);
 		}
 		return unit;
 	}
