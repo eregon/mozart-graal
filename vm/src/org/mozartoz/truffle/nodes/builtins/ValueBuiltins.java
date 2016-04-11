@@ -139,6 +139,16 @@ public abstract class ValueBuiltins {
 		}
 
 		@Specialization
+		protected boolean equal(OzChunk a, OzChunk b) {
+			return a == b;
+		}
+
+		@Specialization
+		protected boolean equal(OzObject a, OzObject b) {
+			return a == b;
+		}
+
+		@Specialization
 		protected boolean equal(OzProc a, OzProc b) {
 			return a.equals(b);
 		}
@@ -207,6 +217,16 @@ public abstract class ValueBuiltins {
 			return a < b;
 		}
 
+		@Specialization
+		protected boolean lesserThan(double a, double b) {
+			return a < b;
+		}
+
+		@Specialization
+		protected boolean lesserThan(String a, String b) {
+			return a.compareTo(b) < 0;
+		}
+
 	}
 
 	@Builtin(name = "=<", deref = ALL)
@@ -216,6 +236,11 @@ public abstract class ValueBuiltins {
 
 		@Specialization
 		protected boolean lesserThanOrEqual(long a, long b) {
+			return a <= b;
+		}
+
+		@Specialization
+		protected boolean lesserThanOrEqual(double a, double b) {
 			return a <= b;
 		}
 
@@ -231,6 +256,11 @@ public abstract class ValueBuiltins {
 			return a >= b;
 		}
 
+		@Specialization
+		protected boolean greaterThanOrEqual(double a, double b) {
+			return a >= b;
+		}
+
 	}
 
 	@Builtin(name = ">", deref = ALL)
@@ -240,6 +270,11 @@ public abstract class ValueBuiltins {
 
 		@Specialization
 		protected boolean greaterThan(long a, long b) {
+			return a > b;
+		}
+
+		@Specialization
+		protected boolean greaterThan(double a, double b) {
 			return a > b;
 		}
 
@@ -387,16 +422,14 @@ public abstract class ValueBuiltins {
 
 	}
 
-	@Builtin(deref = 1)
+	@Builtin(deref = 1, tryDeref = 2)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("reference"), @NodeChild("newValue") })
 	public static abstract class CatExchangeNode extends OzNode {
 
 		@Specialization
 		Object catExchange(OzCell cell, Object newValue) {
-			Object oldValue = cell.getValue();
-			cell.setValue(newValue);
-			return oldValue;
+			return cell.exchange(newValue);
 		}
 
 	}
@@ -430,6 +463,12 @@ public abstract class ValueBuiltins {
 		Object catAccessOO(OzObject self, String attr,
 				@Cached("create()") AttrGetNode attrGetNode) {
 			return attrGetNode.executeAttrGet(self, attr);
+		}
+
+		@Specialization
+		Object catAccessOO(OzObject self, OzName name,
+				@Cached("create()") AttrGetNode attrGetNode) {
+			return attrGetNode.executeAttrGet(self, name);
 		}
 
 	}
@@ -747,6 +786,11 @@ public abstract class ValueBuiltins {
 			return chunk.getUnderlying().getShape().hasProperty(feature);
 		}
 
+		@Specialization
+		boolean hasFeature(OzObject object, Object feature) {
+			return object.getFeatures().getShape().hasProperty(feature);
+		}
+
 	}
 
 	@Builtin(deref = { 1, 2 })
@@ -762,6 +806,11 @@ public abstract class ValueBuiltins {
 		@Specialization
 		Object condSelect(DynamicObject record, Object feature, Object def) {
 			return record.get(feature, def);
+		}
+
+		@Specialization
+		Object condSelect(OzObject object, Object feature, Object def) {
+			return object.getFeatures().get(feature, def);
 		}
 
 	}

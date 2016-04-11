@@ -30,7 +30,7 @@ public class OzObject {
 
 	@Override
 	public String toString() {
-		return "<O attr=" + attributes + " feat=" + features + ">";
+		return "<O>";// attr=" + attributes + " feat=" + features + ">";
 	}
 
 }

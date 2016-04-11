@@ -16,6 +16,12 @@ public class OzCell {
 		this.value = value;
 	}
 
+	public Object exchange(Object newValue) {
+		Object oldValue = value;
+		value = newValue;
+		return oldValue;
+	}
+
 	@Override
 	public String toString() {
 		return "<Cell " + value + ">";

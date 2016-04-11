@@ -6,6 +6,7 @@ import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzFailedValue;
 import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzName;
+import org.mozartoz.truffle.runtime.OzPort;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
@@ -64,6 +65,10 @@ public class OzGuards {
 
 	public static boolean isProc(Object value) {
 		return value instanceof OzProc;
+	}
+
+	public static boolean isPort(Object value) {
+		return value instanceof OzPort;
 	}
 
 	public static boolean isFailedValue(Object value) {

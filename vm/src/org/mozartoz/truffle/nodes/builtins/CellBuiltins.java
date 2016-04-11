@@ -34,13 +34,14 @@ public abstract class CellBuiltins {
 
 	}
 
+	@Builtin(deref = 1, tryDeref = 2)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("cell"), @NodeChild("newValue") })
 	public static abstract class ExchangeFunNode extends OzNode {
 
 		@Specialization
-		Object exchangeFun(Object cell, Object newValue) {
-			return unimplemented();
+		Object exchangeFun(OzCell cell, Object newValue) {
+			return cell.exchange(newValue);
 		}
 
 	}

@@ -36,6 +36,11 @@ public abstract class NumberBuiltins {
 			return Math.subtractExact(0L, value);
 		}
 
+		@Specialization
+		double neg(double value) {
+			return -value;
+		}
+
 	}
 
 	@GenerateNodeFactory
@@ -55,12 +60,12 @@ public abstract class NumberBuiltins {
 	public static abstract class AddNode extends OzNode {
 
 		@Specialization(rewriteOn = ArithmeticException.class)
-		protected long add(long a, long b) {
+		long add(long a, long b) {
 			return ExactMath.addExact(a, b);
 		}
 
 		@Specialization
-		protected BigInteger add(BigInteger a, BigInteger b) {
+		BigInteger add(BigInteger a, BigInteger b) {
 			return a.add(b);
 		}
 
@@ -72,12 +77,12 @@ public abstract class NumberBuiltins {
 	public static abstract class SubNode extends OzNode {
 
 		@Specialization(rewriteOn = ArithmeticException.class)
-		protected long sub(long a, long b) {
+		long sub(long a, long b) {
 			return ExactMath.subtractExact(a, b);
 		}
 
 		@Specialization
-		protected BigInteger sub(BigInteger a, BigInteger b) {
+		BigInteger sub(BigInteger a, BigInteger b) {
 			return a.subtract(b);
 		}
 
@@ -89,13 +94,18 @@ public abstract class NumberBuiltins {
 	public static abstract class MulNode extends OzNode {
 
 		@Specialization(rewriteOn = ArithmeticException.class)
-		protected long mul(long a, long b) {
+		long mul(long a, long b) {
 			return ExactMath.multiplyExact(a, b);
 		}
 
 		@Specialization
-		protected BigInteger mul(BigInteger a, BigInteger b) {
+		BigInteger mul(BigInteger a, BigInteger b) {
 			return a.multiply(b);
+		}
+
+		@Specialization
+		double mul(double a, double b) {
+			return a * b;
 		}
 
 	}

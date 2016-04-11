@@ -63,7 +63,7 @@ public abstract class CallProcNode extends OzNode {
 		Object message = derefNode.executeDeref(args[0]);
 
 		final Object name;
-		if (message instanceof String) {
+		if (OzGuards.isLiteral(message)) {
 			name = message;
 		} else {
 			name = OzRecord.getLabel((DynamicObject) message);

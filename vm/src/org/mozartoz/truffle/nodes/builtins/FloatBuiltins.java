@@ -28,14 +28,14 @@ public abstract class FloatBuiltins {
 
 	}
 
-	@Builtin(name = "/")
+	@Builtin(name = "/", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class FloatDivNode extends OzNode {
 
 		@Specialization
-		Object div(Object left, Object right) {
-			return unimplemented();
+		double div(double left, double right) {
+			return left / right;
 		}
 
 	}
@@ -184,24 +184,26 @@ public abstract class FloatBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class FloorNode extends OzNode {
 
 		@Specialization
-		Object floor(Object value) {
-			return unimplemented();
+		double floor(double value) {
+			return Math.floor(value);
 		}
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class LogNode extends OzNode {
 
 		@Specialization
-		Object log(Object value) {
-			return unimplemented();
+		double log(double value) {
+			return Math.log(value);
 		}
 
 	}

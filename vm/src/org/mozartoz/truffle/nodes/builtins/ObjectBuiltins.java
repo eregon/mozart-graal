@@ -6,12 +6,11 @@ import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ObjectBuiltinsFactory.AttrGetNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ObjectBuiltinsFactory.AttrPutNodeFactory;
-import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzObject;
-import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.runtime.Unit;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -44,15 +43,7 @@ public abstract class ObjectBuiltins {
 				features = null;
 			} else if (feat instanceof DynamicObject) {
 				DynamicObject featRecord = (DynamicObject) feat;
-				Arity featArity = OzRecord.getArity(featRecord);
-				Object[] values = new Object[featArity.getWidth()];
-				for (int i = 0; i < values.length; i++) {
-					values[i] = new OzVar();
-				}
-				features = OzRecord.buildRecord(featArity, values);
-				for (Property property : featRecord.getShape().getProperties()) {
-					property.get(featRecord, featRecord.getShape());
-				}
+				features = initRecordValues(featRecord);
 			} else {
 				throw new Error();
 			}
@@ -62,14 +53,7 @@ public abstract class ObjectBuiltins {
 				attributes = null;
 			} else if (attr instanceof DynamicObject) {
 				DynamicObject attrRecord = (DynamicObject) attr;
-				attributes = attrRecord.copy(attrRecord.getShape());
-				for (Property property : attrRecord.getShape().getProperties()) {
-					Object defaultValue = property.get(attrRecord, attrRecord.getShape());
-					if (defaultValue == ooFreeFlag) {
-						defaultValue = new OzVar();
-					}
-					property.setInternal(attributes, defaultValue);
-				}
+				attributes = initRecordValues(attrRecord);
 			} else {
 				throw new Error();
 			}
@@ -77,16 +61,44 @@ public abstract class ObjectBuiltins {
 			return new OzObject(classDesc, features, attributes);
 		}
 
+		private DynamicObject initRecordValues(DynamicObject model) {
+			final DynamicObject instance;
+			instance = model.copy(model.getShape());
+			for (Property property : model.getShape().getProperties()) {
+				Object defaultValue = property.get(model, model.getShape());
+				if (defaultValue == ooFreeFlag) {
+					defaultValue = new OzVar();
+				}
+				property.setInternal(instance, defaultValue);
+			}
+			return instance;
+		}
+
 	}
 
-	@Builtin(name = "is")
+	@Builtin(name = "is", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsObjectNode extends OzNode {
 
 		@Specialization
-		Object isObject(Object value) {
-			return unimplemented();
+		boolean isObject(Unit unit) {
+			return false;
+		}
+
+		@Specialization
+		boolean isObject(String atom) {
+			return false;
+		}
+
+		@Specialization
+		boolean isObject(DynamicObject record) {
+			return false;
+		}
+
+		@Specialization
+		boolean isObject(OzObject object) {
+			return true;
 		}
 
 	}
