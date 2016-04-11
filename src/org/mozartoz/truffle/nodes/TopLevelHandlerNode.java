@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes;
 
+import org.mozartoz.truffle.runtime.OzBacktrace;
 import org.mozartoz.truffle.runtime.OzException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -18,8 +19,10 @@ public class TopLevelHandlerNode extends OzNode {
 			return body.execute(frame);
 		} catch (OzException ozException) {
 			System.err.println(ozException.getMessage());
-			ozException.getBacktrace().showUserBacktrace();
-			ozException.printStackTrace();
+			OzBacktrace backtrace = ozException.getBacktrace();
+			if (backtrace != null) {
+				backtrace.showUserBacktrace();
+			}
 		} catch (Exception exception) {
 			System.err.println(exception.getMessage());
 			StackTraceElement[] stackTrace = exception.getStackTrace();

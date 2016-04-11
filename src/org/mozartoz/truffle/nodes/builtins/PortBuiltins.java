@@ -1,6 +1,9 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzPort;
 import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -10,38 +13,44 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 public abstract class PortBuiltins {
 
-	@Builtin(name = "new")
+	@Builtin(name = "new", tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("stream")
 	public static abstract class NewPortNode extends OzNode {
 
 		@Specialization
-		Object newPort(OzVar stream) {
-			return unimplemented();
+		OzPort newPort(OzVar stream) {
+			return new OzPort(stream);
 		}
 
 	}
 
-	@Builtin(name = "is")
+	@Builtin(name = "is", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsPortNode extends OzNode {
 
 		@Specialization
-		Object isPort(Object value) {
-			return unimplemented();
+		boolean isPort(OzPort port) {
+			return true;
+		}
+
+		@Specialization(guards = "!isPort(value)")
+		boolean isPort(Object value) {
+			return false;
 		}
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, deref = 1, tryDeref = 2)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("port"), @NodeChild("value") })
 	public static abstract class SendNode extends OzNode {
 
 		@Specialization
-		Object send(Object port, Object value) {
-			return unimplemented();
+		Object send(OzPort port, Object value) {
+			port.send(value);
+			return unit;
 		}
 
 	}

@@ -8,6 +8,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class AtomBuiltins {
 
@@ -20,6 +21,11 @@ public abstract class AtomBuiltins {
 		boolean isAtom(String value) {
 			assert OzGuards.isInterned(value);
 			return true;
+		}
+
+		@Specialization
+		boolean isAtom(DynamicObject record) {
+			return false;
 		}
 
 	}

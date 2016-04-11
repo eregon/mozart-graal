@@ -56,6 +56,11 @@ public abstract class RecordBuiltins {
 		}
 
 		@Specialization
+		protected Object label(OzName name) {
+			return name;
+		}
+
+		@Specialization
 		protected Object label(OzCons cons) {
 			return "|";
 		}

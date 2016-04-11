@@ -36,7 +36,8 @@ public class Loader {
 	public static final String PROJECT_ROOT = getProjectRoot();
 	public static final String MOZART2_DIR = new File(PROJECT_ROOT).getParent() + "/mozart2";
 
-	public static final String MAIN_LIB_DIR = MOZART2_DIR + "/lib/main";
+	static final String MAIN_LIB_DIR = MOZART2_DIR + "/lib/main";
+	static final String TOOLS_DIR = MOZART2_DIR + "/lib/tools";
 	static final String BASE_FILE_NAME = MAIN_LIB_DIR + "/base/Base.oz";
 	static final String INIT_FUNCTOR = MAIN_LIB_DIR + "/init/Init.oz";
 
@@ -57,6 +58,10 @@ public class Loader {
 			MAIN_LIB_DIR + "/cp/RecordC.oz",
 			MAIN_LIB_DIR + "/ap/Application.oz",
 			MOZART2_DIR + "/vm/boostenv/lib/OS.oz",
+			MAIN_LIB_DIR + "/wp/Tk.oz",
+			MAIN_LIB_DIR + "/wp/TkBoot.oz",
+			MAIN_LIB_DIR + "/wp/TkTools.oz",
+			TOOLS_DIR + "/panel/Panel.oz",
 	};
 
 	// public static final PolyglotEngine ENGINE = PolyglotEngine.newBuilder().build();

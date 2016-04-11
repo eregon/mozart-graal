@@ -3,9 +3,20 @@ package org.mozartoz.truffle.nodes.builtins;
 import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltins.ToAtomNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
+import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.translator.Loader;
 
@@ -15,7 +26,10 @@ import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.coro.Coroutine;
 
 public abstract class OSBuiltins {
 
@@ -37,17 +51,12 @@ public abstract class OSBuiltins {
 				url = url.substring(0, url.length() - 1);
 			}
 
-			assert url.endsWith(".oz");
+			assert url.endsWith(".oz") : url;
 
 			String path = null;
-			if (url.startsWith("x-oz://system/")) {
-				String name = url.substring("x-oz://system/".length());
-				for (String systemFunctor : Loader.SYSTEM_FUNCTORS) {
-					if (new File(systemFunctor).getName().equals(name)) {
-						path = systemFunctor;
-						break;
-					}
-				}
+			if (url.startsWith("x-oz://system/") || url.contains("cache/x-oz/system")) {
+				String name = url.substring(url.lastIndexOf('/') + 1);
+				path = findSystemFunctor(url, name);
 			} else {
 				path = url;
 			}
@@ -60,6 +69,15 @@ public abstract class OSBuiltins {
 			} else {
 				return url.intern();
 			}
+		}
+
+		private String findSystemFunctor(String url, String name) {
+			for (String systemFunctor : Loader.SYSTEM_FUNCTORS) {
+				if (new File(systemFunctor).getName().equals(name)) {
+					return systemFunctor;
+				}
+			}
+			throw new RuntimeException("Could not find system functor " + url);
 		}
 
 	}
@@ -169,13 +187,32 @@ public abstract class OSBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("fileName"), @NodeChild("mode") })
 	public static abstract class FopenNode extends OzNode {
 
+		@CreateCast("fileName")
+		protected OzNode castFileName(OzNode value) {
+			return ToAtomNodeFactory.create(value);
+		}
+
+		@CreateCast("mode")
+		protected OzNode castMode(OzNode value) {
+			return ToAtomNodeFactory.create(value);
+		}
+
+		static final DynamicObjectFactory ERROR_FACTORY = Arity.build("os", 1L, 2L, 3L, 4L).createFactory();
+
 		@Specialization
-		Object fopen(Object fileName, Object mode) {
-			return unimplemented();
+		Object fopen(String fileName, String mode) {
+			assert mode == "rb";
+			try {
+				return new FileInputStream(new File(fileName));
+			} catch (FileNotFoundException e) {
+				DynamicObject error = ERROR_FACTORY.newInstance("os", "os", "fopen", 2, "No such file or directory");
+				throw new OzException(this, OzException.newSystemError(error));
+			}
 		}
 
 	}
@@ -213,14 +250,19 @@ public abstract class OSBuiltins {
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, deref = ALL)
 	@GenerateNodeFactory
-	@NodeChild("fileNode")
+	@NodeChild("file")
 	public static abstract class FcloseNode extends OzNode {
 
 		@Specialization
-		Object fclose(Object fileNode) {
-			return unimplemented();
+		Object fclose(FileInputStream file) {
+			try {
+				file.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			return unit;
 		}
 
 	}
@@ -380,35 +422,96 @@ public abstract class OSBuiltins {
 
 	}
 
+	@Builtin(deref = { 1, 2 })
 	@GenerateNodeFactory
-	@NodeChildren({ @NodeChild("inExecutable"), @NodeChild("inArgv"), @NodeChild("outPid") })
+	@NodeChildren({ @NodeChild("executable"), @NodeChild("argv"), @NodeChild("outPid") })
 	public static abstract class PipeNode extends OzNode {
 
+		@Child ToAtomNode toAtomNode = ToAtomNode.create();
+
+		@CreateCast("executable")
+		protected OzNode castExecutable(OzNode value) {
+			return ToAtomNodeFactory.create(value);
+		}
+
 		@Specialization
-		Object pipe(Object inExecutable, Object inArgv, OzVar outPid) {
-			return unimplemented();
+		Object pipe(String executable, OzCons argv, OzVar outPid) {
+			if (executable.endsWith("/ozwish")) {
+				executable = "/usr/bin/ozwish";
+				argv = new OzCons(executable, argv.getTail());
+			}
+
+			List<String> command = new ArrayList<>();
+			command.add(executable);
+			argv.forEach(e -> {
+				command.add(toAtomNode.executeToAtom(e));
+			});
+			ProcessBuilder builder = new ProcessBuilder(command).redirectErrorStream(true);
+			try {
+				Process process = builder.start();
+				outPid.bind(process);
+				InputStream input = process.getInputStream();
+				OutputStream output = process.getOutputStream();
+				return new OzCons(input, output);
+			} catch (IOException ioException) {
+				throw new RuntimeException(ioException);
+			}
 		}
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("connection"), @NodeChild("count"), @NodeChild("tail") })
 	public static abstract class PipeConnectionReadNode extends OzNode {
 
+		static final DynamicObjectFactory READ_RESULT_FACTORY = Arity.build("succeeded", 1L, 2L).createFactory();
+
 		@Specialization
-		Object pipeConnectionRead(Object connection, Object count, Object tail) {
-			return unimplemented();
+		Object pipeConnectionRead(OzCons connection, long count, Object tail) {
+			InputStream inputStream = (InputStream) connection.getHead();
+			try {
+				while (inputStream.available() == 0) {
+					Coroutine.yield();
+				}
+				byte[] buffer = new byte[(int) count];
+				int bytesRead = inputStream.read(buffer);
+				Object list = byteArrayToOzList(buffer, bytesRead, tail);
+				return READ_RESULT_FACTORY.newInstance("succeeded", (long) bytesRead, list);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		Object byteArrayToOzList(byte[] buffer, int n, Object tail) {
+			Object list = tail;
+			for (int i = n - 1; i >= 0; i--) {
+				list = new OzCons((long) buffer[i], list);
+			}
+			return list;
 		}
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("connection"), @NodeChild("data") })
 	public static abstract class PipeConnectionWriteNode extends OzNode {
 
 		@Specialization
-		Object pipeConnectionWrite(Object connection, Object data) {
-			return unimplemented();
+		long pipeConnectionWrite(OzCons connection, byte[] data) {
+			if (data.length == 0) {
+				unimplemented();
+				return 0L;
+			}
+			OutputStream outputStream = (OutputStream) connection.getTail();
+			try {
+				outputStream.write(data);
+				outputStream.flush();
+				return data.length;
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
 
 	}

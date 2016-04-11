@@ -64,14 +64,15 @@ public abstract class ThreadBuiltins {
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("thread"), @NodeChild("priority") })
 	public static abstract class SetPriorityNode extends OzNode {
 
 		@Specialization
-		Object setPriority(Object thread, Object priority) {
-			return unimplemented();
+		Object setPriority(OzThread thread, String priority) {
+			// TODO: ignored for now
+			return unit;
 		}
 
 	}

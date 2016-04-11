@@ -14,6 +14,10 @@ public class OzException extends RuntimeException {
 		return OzRecord.buildRecord(ERROR_ARITY, error, Unit.INSTANCE);
 	}
 
+	public static DynamicObject newSystemError(Object error) {
+		return OzRecord.buildRecord(SYSTEM_ARITY, error, Unit.INSTANCE);
+	}
+
 	public static DynamicObject newFailure() {
 		return OzRecord.buildRecord(FAILURE_ARITY, Unit.INSTANCE);
 	}

@@ -6,8 +6,11 @@ import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
+import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzRecord;
+import org.mozartoz.truffle.runtime.OzString;
 
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -19,25 +22,73 @@ import com.oracle.truffle.api.object.Property;
 
 public abstract class VirtualStringBuiltins {
 
-	@Builtin(name = "is")
+	@Builtin(name = "is", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsVirtualStringNode extends OzNode {
 
+		public abstract boolean executeIsVirtualString(Object value);
+
 		@Specialization
-		Object isVirtualString(Object value) {
-			return unimplemented();
+		boolean isVirtualString(long value) {
+			return true;
+		}
+
+		@Specialization
+		boolean isVirtualString(double value) {
+			return true;
+		}
+
+		@Specialization
+		boolean isVirtualString(String atom) {
+			return true;
+		}
+
+		@Specialization
+		boolean isVirtualString(OzCons cons) {
+			Object list = cons;
+			while (list instanceof OzCons) {
+				Object head = ((OzCons) list).getHead();
+				assert head instanceof Long;
+				list = ((OzCons) list).getTail();
+			}
+			assert list == "nil";
+			return true;
+		}
+
+		@Specialization
+		boolean isVirtualString(DynamicObject tuple) {
+			Arity arity = OzRecord.getArity(tuple);
+			if (arity.isTupleArity() && arity.getLabel() == "#") {
+				for (long i = 1L; i <= arity.getWidth(); i++) {
+					Object value = tuple.get(i);
+					if (!executeIsVirtualString(value)) {
+						return false;
+					}
+				}
+				return true;
+			}
+			return false;
+		}
+
+		@Specialization
+		boolean isVirtualString(OzObject object) {
+			return false;
 		}
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class ToCompactStringNode extends OzNode {
 
+		@Child ToAtomNode toAtomNode = ToAtomNode.create();
+
 		@Specialization
-		Object toCompactString(Object value) {
-			return unimplemented();
+		OzString toCompactString(Object value) {
+			String chars = toAtomNode.executeToAtom(value);
+			return new OzString(chars);
 		}
 
 	}
@@ -50,6 +101,18 @@ public abstract class VirtualStringBuiltins {
 		@Child DerefNode derefNode = DerefNode.create();
 
 		public abstract Object executeToCharList(Object value, Object tail);
+
+		@Specialization
+		Object toCharList(long number, Object tail) {
+			String str = Long.toString(number).intern();
+			return executeToCharList(str, tail);
+		}
+
+		@Specialization
+		Object toCharList(double number, Object tail) {
+			String str = Double.toString(number).intern();
+			return executeToCharList(str, tail);
+		}
 
 		@Specialization
 		Object toCharList(String atom, Object tail) {
@@ -76,10 +139,13 @@ public abstract class VirtualStringBuiltins {
 		Object toCharList(DynamicObject record, Object tail) {
 			assert OzRecord.getLabel(record) == "#";
 			Object list = tail;
+			// We want to traverse in reverse order here
 			for (Property property : record.getShape().getPropertyListInternal(false)) {
 				if (!property.isHidden()) {
-					Object value = property.get(record, record.getShape());
-					list = executeToCharList(deref(value), list);
+					Object value = deref(property.get(record, record.getShape()));
+					if (value != "nil") {
+						list = executeToCharList(value, list);
+					}
 				}
 			}
 			return list;
@@ -96,14 +162,29 @@ public abstract class VirtualStringBuiltins {
 	@NodeChild("value")
 	public static abstract class ToAtomNode extends OzNode {
 
+		public static ToAtomNode create() {
+			return ToAtomNodeFactory.create(null);
+		}
+
 		@Child DerefNode derefNode = DerefNode.create();
 
 		public abstract String executeToAtom(Object value);
 
 		@Specialization
+		String toAtom(long number) {
+			return Long.toString(number).intern();
+		}
+
+		@Specialization
 		String toAtom(String atom) {
 			assert OzGuards.isAtom(atom);
+			assert atom != "nil";
 			return atom;
+		}
+
+		@Specialization
+		String toAtom(OzString string) {
+			return string.getChars().intern();
 		}
 
 		@Specialization
@@ -124,9 +205,9 @@ public abstract class VirtualStringBuiltins {
 			assert OzRecord.getLabel(record) == "#";
 			StringBuilder builder = new StringBuilder();
 			for (Property property : record.getShape().getProperties()) {
-				if (!property.isHidden()) {
-					Object value = property.get(record, record.getShape());
-					builder.append(executeToAtom(deref(value)));
+				Object value = deref(property.get(record, record.getShape()));
+				if (value != "nil") {
+					builder.append(executeToAtom(value));
 				}
 			}
 			return builder.toString().intern();
