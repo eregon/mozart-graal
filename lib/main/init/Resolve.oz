@@ -47,18 +47,14 @@
 %%% ==================================================================
 
 local
-   BURL_localize        = BURL.localize
-   BURL_open            = BURL.open
-   BURL_load            = BURL.load
-
    \insert UrlExpand.oz
 
    %% here we assume that the url has already been expanded if it
    %% was relative
 
-   fun {Meth_localize U} {BURL_localize {UrlToVs U}} end
-   fun {Meth_open     U} {BURL_open     {UrlToVs U}} end
-   fun {Meth_load     U} {BURL_load     {UrlToVs U}} end
+   fun {Meth_localize U} {BURL.localize {UrlToVs U}} end
+   fun {Meth_open     U} {BURL.open     {UrlToVs U}} end
+   fun {Meth_load     U} {BURL.load     {UrlToVs U}} end
    %fun {Meth_native_usual U} {GetNative {UrlToVs U}} end
    fun {Meth_native_win32 U}
       %% on windows we also try the non-encoded version since
