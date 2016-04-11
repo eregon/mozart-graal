@@ -30,7 +30,8 @@ elsif ARGV == %w[compile]
   cmd = %w[javac -sourcepath src -cp] + ["#{truffle_dsl_processor}:#{classpath}"] + %w[-d bin] + Dir["src/**/*.java"]
   exec(*cmd)
 else
-  cmd = [JAVACMD, "-Xbootclasspath/p:#{bootclasspath.join(':')}", '-cp', libraries.join(':'), 'org.mozartoz.truffle.Main'] + ARGV
+  java_opts = %w[-ea -esa]
+  cmd = [JAVACMD, *java_opts, "-Xbootclasspath/p:#{bootclasspath.join(':')}", '-cp', libraries.join(':'), 'org.mozartoz.truffle.Main'] + ARGV
   puts "$ #{cmd.join(' ')}"
   exec(*cmd)
 end
