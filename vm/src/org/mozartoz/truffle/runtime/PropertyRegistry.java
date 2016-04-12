@@ -1,7 +1,10 @@
 package org.mozartoz.truffle.runtime;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.translator.Loader;
@@ -14,8 +17,6 @@ public class PropertyRegistry {
 
 	private PropertyRegistry() {
 	}
-
-	private static final long MB = 1024L * 1024L;
 
 	public void initialize() {
 		registerConstant("platform.os", System.getProperty("os.name").intern());
@@ -45,9 +46,16 @@ public class PropertyRegistry {
 		registerConstant("gc.free", 75L);
 		registerConstant("gc.on", true);
 		registerConstant("gc.tolerance", 10L);
-		registerConstant("gc.min", 16L * MB);
-		registerConstant("gc.size", 32L * MB);
-		registerConstant("gc.threshold", 48L * MB);
+		MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+		registerComputed("gc.min", () -> {
+			return memoryMXBean.getHeapMemoryUsage().getInit();
+		});
+		registerComputed("gc.size", () -> {
+			return memoryMXBean.getHeapMemoryUsage().getUsed();
+		});
+		registerComputed("gc.threshold", () -> {
+			return memoryMXBean.getHeapMemoryUsage().getCommitted();
+		});
 
 		registerConstant("messages.gc", false);
 		registerConstant("messages.idle", false);
@@ -87,18 +95,23 @@ public class PropertyRegistry {
 
 	public void registerConstant(String property, Object value) {
 		assert isOzValue(value) : value;
-		if (properties.containsKey(property)) {
-			throw new RuntimeException();
-		}
-		properties.put(property, new ConstantAccessor(property, value));
+		registerInternal(property, new ConstantAccessor(property, value));
 	}
 
 	public void registerValue(String property, Object value) {
 		assert isOzValue(value) : value;
+		registerInternal(property, new ValueAccessor(value));
+	}
+
+	public void registerComputed(String property, Supplier<Object> getter) {
+		registerInternal(property, new ComputedAccessor(property, getter));
+	}
+
+	private void registerInternal(String property, Accessor accessor) {
 		if (properties.containsKey(property)) {
 			throw new RuntimeException();
 		}
-		properties.put(property, new ValueAccessor(value));
+		properties.put(property, accessor);
 	}
 
 	private static boolean isOzValue(Object value) {
@@ -165,6 +178,30 @@ public class PropertyRegistry {
 		@Override
 		public void set(Object newValue) {
 			this.value = newValue;
+		}
+
+	}
+
+	protected class ComputedAccessor implements Accessor {
+
+		private final String property;
+		private final Supplier<Object> getter;
+
+		public ComputedAccessor(String property, Supplier<Object> getter) {
+			this.property = property;
+			this.getter = getter;
+		}
+
+		@Override
+		public Object get() {
+			Object value = getter.get();
+			assert isOzValue(value);
+			return value;
+		}
+
+		@Override
+		public void set(Object newValue) {
+			throw new RuntimeException("Tried to set computed property " + property);
 		}
 
 	}
