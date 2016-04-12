@@ -10,6 +10,7 @@ import org.mozartoz.truffle.runtime.OzPort;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.runtime.Unit;
 import org.mozartoz.truffle.runtime.Variable;
 
 import com.oracle.truffle.api.object.DynamicObject;
@@ -39,8 +40,20 @@ public class OzGuards {
 		return value instanceof String;
 	}
 
+	public static boolean isBool(Object value) {
+		return value instanceof Boolean;
+	}
+
+	public static boolean isUnit(Object value) {
+		return value instanceof Unit;
+	}
+
 	public static boolean isName(Object value) {
 		return value instanceof OzName;
+	}
+
+	public static boolean isNameLike(Object value) {
+		return isBool(value) || isUnit(value) || isName(value) || isUniqueName(value);
 	}
 
 	public static boolean isUniqueName(Object value) {
@@ -48,7 +61,7 @@ public class OzGuards {
 	}
 
 	public static boolean isLiteral(Object value) {
-		return isAtom(value) || isName(value) || isUniqueName(value);
+		return isAtom(value) || isNameLike(value);
 	}
 
 	public static boolean isFeature(Object value) {

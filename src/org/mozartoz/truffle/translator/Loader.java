@@ -16,7 +16,6 @@ import org.mozartoz.bootcompiler.transform.Unnester;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
-import org.mozartoz.truffle.nodes.builtins.PropertyBuiltins;
 import org.mozartoz.truffle.nodes.control.SequenceNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
@@ -24,6 +23,7 @@ import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzLanguage;
+import org.mozartoz.truffle.runtime.PropertyRegistry;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -73,9 +73,12 @@ public class Loader {
 	}
 
 	private DynamicObject base = null;
+	private final PropertyRegistry propertyRegistry;
 
 	private Loader() {
 		BuiltinsManager.defineBuiltins();
+		propertyRegistry = PropertyRegistry.INSTANCE;
+		propertyRegistry.initialize();
 	}
 
 	public DynamicObject loadBase() {
@@ -148,8 +151,8 @@ public class Loader {
 	public void runFunctor(Source source, String... args) {
 		Object initFunctor = execute(parseFunctor(createSource(INIT_FUNCTOR)));
 
-		PropertyBuiltins.setApplicationURL(source.getPath());
-		PropertyBuiltins.setApplicationArgs(args);
+		propertyRegistry.setApplicationURL(source.getPath());
+		propertyRegistry.setApplicationArgs(args);
 		execute(InitFunctor.apply(initFunctor));
 	}
 
