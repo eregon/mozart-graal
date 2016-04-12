@@ -19,6 +19,17 @@ public class OzThread implements Runnable {
 
 	public static final OzThread MAIN_THREAD = new OzThread();
 
+	private static long threadsCreated = 1L;
+	private static long threadsRunnable = 1L;
+
+	public static long getNumberOfThreadsRunnable() {
+		return threadsRunnable;
+	}
+
+	public static long getNumberOfThreadsCreated() {
+		return threadsCreated;
+	}
+
 	public static OzThread getCurrent() {
 		return CURRENT_OZ_THREAD.get();
 	}
@@ -32,13 +43,14 @@ public class OzThread implements Runnable {
 		setInitialOzThread();
 	}
 
-	private void setInitialOzThread() {
-		CURRENT_OZ_THREAD.set(this);
-	}
-
 	public OzThread(OzProc proc) {
 		this.target = wrap(proc);
 		this.coroutine = new Coroutine(this, 1024 * 1024); // 256 seems OK if we parse outside the coro
+		threadsCreated++;
+	}
+
+	private void setInitialOzThread() {
+		CURRENT_OZ_THREAD.set(this);
 	}
 
 	public Coroutine getCoroutine() {
@@ -49,7 +61,12 @@ public class OzThread implements Runnable {
 	public void run() {
 		setInitialOzThread();
 		Object[] arguments = OzArguments.pack(null, new Object[0]);
-		target.call(arguments);
+		threadsRunnable++;
+		try {
+			target.call(arguments);
+		} finally {
+			threadsRunnable--;
+		}
 	}
 
 	private static CallTarget wrap(OzProc proc) {
