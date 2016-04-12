@@ -26,10 +26,10 @@ public class PropertyRegistry {
 
 		registerConstant("application.gui", false);
 
-		registerConstant("errors.debug", true);
-		registerConstant("errors.thread", 40L);
-		registerConstant("errors.width", 20L);
-		registerConstant("errors.depth", 10L);
+		registerValue("errors.debug", true);
+		registerValue("errors.thread", 40L);
+		registerValue("errors.width", 20L);
+		registerValue("errors.depth", 10L);
 
 		registerConstant("fd.variables", 0L);
 		registerConstant("fd.propagators", 0L);
@@ -42,9 +42,7 @@ public class PropertyRegistry {
 		registerValue("gc.on", true);
 		registerValue("gc.tolerance", 10L);
 		MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
-		registerComputed("gc.min", () -> {
-			return memoryMXBean.getHeapMemoryUsage().getInit();
-		});
+		registerValue("gc.min", memoryMXBean.getHeapMemoryUsage().getInit());
 		registerComputed("gc.size", () -> {
 			return memoryMXBean.getHeapMemoryUsage().getUsed();
 		});
@@ -56,14 +54,14 @@ public class PropertyRegistry {
 		registerConstant("limits.int.max", Long.MAX_VALUE);
 		registerConstant("limits.int.min", Long.MIN_VALUE);
 
-		registerConstant("messages.gc", false);
-		registerConstant("messages.idle", false);
+		registerValue("messages.gc", false);
+		registerValue("messages.idle", false);
 
 		registerConstant("platform.os", System.getProperty("os.name").intern());
 		registerConstant("platform.name", System.getProperty("os.name").intern());
 
-		registerConstant("priorities.high", 10L);
-		registerConstant("priorities.medium", 10L);
+		registerValue("priorities.high", 10L);
+		registerValue("priorities.medium", 10L);
 
 		registerConstant("spaces.created", 0L);
 		registerConstant("spaces.cloned", 0L);
@@ -71,8 +69,8 @@ public class PropertyRegistry {
 		registerConstant("spaces.failed", 0L);
 		registerConstant("spaces.succeeded", 0L);
 
-		registerConstant("threads.created", 1L);
-		registerConstant("threads.runnable", 1L);
+		registerComputed("threads.created", () -> OzThread.getNumberOfThreadsCreated());
+		registerComputed("threads.runnable", () -> OzThread.getNumberOfThreadsRunnable());
 		registerConstant("threads.min", 1L);
 
 		registerValue("print.verbose", false);
