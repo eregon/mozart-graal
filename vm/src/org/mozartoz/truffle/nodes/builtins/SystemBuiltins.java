@@ -120,7 +120,8 @@ public abstract class SystemBuiltins {
 
 		@Specialization
 		Object gcDo() {
-			return unimplemented();
+			System.gc();
+			return unit;
 		}
 
 	}
