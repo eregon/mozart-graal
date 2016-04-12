@@ -27,9 +27,9 @@ public class PropertyRegistry {
 		registerConstant("application.gui", false);
 
 		registerConstant("errors.debug", true);
-		registerConstant("errors.depth", 10L);
-		registerConstant("errors.width", 20L);
 		registerConstant("errors.thread", 40L);
+		registerConstant("errors.width", 20L);
+		registerConstant("errors.depth", 10L);
 
 		registerConstant("fd.variables", 0L);
 		registerConstant("fd.propagators", 0L);
@@ -37,10 +37,10 @@ public class PropertyRegistry {
 		registerValue("fd.threshold", 0L);
 
 		registerConstant("gc.active", 0L);
-		registerConstant("gc.codeCycles", 0L);
-		registerConstant("gc.free", 75L);
-		registerConstant("gc.on", true);
-		registerConstant("gc.tolerance", 10L);
+		registerValue("gc.codeCycles", 0L);
+		registerValue("gc.free", 75L);
+		registerValue("gc.on", true);
+		registerValue("gc.tolerance", 10L);
 		MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
 		registerComputed("gc.min", () -> {
 			return memoryMXBean.getHeapMemoryUsage().getInit();
@@ -74,6 +74,10 @@ public class PropertyRegistry {
 		registerConstant("threads.created", 1L);
 		registerConstant("threads.runnable", 1L);
 		registerConstant("threads.min", 1L);
+
+		registerValue("print.verbose", false);
+		registerValue("print.width", 20L);
+		registerValue("print.depth", 10L);
 
 		registerConstant("time.user", 0L);
 		registerConstant("time.system", 0L);
