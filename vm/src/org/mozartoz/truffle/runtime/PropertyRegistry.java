@@ -19,17 +19,10 @@ public class PropertyRegistry {
 	}
 
 	public void initialize() {
-		registerConstant("platform.os", System.getProperty("os.name").intern());
-		registerConstant("platform.name", System.getProperty("os.name").intern());
-
 		registerValue("oz.home", Loader.PROJECT_ROOT.intern());
 		registerConstant("oz.version", "3.0.0-alpha");
 		registerValue("oz.search.path", ".");
 		registerValue("oz.search.load", ("cache=/usr/share/mozart/cache").intern());
-
-		registerConstant("limits.bytecode.xregisters", 65536L);
-		registerConstant("limits.int.max", Long.MAX_VALUE);
-		registerConstant("limits.int.min", Long.MIN_VALUE);
 
 		registerConstant("application.gui", false);
 
@@ -38,8 +31,10 @@ public class PropertyRegistry {
 		registerConstant("errors.width", 20L);
 		registerConstant("errors.thread", 40L);
 
-		registerConstant("priorities.high", 10L);
-		registerConstant("priorities.medium", 10L);
+		registerConstant("fd.variables", 0L);
+		registerConstant("fd.propagators", 0L);
+		registerConstant("fd.invoked", 0L);
+		registerValue("fd.threshold", 0L);
 
 		registerConstant("gc.active", 0L);
 		registerConstant("gc.codeCycles", 0L);
@@ -57,8 +52,24 @@ public class PropertyRegistry {
 			return memoryMXBean.getHeapMemoryUsage().getCommitted();
 		});
 
+		registerConstant("limits.bytecode.xregisters", 65536L);
+		registerConstant("limits.int.max", Long.MAX_VALUE);
+		registerConstant("limits.int.min", Long.MIN_VALUE);
+
 		registerConstant("messages.gc", false);
 		registerConstant("messages.idle", false);
+
+		registerConstant("platform.os", System.getProperty("os.name").intern());
+		registerConstant("platform.name", System.getProperty("os.name").intern());
+
+		registerConstant("priorities.high", 10L);
+		registerConstant("priorities.medium", 10L);
+
+		registerConstant("spaces.created", 0L);
+		registerConstant("spaces.cloned", 0L);
+		registerConstant("spaces.committed", 0L);
+		registerConstant("spaces.failed", 0L);
+		registerConstant("spaces.succeeded", 0L);
 
 		registerConstant("threads.created", 1L);
 		registerConstant("threads.runnable", 1L);
