@@ -13,6 +13,7 @@ import org.mozartoz.truffle.translator.Loader;
 public class PropertyRegistry {
 
 	public static final PropertyRegistry INSTANCE = new PropertyRegistry();
+	private static final long START_TIME = System.currentTimeMillis();
 
 	private final Map<String, Accessor> properties = new HashMap<>();
 
@@ -77,7 +78,7 @@ public class PropertyRegistry {
 		registerConstant("time.user", 0L);
 		registerConstant("time.system", 0L);
 		registerConstant("time.total", 0L);
-		registerConstant("time.run", 0L);
+		registerComputed("time.run", () -> System.currentTimeMillis() - START_TIME);
 		registerConstant("time.idle", 0L);
 		registerConstant("time.copy", 0L);
 		registerConstant("time.propagate", 0L);
