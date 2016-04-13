@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
+import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.util.HashMap;
@@ -36,7 +37,7 @@ public class PropertyRegistry {
 		registerConstant("fd.invoked", 0L);
 		registerValue("fd.threshold", 0L);
 
-		registerConstant("gc.active", 0L);
+		registerComputed("gc.active", () -> GarbageCollectionNotifier.getLastActiveSize());
 		registerValue("gc.codeCycles", 0L);
 		registerValue("gc.free", 75L);
 		registerValue("gc.on", true);
@@ -84,8 +85,16 @@ public class PropertyRegistry {
 		registerConstant("time.idle", 0L);
 		registerConstant("time.copy", 0L);
 		registerConstant("time.propagate", 0L);
-		registerConstant("time.gc", 0L);
+		registerComputed("time.gc", () -> {
+			long total = 0L;
+			for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) {
+				total += gcBean.getCollectionTime();
+			}
+			return total;
+		});
 		registerValue("time.detailed", false);
+
+		GarbageCollectionNotifier.register();
 	}
 
 	public boolean containsKey(String property) {
