@@ -44,12 +44,8 @@ public class PropertyRegistry {
 		registerValue("gc.tolerance", 10L);
 		MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
 		registerValue("gc.min", memoryMXBean.getHeapMemoryUsage().getInit());
-		registerComputed("gc.size", () -> {
-			return memoryMXBean.getHeapMemoryUsage().getUsed();
-		});
-		registerComputed("gc.threshold", () -> {
-			return memoryMXBean.getHeapMemoryUsage().getCommitted();
-		});
+		registerComputed("gc.size", () -> memoryMXBean.getHeapMemoryUsage().getUsed());
+		registerComputed("gc.threshold", () -> memoryMXBean.getHeapMemoryUsage().getCommitted());
 
 		registerConstant("limits.bytecode.xregisters", 65536L);
 		registerConstant("limits.int.max", Long.MAX_VALUE);
