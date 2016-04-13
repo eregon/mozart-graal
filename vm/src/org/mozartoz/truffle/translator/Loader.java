@@ -2,6 +2,8 @@ package org.mozartoz.truffle.translator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.mozartoz.bootcompiler.Main;
 import org.mozartoz.bootcompiler.ast.Statement;
@@ -155,6 +157,23 @@ public class Loader {
 		propertyRegistry.setApplicationArgs(args);
 		execute(InitFunctor.apply(initFunctor));
 	}
+
+	// Shutdown
+
+	private List<Process> childProcesses = new LinkedList<>();
+
+	public void registerChildProcess(Process process) {
+		childProcesses.add(process);
+	}
+
+	public void shutdown(int exitCode) {
+		for (Process process : childProcesses) {
+			process.destroyForcibly();
+		}
+		System.exit(exitCode);
+	}
+
+	// Helpers
 
 	public static Source createSource(String path) {
 		Source source;

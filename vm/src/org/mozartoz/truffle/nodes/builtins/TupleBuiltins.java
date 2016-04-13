@@ -5,6 +5,7 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzVar;
 
@@ -21,8 +22,8 @@ public abstract class TupleBuiltins {
 	@NodeChildren({ @NodeChild("label"), @NodeChild("width") })
 	public static abstract class MakeNode extends OzNode {
 
-		@Specialization
-		Object make(String label, long width) {
+		@Specialization(guards = "isLiteral(label)")
+		Object make(Object label, long width) {
 			if (width == 0) {
 				return label;
 			}
@@ -51,6 +52,11 @@ public abstract class TupleBuiltins {
 
 		@Specialization
 		boolean isTuple(String atom) {
+			return true;
+		}
+
+		@Specialization
+		boolean isTuple(OzName name) {
 			return true;
 		}
 

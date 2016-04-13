@@ -83,6 +83,11 @@ public abstract class RecordBuiltins {
 		}
 
 		@Specialization
+		long width(OzName name) {
+			return 0;
+		}
+
+		@Specialization
 		long width(OzCons cons) {
 			return 2;
 		}

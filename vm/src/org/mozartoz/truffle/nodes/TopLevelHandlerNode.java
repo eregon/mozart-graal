@@ -2,6 +2,7 @@ package org.mozartoz.truffle.nodes;
 
 import org.mozartoz.truffle.runtime.OzBacktrace;
 import org.mozartoz.truffle.runtime.OzException;
+import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
@@ -29,7 +30,7 @@ public class TopLevelHandlerNode extends OzNode {
 			if (stackTrace.length > 0) {
 				System.err.println(stackTrace[0]);
 			}
-			System.exit(1);
+			Loader.getInstance().shutdown(1);
 		}
 		return unit;
 	}

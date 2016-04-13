@@ -450,6 +450,7 @@ public abstract class OSBuiltins {
 			try {
 				Process process = builder.start();
 				outPid.bind(process);
+				Loader.getInstance().registerChildProcess(process);
 				InputStream input = process.getInputStream();
 				OutputStream output = process.getOutputStream();
 				return new OzCons(input, output);

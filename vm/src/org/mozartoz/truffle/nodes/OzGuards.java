@@ -102,6 +102,10 @@ public class OzGuards {
 
 	// Guards on specific types
 
+	public static boolean isInt(long value) {
+		return ((int) value) == value;
+	}
+
 	public static boolean isInterned(String str) {
 		return str.intern() == str;
 	}
