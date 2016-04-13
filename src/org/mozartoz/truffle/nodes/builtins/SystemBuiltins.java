@@ -8,6 +8,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.SystemBuiltinsFactory.GetReprNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -147,13 +148,15 @@ public abstract class SystemBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("exitCode")
 	public static abstract class ExitNode extends OzNode {
 
-		@Specialization
-		Object exit(Object exitCode) {
-			return unimplemented();
+		@Specialization(guards = "isInt(exitCode)")
+		Object exit(long exitCode) {
+			Loader.getInstance().shutdown((int) exitCode);
+			return unit;
 		}
 
 	}

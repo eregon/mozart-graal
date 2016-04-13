@@ -27,6 +27,18 @@ public abstract class UnifyNode extends OzNode {
 
 	public abstract Object executeUnify(Object a, Object b);
 
+	@Specialization(guards = { "isBound(a)", "!isBound(b)" })
+	Object unifyLeftBound(OzVar a, OzVar b) {
+		b.bind(a.getBoundValue(this));
+		return unit;
+	}
+
+	@Specialization(guards = { "!isBound(a)", "isBound(b)" })
+	Object unifyRightBound(OzVar a, OzVar b) {
+		a.bind(b.getBoundValue(this));
+		return unit;
+	}
+
 	@Specialization(guards = { "!isVariable(a)", "!isBound(b)" })
 	Object unify(Object a, OzVar b) {
 		b.bind(a);
