@@ -2,6 +2,7 @@ package org.mozartoz.truffle.runtime;
 
 import java.util.Map;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 
 /**
@@ -9,6 +10,7 @@ import com.oracle.truffle.api.object.DynamicObject;
  */
 public abstract class OzRecord {
 
+	@TruffleBoundary
 	public static DynamicObject buildRecord(Arity arity, Object... values) {
 		assert values.length != 0;
 		assert !arity.isConsArity();

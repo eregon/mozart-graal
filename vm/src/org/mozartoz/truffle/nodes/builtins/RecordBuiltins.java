@@ -14,6 +14,7 @@ import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzVar;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -171,6 +172,7 @@ public abstract class RecordBuiltins {
 			return label;
 		}
 
+		@TruffleBoundary
 		@Specialization(guards = "isLiteral(label)")
 		protected Object makeDynamic(Object label, DynamicObject contents) {
 			int width = OzRecord.getArity(contents).getWidth();

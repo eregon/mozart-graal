@@ -12,6 +12,7 @@ import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.runtime.Unit;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -32,6 +33,7 @@ public abstract class ObjectBuiltins {
 
 		@Child DerefNode derefNode = DerefNode.create();
 
+		@TruffleBoundary
 		@Specialization
 		OzObject newObject(OzChunk clazz) {
 			DynamicObject classDesc = clazz.getUnderlying();

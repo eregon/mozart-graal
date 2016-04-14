@@ -4,6 +4,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.coro.Coroutine;
 
 public abstract class Variable {
@@ -83,6 +84,7 @@ public abstract class Variable {
 		this.needed = true;
 	}
 
+	@TruffleBoundary
 	public Object waitValue(OzNode currentNode) {
 		makeNeeded();
 		return waitValueQuiet(currentNode);

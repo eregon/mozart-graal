@@ -10,6 +10,8 @@ import java.util.function.Supplier;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.translator.Loader;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
 public class PropertyRegistry {
 
 	public static final PropertyRegistry INSTANCE = new PropertyRegistry();
@@ -94,10 +96,12 @@ public class PropertyRegistry {
 		GarbageCollectionNotifier.register();
 	}
 
+	@TruffleBoundary
 	public boolean containsKey(String property) {
 		return properties.containsKey(property);
 	}
 
+	@TruffleBoundary
 	public Object get(String property) {
 		Accessor accessor = properties.get(property);
 		if (accessor == null) {
@@ -106,17 +110,20 @@ public class PropertyRegistry {
 		return accessor.get();
 	}
 
+	@TruffleBoundary
 	public void put(String property, Object value) {
 		assert isOzValue(value) : value;
 		Accessor accessor = properties.get(property);
 		accessor.set(value);
 	}
 
+	@TruffleBoundary
 	public void registerConstant(String property, Object value) {
 		assert isOzValue(value) : value;
 		registerInternal(property, new ConstantAccessor(property, value));
 	}
 
+	@TruffleBoundary
 	public void registerValue(String property, Object value) {
 		assert isOzValue(value) : value;
 		registerInternal(property, new ValueAccessor(value));

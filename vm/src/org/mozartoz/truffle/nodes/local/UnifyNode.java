@@ -10,6 +10,7 @@ import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.runtime.Variable;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -31,6 +32,7 @@ public abstract class UnifyNode extends OzNode {
 
 	public abstract Object executeUnify(Object a, Object b);
 
+	@TruffleBoundary
 	private Object unify(Object a, Object b) {
 		return executeUnify(deref(a), deref(b));
 	}
