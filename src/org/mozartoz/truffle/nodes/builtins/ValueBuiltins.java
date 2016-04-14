@@ -318,6 +318,7 @@ public abstract class ValueBuiltins {
 			}
 		}
 
+		@TruffleBoundary
 		@Specialization
 		protected Object getRecord(DynamicObject record, Object feature) {
 			Object value = record.get(feature);
@@ -537,17 +538,24 @@ public abstract class ValueBuiltins {
 
 		@Specialization(guards = "isBound(var)")
 		Object wait(OzVar var) {
-			return executeWait(var.getBoundValue(this));
+			return check(var.getBoundValue(this));
 		}
 
 		@Specialization(guards = "!isBound(var)")
 		Object waitUnbound(OzVar var) {
-			return executeWait(var.waitValue(this));
+			return check(var.waitValue(this));
 		}
 
 		@Specialization
 		Object wait(OzFailedValue failedValue) {
-			throw new OzException(this, failedValue.getData());
+			return check(failedValue);
+		}
+
+		private Object check(Object value) {
+			if (value instanceof OzFailedValue) {
+				throw new OzException(this, ((OzFailedValue) value).getData());
+			}
+			return unit;
 		}
 
 	}

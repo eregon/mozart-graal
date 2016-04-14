@@ -11,6 +11,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
 import org.mozartoz.truffle.runtime.OzCons;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -29,6 +30,7 @@ public abstract class CodersBuiltins {
 			return ToAtomNodeFactory.create(value);
 		}
 
+		@TruffleBoundary
 		@Specialization
 		byte[] encode(String string, String encoding, String variant) {
 			assert variant == "nil";
@@ -44,6 +46,7 @@ public abstract class CodersBuiltins {
 	@NodeChildren({ @NodeChild("value"), @NodeChild("encoding"), @NodeChild("variant") })
 	public static abstract class DecodeNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		String decode(byte[] value, String encoding, String variant) {
 			assert variant == "nil";
@@ -51,6 +54,7 @@ public abstract class CodersBuiltins {
 			return charset.decode(ByteBuffer.wrap(value)).toString().intern();
 		}
 
+		@TruffleBoundary
 		@Specialization
 		String decode(OzCons cons, String encoding, String variant) {
 			List<Byte> list = new ArrayList<Byte>();

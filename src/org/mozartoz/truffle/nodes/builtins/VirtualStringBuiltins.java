@@ -12,6 +12,7 @@ import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzString;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -56,6 +57,7 @@ public abstract class VirtualStringBuiltins {
 			return true;
 		}
 
+		@TruffleBoundary
 		@Specialization
 		boolean isVirtualString(DynamicObject tuple) {
 			Arity arity = OzRecord.getArity(tuple);
@@ -102,12 +104,14 @@ public abstract class VirtualStringBuiltins {
 
 		public abstract Object executeToCharList(Object value, Object tail);
 
+		@TruffleBoundary
 		@Specialization
 		Object toCharList(long number, Object tail) {
 			String str = Long.toString(number).intern();
 			return executeToCharList(str, tail);
 		}
 
+		@TruffleBoundary
 		@Specialization
 		Object toCharList(double number, Object tail) {
 			String str = Double.toString(number).intern();
@@ -123,6 +127,7 @@ public abstract class VirtualStringBuiltins {
 			return list;
 		}
 
+		@TruffleBoundary
 		@Specialization
 		Object toCharList(OzCons cons, Object tail) {
 			Object head = cons.getHead();
@@ -135,6 +140,7 @@ public abstract class VirtualStringBuiltins {
 			}
 		}
 
+		@TruffleBoundary
 		@Specialization
 		Object toCharList(DynamicObject record, Object tail) {
 			assert OzRecord.getLabel(record) == "#";
@@ -170,6 +176,7 @@ public abstract class VirtualStringBuiltins {
 
 		public abstract String executeToAtom(Object value);
 
+		@TruffleBoundary
 		@Specialization
 		String toAtom(long number) {
 			return Long.toString(number).intern();
@@ -187,6 +194,7 @@ public abstract class VirtualStringBuiltins {
 			return string.getChars().intern();
 		}
 
+		@TruffleBoundary
 		@Specialization
 		String toAtom(OzCons cons) {
 			Object head = cons.getHead();
@@ -200,6 +208,7 @@ public abstract class VirtualStringBuiltins {
 			}
 		}
 
+		@TruffleBoundary
 		@Specialization
 		String toAtom(DynamicObject record) {
 			assert OzRecord.getLabel(record) == "#";

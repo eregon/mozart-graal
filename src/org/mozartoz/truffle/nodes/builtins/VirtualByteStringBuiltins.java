@@ -7,6 +7,7 @@ import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzRecord;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -39,6 +40,7 @@ public abstract class VirtualByteStringBuiltins {
 			return true;
 		}
 
+		@TruffleBoundary
 		@Specialization
 		boolean isVirtualByteString(DynamicObject tuple) {
 			Arity arity = OzRecord.getArity(tuple);
