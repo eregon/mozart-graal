@@ -5,6 +5,7 @@ import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.EqualNode;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.runtime.Variable;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -26,6 +27,12 @@ public abstract class UnifyNode extends OzNode {
 	@Child EqualNode equalNode;
 
 	public abstract Object executeUnify(Object a, Object b);
+
+	@Specialization(guards = { "!left.isBound()", "!right.isBound()" })
+	Object unifyUnboundUnbound(Variable left, Variable right) {
+		left.link(right);
+		return unit;
+	}
 
 	@Specialization(guards = { "isBound(a)", "!isBound(b)" })
 	Object unifyLeftBound(OzVar a, OzVar b) {
