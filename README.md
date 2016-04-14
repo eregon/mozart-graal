@@ -4,8 +4,10 @@ An implementation of Oz on top of Truffle and Graal.
 
 ## Current Status
 
-Very early stage.
-The Base and Init functors can be loaded, and some simple tests pass.
+Early stage.
+
+Many simple tests pass and the Panel is working:
+![The Panel On Mozart-Graal](https://pbs.twimg.com/media/Cf_bHhQXIAAtp_X.png)
 
 ## Dependencies
 
