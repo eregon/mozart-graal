@@ -37,9 +37,9 @@ public abstract class UnifyNode extends OzNode {
 		return executeUnify(deref(a), deref(b));
 	}
 
-	@Specialization(guards = { "!left.isBound()", "!right.isBound()" })
-	Object unifyUnboundUnbound(Variable left, Variable right) {
-		left.link(right);
+	@Specialization(guards = { "!a.isBound()", "!b.isBound()" })
+	Object unifyUnboundUnbound(Variable a, Variable b) {
+		a.link(b);
 		return unit;
 	}
 
