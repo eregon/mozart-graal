@@ -1,5 +1,7 @@
 package org.mozartoz.truffle.nodes.local;
 
+import org.mozartoz.truffle.nodes.DerefIfBoundNode;
+import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.EqualNode;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -24,9 +26,14 @@ public abstract class UnifyNode extends OzNode {
 	// TODO: should undo bindings if unification fails.
 	// Maybe by catching the failed unification exception?
 
+	@Child DerefIfBoundNode derefIfBoundNode = DerefIfBoundNodeGen.create();
 	@Child EqualNode equalNode;
 
 	public abstract Object executeUnify(Object a, Object b);
+
+	private Object unify(Object a, Object b) {
+		return executeUnify(deref(a), deref(b));
+	}
 
 	@Specialization(guards = { "!left.isBound()", "!right.isBound()" })
 	Object unifyUnboundUnbound(Variable left, Variable right) {
@@ -60,8 +67,8 @@ public abstract class UnifyNode extends OzNode {
 
 	@Specialization
 	Object unify(OzCons a, OzCons b) {
-		executeUnify(a.getHead(), b.getHead());
-		executeUnify(a.getTail(), b.getTail());
+		unify(a.getHead(), b.getHead());
+		unify(a.getTail(), b.getTail());
 		return unit;
 	}
 
@@ -70,18 +77,22 @@ public abstract class UnifyNode extends OzNode {
 		for (Property property : a.getShape().getProperties()) {
 			Object aValue = property.get(a, a.getShape());
 			Object bValue = property.get(b, b.getShape());
-			executeUnify(aValue, bValue);
+			unify(aValue, bValue);
 		}
 		return unit;
 	}
 
 	@Specialization(guards = { "!isVariable(a)", "!isVariable(b)", "!isCons(a)", "!isCons(b)" })
-	Object unify(Object a, Object b) {
+	Object unifyValues(Object a, Object b) {
 		if (!equal(a, b)) {
 			CompilerDirectives.transferToInterpreter();
 			throw new OzException(this, "Failed unification: " + a + " != " + b);
 		}
 		return unit;
+	}
+
+	private Object deref(Object value) {
+		return derefIfBoundNode.executeDerefIfBound(value);
 	}
 
 	private boolean equal(Object a, Object b) {
