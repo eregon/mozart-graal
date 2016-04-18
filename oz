@@ -13,7 +13,7 @@ unless File.exist?('.classpath')
   File.write('.factorypath', File.read('tool/factorypath').gsub('../', "#{parent_dir}/"))
 end
 contents = File.read('.classpath')
-entries = contents.scan(/<classpathentry kind="(?:var|lib|output)" path="([^"]+)"/).map(&:first)
+entries = contents.scan(/<classpathentry\b.* kind="(?:var|lib|output)" path="([^"]+)"/).map(&:first)
 entries.unshift BOOTCOMPILER_JAR
 
 bootclasspath, libraries = entries.map { |path|
