@@ -25,14 +25,31 @@
 
 package com.oracle.truffle.coro;
 
+import com.oracle.truffle.api.Truffle;
+
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-public class CoroutineSupport {
+public abstract class CoroutineSupport {
 
-    private static final ThreadLocal<CoroutineSupport> COROUTINE_SUPPORT = new ThreadLocal<CoroutineSupport>() {
+    private static boolean hasNativeCoroutines() {
+        boolean isGraal = Truffle.getRuntime().getClass().getName().contains(".graal.");
+        return isGraal;
+    }
+
+    static final boolean NATIVE = hasNativeCoroutines();
+
+    public static CoroutineSupport create(Thread thread) {
+        if (NATIVE) {
+            return new NativeCoroutineSupport(thread);
+        } else {
+            return new ThreadCoroutineSupport(thread);
+        }
+    }
+
+    static final ThreadLocal<CoroutineSupport> COROUTINE_SUPPORT = new ThreadLocal<CoroutineSupport>() {
         @Override
         protected CoroutineSupport initialValue() {
-            return new CoroutineSupport(Thread.currentThread());
+            return CoroutineSupport.create(Thread.currentThread());
         }
     };
 
@@ -52,20 +69,16 @@ public class CoroutineSupport {
     // There's only one CoroutineSupport per Thread
     private final Thread thread;
     // The initial coroutine of the Thread
-    private final Coroutine threadCoroutine;
+    protected final Coroutine threadCoroutine;
 
     // The currently executing, symmetric or asymmetric coroutine
     CoroutineBase currentCoroutine;
     // The anchor of the doubly-linked ring of coroutines
     Coroutine scheduledCoroutines;
 
-    static {
-        registerNatives();
-    }
-
-    public CoroutineSupport(Thread thread) {
+    CoroutineSupport(Thread thread) {
         this.thread = thread;
-        threadCoroutine = new Coroutine(this, getThreadCoroutine());
+        threadCoroutine = createInitialThreadCoroutine(this);
         threadCoroutine.next = threadCoroutine;
         threadCoroutine.last = threadCoroutine;
         currentCoroutine = threadCoroutine;
@@ -76,7 +89,7 @@ public class CoroutineSupport {
         assert scheduledCoroutines != null;
         assert currentCoroutine != null;
 
-        coroutine.data = createCoroutine(coroutine, stacksize);
+        initializeCoroutine(coroutine, stacksize);
         if (DEBUG) {
             System.out.println("add Coroutine " + coroutine + ", data" + coroutine.data);
         }
@@ -89,7 +102,7 @@ public class CoroutineSupport {
     }
 
     void addCoroutine(AsymCoroutine<?, ?> coroutine, long stacksize) {
-        coroutine.data = createCoroutine(coroutine, stacksize);
+        initializeCoroutine(coroutine, stacksize);
         if (DEBUG) {
             System.out.println("add AsymCoroutine " + coroutine + ", data" + coroutine.data);
         }
@@ -116,7 +129,7 @@ public class CoroutineSupport {
             }
 
             CoroutineBase coro;
-            while ((coro = cleanupCoroutine()) != null) {
+            while ((coro = doCleanupCoroutine()) != null) {
                 System.out.println(coro);
                 throw new NotImplementedException();
             }
@@ -148,7 +161,7 @@ public class CoroutineSupport {
         scheduledCoroutines = next;
         currentCoroutine = next;
 
-        switchTo(current, next);
+        transferTo(current, next);
     }
 
     public void symmetricYieldTo(Coroutine target) {
@@ -163,7 +176,7 @@ public class CoroutineSupport {
         scheduledCoroutines = target;
         currentCoroutine = target;
 
-        switchTo(current, target);
+        transferTo(current, target);
     }
 
     private static void moveCoroutine(Coroutine a, Coroutine position) {
@@ -190,7 +203,7 @@ public class CoroutineSupport {
         scheduledCoroutines = target;
         currentCoroutine = target;
 
-        switchToAndExit(current, target);
+        transferToAndExit(current, target);
     }
 
     void symmetricExitInternal(Coroutine coroutine) {
@@ -204,7 +217,7 @@ public class CoroutineSupport {
         coroutine.last.next = coroutine.next;
         coroutine.next.last = coroutine.last;
 
-        if (!isDisposable(coroutine.data)) {
+        if (!isDisposableCoroutine(coroutine)) {
             // and insert it before the current coroutine
             coroutine.last = scheduledCoroutines.last;
             coroutine.next = scheduledCoroutines;
@@ -214,7 +227,7 @@ public class CoroutineSupport {
             final Coroutine current = scheduledCoroutines;
             scheduledCoroutines = coroutine;
             currentCoroutine = coroutine;
-            switchToAndExit(current, coroutine);
+            transferToAndExit(current, coroutine);
         }
     }
 
@@ -235,7 +248,7 @@ public class CoroutineSupport {
         final CoroutineBase current = currentCoroutine;
         target.caller = current;
         currentCoroutine = target;
-        switchTo(target.caller, target);
+        transferTo(target.caller, target);
     }
 
     void asymmetricReturn(final AsymCoroutine<?, ?> current) {
@@ -249,7 +262,7 @@ public class CoroutineSupport {
 
         current.caller = null;
         currentCoroutine = caller;
-        switchTo(current, currentCoroutine);
+        transferTo(current, currentCoroutine);
     }
 
     void asymmetricReturnAndTerminate(final AsymCoroutine<?, ?> current) {
@@ -263,7 +276,7 @@ public class CoroutineSupport {
 
         current.caller = null;
         currentCoroutine = caller;
-        switchToAndTerminate(current, currentCoroutine);
+        transferToAndTerminate(current, currentCoroutine);
     }
 
     void terminateCoroutine() {
@@ -281,7 +294,7 @@ public class CoroutineSupport {
         if (DEBUG) {
             System.out.println("to be terminated: " + old);
         }
-        switchToAndTerminate(old, forward);
+        transferToAndTerminate(old, forward);
     }
 
     void terminateCallable() {
@@ -302,20 +315,21 @@ public class CoroutineSupport {
         return currentCoroutine;
     }
 
-    private static native void registerNatives();
+    // Interface
+    protected abstract boolean verifyThread();
 
-    private static native long getThreadCoroutine();
+    protected abstract Coroutine createInitialThreadCoroutine(CoroutineSupport support);
 
-    private static native long createCoroutine(CoroutineBase coroutine, long stacksize);
+    protected abstract void initializeCoroutine(CoroutineBase coroutine, long stacksize);
 
-    private static native void switchTo(CoroutineBase current, CoroutineBase target);
+    protected abstract void transferTo(CoroutineBase current, CoroutineBase target);
 
-    private static native void switchToAndTerminate(CoroutineBase current, CoroutineBase target);
+    protected abstract void transferToAndTerminate(CoroutineBase current, CoroutineBase target);
 
-    private static native void switchToAndExit(CoroutineBase current, CoroutineBase target);
+    protected abstract void transferToAndExit(CoroutineBase current, CoroutineBase target);
 
-    private static native boolean isDisposable(long coroutine);
+    protected abstract boolean isDisposableCoroutine(CoroutineBase coroutine);
 
-    private static native CoroutineBase cleanupCoroutine();
+    protected abstract CoroutineBase doCleanupCoroutine();
 
 }

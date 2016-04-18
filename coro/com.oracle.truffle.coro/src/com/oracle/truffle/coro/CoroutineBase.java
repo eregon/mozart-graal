@@ -25,6 +25,8 @@
 
 package com.oracle.truffle.coro;
 
+import com.oracle.truffle.coro.ThreadCoroutineSupport.ThreadCoroutine;
+
 public abstract class CoroutineBase {
 
     public static CoroutineSupport getCurrentCoroutineSupport() {
@@ -32,6 +34,8 @@ public abstract class CoroutineBase {
     }
 
     transient long data;
+
+    transient ThreadCoroutine threadCoroutine;
 
     transient CoroutineLocal.CoroutineLocalMap coroutineLocals = null;
 
@@ -51,9 +55,8 @@ public abstract class CoroutineBase {
 
     protected abstract void run();
 
-    @SuppressWarnings({"unused"})
-    private final void startInternal() {
-        assert threadSupport.getThread() == Thread.currentThread();
+    final void startInternal() {
+        assert threadSupport.verifyThread();
         try {
             if (CoroutineSupport.DEBUG) {
                 System.out.println("starting coroutine " + this);
@@ -73,7 +76,6 @@ public abstract class CoroutineBase {
                 getCurrentCoroutineSupport().terminateCallable();
             }
         }
-        assert threadSupport.getThread() == Thread.currentThread();
     }
 
     /**

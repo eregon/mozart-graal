@@ -117,7 +117,7 @@ public class Coroutine extends CoroutineBase {
 
     @Override
     protected void run() {
-        assert Thread.currentThread() == threadSupport.getThread();
+        assert threadSupport.verifyThread();
         if (target != null) {
             target.run();
         }
