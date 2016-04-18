@@ -132,7 +132,7 @@ public class CoroutineSupport {
         assert currentCoroutine instanceof Coroutine;
 
         if (TRACE) {
-            System.out.println("locking for symmetric yield...");
+            System.out.println("looking for symmetric yield...");
         }
 
         Coroutine next = scheduledCoroutines.next;
