@@ -1,10 +1,16 @@
 .PHONY: default build bootcompiler graal compile test
 
 MOZART2 = ../mozart2
+
 BOOTCOMPILER_JAR = $(MOZART2)/bootcompiler/target/scala-2.11/bootcompiler-assembly-2.0-SNAPSHOT.jar
 BOOTCOMPILER_ECLIPSE = $(MOZART2)/bootcompiler/.project
+
+OZWISH = $(MOZART2)/wish/ozwish
+OZWISH_SRC = $(MOZART2)/wish/unixmain.cc
+
 MX = ../mx/mx
 GRAAL = ../graal-coro
+
 MAIN_CLASS = bin/org/mozartoz/truffle/Main.class
 
 default: build
@@ -38,7 +44,10 @@ $(MAIN_CLASS): bin
 
 compile: $(MAIN_CLASS)
 
-build: $(MOZART2) bootcompiler graal compile
+$(OZWISH): $(OZWISH_SRC)
+	cc -o $@ -ltcl -ltk $<
+
+build: $(MOZART2) bootcompiler graal compile $(OZWISH)
 
 test:
 	./oz

@@ -437,7 +437,7 @@ public abstract class OSBuiltins {
 		@Specialization
 		Object pipe(String executable, OzCons argv, OzVar outPid) {
 			if (executable.endsWith("/ozwish")) {
-				executable = "/usr/bin/ozwish";
+				executable = Loader.OZWISH;
 				argv = new OzCons(executable, argv.getTail());
 			}
 

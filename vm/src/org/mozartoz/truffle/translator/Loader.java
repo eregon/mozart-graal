@@ -43,6 +43,8 @@ public class Loader {
 	static final String BASE_FILE_NAME = MAIN_LIB_DIR + "/base/Base.oz";
 	static final String INIT_FUNCTOR = MAIN_LIB_DIR + "/init/Init.oz";
 
+	public static final String OZWISH = MOZART2_DIR + "/wish/ozwish";
+
 	public static final String[] SYSTEM_FUNCTORS = new String[] {
 			MAIN_LIB_DIR + "/sys/Property.oz",
 			MAIN_LIB_DIR + "/sys/Space.oz",
