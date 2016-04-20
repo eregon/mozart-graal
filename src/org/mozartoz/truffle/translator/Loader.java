@@ -64,6 +64,7 @@ public class Loader {
 			MAIN_LIB_DIR + "/wp/TkBoot.oz",
 			MAIN_LIB_DIR + "/wp/TkTools.oz",
 			TOOLS_DIR + "/panel/Panel.oz",
+			TOOLS_DIR + "/browser/Browser.oz",
 	};
 
 	// public static final PolyglotEngine ENGINE = PolyglotEngine.newBuilder().build();
