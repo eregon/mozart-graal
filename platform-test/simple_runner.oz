@@ -34,7 +34,7 @@ define
       Keys = TestDesc.keys
    in
       if {Member space Keys} then
-         proc {$} {Info 'skipped (Space)'} end
+         proc {$} raise '  skipped (Space)' end end
       elseif {IsProcedure Test} then
          case {Procedure.arity Test}
          of 0 then Test
@@ -65,10 +65,10 @@ define
       in
          try
             {ActualTest}
+            {Info '  OK'}
          catch E then
             {Show E}
          end
-         {Info '  OK'}
       end
       {NewLine}
    end
