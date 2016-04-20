@@ -4,8 +4,8 @@ M2_REPO = "#{Dir.home}/.m2/repository"
 BOOTCOMPILER = File.expand_path('../../mozart2/bootcompiler', __FILE__)
 BOOTCOMPILER_JAR = "#{BOOTCOMPILER}/target/scala-2.11/bootcompiler-assembly-2.0-SNAPSHOT.jar"
 
-JAVA_HOME = File.expand_path(Dir["../jvmci/jdk1.8.0_*/product"].first)
-JAVACMD = "#{JAVA_HOME}/bin/java"
+GRAAL_HOME = File.expand_path(Dir["../jvmci/jdk1.8.0_*/product"].first)
+GRAAL_JAVA = "#{GRAAL_HOME}/bin/java"
 
 unless File.exist?('.classpath')
   parent_dir = File.expand_path('../..', __FILE__)
@@ -31,7 +31,8 @@ elsif ARGV == %w[compile]
   exec(*cmd)
 else
   java_opts = %w[-ea -esa]
-  cmd = [JAVACMD, *java_opts, "-Xbootclasspath/p:#{bootclasspath.join(':')}", '-cp', libraries.join(':'), 'org.mozartoz.truffle.Main'] + ARGV
+  java = ARGV.delete('--graal') ? GRAAL_JAVA : 'java'
+  cmd = [java, *java_opts, "-Xbootclasspath/p:#{bootclasspath.join(':')}", '-cp', libraries.join(':'), 'org.mozartoz.truffle.Main'] + ARGV
   puts "$ #{cmd.join(' ')}"
   exec(*cmd)
 end
