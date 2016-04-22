@@ -54,7 +54,7 @@ public abstract class OSBuiltins {
 			assert url.endsWith(".oz") : url;
 
 			String path = null;
-			if (url.startsWith("x-oz://system/") || url.contains("cache/x-oz/system")) {
+			if (url.startsWith("x-oz://system/") || url.contains(Loader.LOCAL_LIB_DIR + "/x-oz/system")) {
 				String name = url.substring(url.lastIndexOf('/') + 1);
 				path = findSystemFunctor(url, name);
 			} else {

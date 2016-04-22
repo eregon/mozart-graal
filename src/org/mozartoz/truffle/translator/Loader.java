@@ -37,6 +37,7 @@ public class Loader {
 
 	public static final String PROJECT_ROOT = getProjectRoot();
 	public static final String MOZART2_DIR = new File(PROJECT_ROOT).getParent() + "/mozart2";
+	public static final String LOCAL_LIB_DIR = PROJECT_ROOT + "/lib";
 
 	static final String MAIN_LIB_DIR = MOZART2_DIR + "/lib/main";
 	static final String TOOLS_DIR = MOZART2_DIR + "/lib/tools";

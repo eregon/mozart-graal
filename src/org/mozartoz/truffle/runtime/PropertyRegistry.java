@@ -26,7 +26,7 @@ public class PropertyRegistry {
 		registerValue("oz.home", Loader.PROJECT_ROOT.intern());
 		registerConstant("oz.version", "3.0.0-alpha");
 		registerValue("oz.search.path", ".");
-		registerValue("oz.search.load", ("cache=/usr/share/mozart/cache").intern());
+		registerValue("oz.search.load", ("cache=" + Loader.LOCAL_LIB_DIR).intern());
 
 		registerConstant("application.gui", false);
 
