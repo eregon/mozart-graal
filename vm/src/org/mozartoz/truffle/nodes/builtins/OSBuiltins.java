@@ -5,6 +5,7 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -206,15 +207,21 @@ public abstract class OSBuiltins {
 
 		@Specialization
 		Object fopen(String fileName, String mode) {
-			assert mode == "rb";
 			try {
-				return new FileInputStream(new File(fileName));
+				switch (mode) {
+				case "rb":
+					return new FileInputStream(new File(fileName));
+				case "wb":
+					return new FileOutputStream(new File(fileName));
+				default:
+					DynamicObject error = ERROR_FACTORY.newInstance("os", "os", "fopen", 1, "Opening mode not implemented");
+					throw new OzException(this, error);
+				}
 			} catch (FileNotFoundException e) {
 				DynamicObject error = ERROR_FACTORY.newInstance("os", "os", "fopen", 2, "No such file or directory");
 				throw new OzException(this, OzException.newSystemError(error));
 			}
 		}
-
 	}
 
 	@GenerateNodeFactory
@@ -228,13 +235,19 @@ public abstract class OSBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("fileNode"), @NodeChild("data") })
 	public static abstract class FwriteNode extends OzNode {
 
 		@Specialization
-		Object fwrite(Object fileNode, Object data) {
-			return unimplemented();
+		long fwrite(FileOutputStream file, byte[] data) {
+			try {
+				file.write(data);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			return data.length;
 		}
 
 	}
@@ -257,6 +270,16 @@ public abstract class OSBuiltins {
 
 		@Specialization
 		Object fclose(FileInputStream file) {
+			try {
+				file.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			return unit;
+		}
+
+		@Specialization
+		Object fclose(FileOutputStream file) {
 			try {
 				file.close();
 			} catch (IOException e) {
