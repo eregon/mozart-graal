@@ -446,9 +446,11 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
           name
       }
 
-      val newDefault = default map transformExpr
+      withEnvironmentFromDecls(namedParams.toList) {
+        val newDefault = default map transformExpr
 
-      treeCopy.MethodParam(param, transformExpr(feature), newName, newDefault)
+        treeCopy.MethodParam(param, transformExpr(feature), newName, newDefault)
+      }
     }
 
     val newMessageVar = messageVar map { v =>
