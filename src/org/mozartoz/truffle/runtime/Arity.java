@@ -144,6 +144,7 @@ public class Arity {
 	private static final Object SOME_OBJECT = new Object();
 
 	public static Arity build(Object label, Object... features) {
+		assert OzGuards.isLiteral(label);
 		assert isSortedFeatures(features);
 		Shape shape = Arity.BASE;
 		for (Object feature : features) {
