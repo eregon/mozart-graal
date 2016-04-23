@@ -87,9 +87,7 @@ import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
-import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
-import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchCaptureNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNodeGen;
@@ -124,8 +122,6 @@ public class Translator {
 	private Environment environment = new Environment(null, new FrameDescriptor());
 	private final Environment rootEnvironment = environment;
 
-	private static long id = 0;
-
 	public Translator() {
 	}
 
@@ -139,10 +135,6 @@ public class Translator {
 
 	private void popEnvironment() {
 		environment = environment.parent;
-	}
-
-	private long nextID() {
-		return id++;
 	}
 
 	public FrameSlotAndDepth findVariable(Symbol symbol) {
@@ -208,7 +200,7 @@ public class Translator {
 		} else if (statement instanceof MatchStatement) {
 			MatchStatement matchStatement = (MatchStatement) statement;
 
-			FrameSlot valueSlot = environment.frameDescriptor.addFrameSlot("MatchExpression-value" + nextID());
+			assert matchStatement.value() instanceof Variable;
 			OzNode valueNode = translate(matchStatement.value());
 			Statement elseStatement = matchStatement.elseStatement();
 
@@ -220,13 +212,10 @@ public class Translator {
 
 			OzNode caseNode = elseNode;
 			for (MatchStatementClause clause : clauses) {
-				ReadLocalVariableNode value = new ReadLocalVariableNode(valueSlot);
-				caseNode = translateMatchClause(value, caseNode, clause);
+				caseNode = translateMatchClause(copy(valueNode), caseNode, clause);
 			}
 
-			return SequenceNode.sequence(
-					new InitializeTmpNode(valueSlot, valueNode),
-					caseNode);
+			return caseNode;
 		} else if (statement instanceof CallStatement) {
 			CallStatement callStatement = (CallStatement) statement;
 			Expression callable = callStatement.callable();
@@ -304,7 +293,7 @@ public class Translator {
 		throw unknown("expression", expression);
 	}
 
-	private OzNode translateMatchClause(ReadLocalVariableNode valueNode, OzNode elseNode, MatchStatementClause clause) {
+	private OzNode translateMatchClause(OzNode valueNode, OzNode elseNode, MatchStatementClause clause) {
 		List<OzNode> checks = new ArrayList<>();
 		List<OzNode> bindings = new ArrayList<>();
 		translatePattern(clause.pattern(), valueNode, checks, bindings);
