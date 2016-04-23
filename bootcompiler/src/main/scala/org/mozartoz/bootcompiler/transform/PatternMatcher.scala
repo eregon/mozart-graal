@@ -27,14 +27,6 @@ object PatternMatcher extends Transformer with TreeDSL {
         }
       }
 
-    case matchStat @ MatchStatement(value, clauses, elseStat)
-    if clauses exists (_.hasGuard) =>
-      transformStat {
-        statementWithValIn[VarOrConst](value) { onceValue =>
-          eliminateGuardsStat(matchStat, onceValue, clauses, elseStat)
-        }
-      }
-
     case _ =>
       super.transformStat(statement)
   }
@@ -55,14 +47,6 @@ object PatternMatcher extends Transformer with TreeDSL {
       transformExpr {
         LOCAL (newCaptures:_*) IN {
           treeCopy.MatchExpression(matchStat, value, newClauses, elseExpr)
-        }
-      }
-
-    case matchExpr @ MatchExpression(value, clauses, elseExpr)
-    if clauses exists (_.hasGuard) =>
-      transformExpr {
-        expressionWithValIn[VarOrConst](value) { onceValue =>
-          eliminateGuardsExpr(matchExpr, onceValue, clauses, elseExpr)
         }
       }
 
@@ -122,11 +106,15 @@ object PatternMatcher extends Transformer with TreeDSL {
 
       /* Dive into records */
       case record @ Record(label, fields) =>
-        treeCopy.Record(record, label, processRecordFields(fields))
+        treeCopy.Record(record,
+            processVariablesInPatternInner(label, captures, guards),
+            processRecordFields(fields))
 
       /* Dive into open record patterns */
       case pattern @ OpenRecordPattern(label, fields) =>
-        treeCopy.OpenRecordPattern(pattern, label, processRecordFields(fields))
+        treeCopy.OpenRecordPattern(pattern,
+            processVariablesInPatternInner(label, captures, guards),
+            processRecordFields(fields))
 
       /* Dive into pattern conjunctions */
       case conj @ PatternConjunction(parts) =>
@@ -137,78 +125,6 @@ object PatternMatcher extends Transformer with TreeDSL {
 
       case _ =>
         pattern
-    }
-  }
-
-  private def eliminateGuardsStat(original: MatchStatement, value: VarOrConst,
-      clauses: List[MatchStatementClause],
-      elseStat: Statement): Statement = {
-
-    if (clauses.isEmpty) {
-      elseStat match {
-        case NoElseStatement() =>
-          atPos(original) {
-            MatchStatement(value, Nil, elseStat)
-          }
-
-        case _ =>
-          elseStat
-      }
-    } else {
-      val (clausesNoGuard, clausesGuard) = clauses.span(!_.hasGuard)
-
-      if (clausesGuard.isEmpty) {
-        treeCopy.MatchStatement(original, value, clausesNoGuard, elseStat)
-      } else {
-        val newElseStat = {
-          eliminateGuardsStat(original, value, clausesGuard.tail, elseStat)
-        }
-
-        val firstClause = clausesGuard.head
-        val MatchStatementClause(pattern, Some(guard), body) = firstClause
-
-        val newClause = treeCopy.MatchStatementClause(firstClause,
-            pattern, None, IF (guard) THEN (body) ELSE (newElseStat))
-
-        treeCopy.MatchStatement(original, value,
-            clausesNoGuard :+ newClause, newElseStat)
-      }
-    }
-  }
-
-  private def eliminateGuardsExpr(original: MatchExpression, value: VarOrConst,
-      clauses: List[MatchExpressionClause],
-      elseExpr: Expression): Expression = {
-
-    if (clauses.isEmpty) {
-      elseExpr match {
-        case NoElseExpression() =>
-          atPos(original) {
-            MatchExpression(value, Nil, elseExpr)
-          }
-
-        case _ =>
-          elseExpr
-      }
-    } else {
-      val (clausesNoGuard, clausesGuard) = clauses.span(!_.hasGuard)
-
-      if (clausesGuard.isEmpty) {
-        treeCopy.MatchExpression(original, value, clausesNoGuard, elseExpr)
-      } else {
-        val newElseExpr = {
-          eliminateGuardsExpr(original, value, clausesGuard.tail, elseExpr)
-        }
-
-        val firstClause = clausesGuard.head
-        val MatchExpressionClause(pattern, Some(guard), body) = firstClause
-
-        val newClause = treeCopy.MatchExpressionClause(firstClause,
-            pattern, None, IF (guard) THEN (body) ELSE (newElseExpr))
-
-        treeCopy.MatchExpression(original, value,
-            clausesNoGuard :+ newClause, newElseExpr)
-      }
     }
   }
 }

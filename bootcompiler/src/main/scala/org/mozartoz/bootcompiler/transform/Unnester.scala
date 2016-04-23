@@ -45,7 +45,7 @@ object Unnester extends Transformer with TreeDSL {
       }
 
     case matchStat @ MatchStatement(value, clauses, elseStat) =>
-      val newClauses = clauses map transformClauseStat
+      val newClauses = clauses map transformClauseStat map transformMatchClauseGuard
       val newElseStat = transformStat(elseStat)
 
       def makeNewElseStat(v: Variable) = newElseStat match {
@@ -176,6 +176,15 @@ object Unnester extends Transformer with TreeDSL {
     case _ =>
       throw new Exception(
           "illegal tree in Unnester.transformBindVarToExpression\n" + rhs)
+  }
+
+  private def transformMatchClauseGuard(clause: MatchStatementClause) = clause match {
+    case MatchStatementClause(_, None, _) => clause
+    case MatchStatementClause(pattern, Some(guard), body) =>
+      val newGuard = expressionWithTemp { temp =>
+        transformStat(temp === guard) ~> temp
+      }
+      treeCopy.MatchStatementClause(clause, pattern, Some(newGuard), body)
   }
 
   private def withSimplifiedHeaderAndArgs(header: Expression,
