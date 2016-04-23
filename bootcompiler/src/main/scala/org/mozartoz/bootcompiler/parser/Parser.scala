@@ -292,7 +292,7 @@ class OzParser extends OzTokenParsers with PackratParsers
 
   lazy val pattern3: PackratParser[Expression] = (
       positioned {
-        literalLabelExpr ~ rep(patternRecordField) ~ opt("...") <~ ")" ^^ {
+        recordLabel ~ rep(patternRecordField) ~ opt("...") <~ ")" ^^ {
           case label ~ fields ~ openMarker =>
             if (openMarker.isEmpty) Record(label, fields)
             else OpenRecordPattern(label, fields)

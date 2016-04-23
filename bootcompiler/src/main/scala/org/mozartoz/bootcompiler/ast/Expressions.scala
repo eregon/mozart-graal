@@ -475,9 +475,12 @@ abstract sealed class BaseRecord extends Expression {
     }
   }
 
+  def hasConstantLabel =
+    label.isInstanceOf[Constant] && label.asInstanceOf[Constant].value.isInstanceOf[OzLiteral]
+
   /** Returns true if the arity of the record is a compile-time constant */
   lazy val hasConstantArity =
-    label.isInstanceOf[Constant] && (fields forall (_.hasConstantFeature))
+    hasConstantLabel && (fields forall (_.hasConstantFeature))
 
   /** Returns the arity of this record as a compile-time constant
    *
@@ -513,7 +516,7 @@ case class Record(label: Expression,
 
   /** Returns true if this record is a compile-time constant */
   def isConstant =
-    label.isInstanceOf[Constant] && (fields forall (_.isConstant))
+    hasConstantLabel && (fields forall (_.isConstant))
 
   /** Returns this record as a compile-time constant
    *
@@ -541,7 +544,7 @@ case class OpenRecordPattern(label: Expression,
 
   /** Returns true if this pattern is a compile-time constant */
   def isConstant =
-    label.isInstanceOf[Constant] && (fields forall (_.isConstant))
+    hasConstantLabel && (fields forall (_.isConstant))
 
   /** Returns this pattern as a compile-time constant
    *
