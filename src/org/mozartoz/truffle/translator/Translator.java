@@ -16,6 +16,7 @@ import org.mozartoz.bootcompiler.ast.CompoundStatement;
 import org.mozartoz.bootcompiler.ast.Constant;
 import org.mozartoz.bootcompiler.ast.Expression;
 import org.mozartoz.bootcompiler.ast.IfStatement;
+import org.mozartoz.bootcompiler.ast.LocalExpression;
 import org.mozartoz.bootcompiler.ast.LocalStatement;
 import org.mozartoz.bootcompiler.ast.MatchStatement;
 import org.mozartoz.bootcompiler.ast.MatchStatementClause;
@@ -24,6 +25,7 @@ import org.mozartoz.bootcompiler.ast.ProcExpression;
 import org.mozartoz.bootcompiler.ast.Record;
 import org.mozartoz.bootcompiler.ast.RecordField;
 import org.mozartoz.bootcompiler.ast.SkipStatement;
+import org.mozartoz.bootcompiler.ast.StatAndExpression;
 import org.mozartoz.bootcompiler.ast.Statement;
 import org.mozartoz.bootcompiler.ast.TryStatement;
 import org.mozartoz.bootcompiler.ast.UnboundExpression;
@@ -177,10 +179,8 @@ public class Translator {
 		} else if (statement instanceof LocalStatement) {
 			LocalStatement local = (LocalStatement) statement;
 			FrameDescriptor frameDescriptor = environment.frameDescriptor;
-			// MatchStatement guards are transformed in nested if conditions, at the cost of duplicating the continuation every time.
-			// In this case, the variable might be reused it seems.
 			OzNode[] decls = map(local.declarations(), variable -> {
-				FrameSlot slot = frameDescriptor.findOrAddFrameSlot(variable.symbol());
+				FrameSlot slot = frameDescriptor.addFrameSlot(variable.symbol());
 				return new InitializeVarNode(slot);
 			});
 			return SequenceNode.sequence(decls, translate(local.statement()));
@@ -220,16 +220,8 @@ public class Translator {
 
 			OzNode caseNode = elseNode;
 			for (MatchStatementClause clause : clauses) {
-				assert !clause.hasGuard();
 				ReadLocalVariableNode value = new ReadLocalVariableNode(valueSlot);
-				List<OzNode> checks = new ArrayList<>();
-				List<OzNode> bindings = new ArrayList<>();
-				translatePattern(clause.pattern(), value, checks, bindings);
-				OzNode body = translate(clause.body());
-				caseNode = t(clause, new IfNode(
-						new AndNode(checks.toArray(new OzNode[checks.size()])),
-						SequenceNode.sequence(bindings.toArray(new OzNode[bindings.size()]), body),
-						caseNode));
+				caseNode = translateMatchClause(value, caseNode, clause);
 			}
 
 			return SequenceNode.sequence(
@@ -310,6 +302,39 @@ public class Translator {
 		}
 
 		throw unknown("expression", expression);
+	}
+
+	private OzNode translateMatchClause(ReadLocalVariableNode valueNode, OzNode elseNode, MatchStatementClause clause) {
+		List<OzNode> checks = new ArrayList<>();
+		List<OzNode> bindings = new ArrayList<>();
+		translatePattern(clause.pattern(), valueNode, checks, bindings);
+		OzNode body = translate(clause.body());
+		final IfNode matchNode;
+		if (clause.hasGuard()) {
+			OzNode guard = translateGuard(clause.guard().get());
+			// First the checks, then the bindings and then the guard (possibly using the bindings)
+			bindings.add(guard);
+			checks.add(SequenceNode.sequence(bindings.toArray(new OzNode[bindings.size()])));
+			matchNode = new IfNode(new AndNode(checks.toArray(new OzNode[checks.size()])), body, elseNode);
+		} else {
+			matchNode = new IfNode(
+					new AndNode(checks.toArray(new OzNode[checks.size()])),
+					SequenceNode.sequence(bindings.toArray(new OzNode[bindings.size()]), body),
+					elseNode);
+		}
+		return t(clause, matchNode);
+	}
+
+	// We manually translate a LocalExpression here. Other local are already converted to statements.
+	private OzNode translateGuard(Expression guard) {
+		LocalExpression guardLocal = (LocalExpression) guard;
+		StatAndExpression guardExpr = ((StatAndExpression) guardLocal.body());
+		Variable resultVar = (Variable) guardExpr.expression();
+		FrameSlot slot = environment.frameDescriptor.addFrameSlot(resultVar.symbol());
+		return SequenceNode.sequence(
+				new InitializeVarNode(slot),
+				translate(guardExpr.statement()),
+				deref(translate(resultVar)));
 	}
 
 	private void translatePattern(Expression pattern, OzNode valueNode, List<OzNode> checks, List<OzNode> bindings) {
