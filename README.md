@@ -1,5 +1,7 @@
 # Mozart-Graal
 
+[![Build Status](https://travis-ci.org/eregon/mozart-graal.svg?branch=master)](https://travis-ci.org/eregon/mozart-graal)
+
 An implementation of Oz on top of Truffle and Graal.
 
 ## Current Status
