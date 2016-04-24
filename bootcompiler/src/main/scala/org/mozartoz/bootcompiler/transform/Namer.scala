@@ -320,19 +320,20 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
     val decls = new ListBuffer[Variable]
     val newImports = new ListBuffer[FunctorImport]
 
-    def nameDecl(variable: VariableOrRaw) = {
-      val symbol = new Symbol(variable.asInstanceOf[RawVariable].name)
+    def nameDecl(variable: VariableOrRaw, importedModule: Boolean = false) = {
+      val name = variable.asInstanceOf[RawVariable].name
+      val symbol = new Symbol(name, importedModule = importedModule)
       val decl = treeCopy.Variable(variable, symbol)
       decls += decl
       decl
     }
 
     for (imp @ FunctorImport(module, aliases, location) <- imports) {
-      val newModule = nameDecl(module)
+      val newModule = nameDecl(module, importedModule = true)
 
       val newAliases = {
         for (aliased @ AliasedFeature(feature, alias) <- aliases) yield {
-          treeCopy.AliasedFeature(aliased, feature, alias map nameDecl)
+          treeCopy.AliasedFeature(aliased, feature, alias map { nameDecl(_) })
         }
       }
 

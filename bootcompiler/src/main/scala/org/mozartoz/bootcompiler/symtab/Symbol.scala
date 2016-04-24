@@ -12,7 +12,7 @@ object Symbol {
 /** Symbol, i.e., identity of a variable */
 sealed class Symbol(_name: String, formal: Boolean = false,
     capture: Boolean = false, synthetic: Boolean = false,
-    global: Boolean = false) {
+    global: Boolean = false, importedModule: Boolean = false) {
 
   // Identity
 
@@ -51,6 +51,9 @@ sealed class Symbol(_name: String, formal: Boolean = false,
 
   /** Returns true if this symbol is a global variable */
   val isGlobal = global
+
+  /** Returns true if this symbol is an imported module */
+  val isImport = importedModule
 
   /** Full name (with numeric ID) */
   def fullName = name + "~" + id
