@@ -1,5 +1,5 @@
-.apt_generated
-.classpath
-.factorypath
-bin/
+/.apt_generated
+/.classpath
+/.factorypath
+/bin/
 /*.oz
