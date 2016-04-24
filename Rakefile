@@ -10,7 +10,9 @@ BOOTCOMPILER_JAR = BOOTCOMPILER / "target/scala-2.11/bootcompiler-assembly-2.0-S
 BOOTCOMPILER_ECLIPSE = BOOTCOMPILER / ".project"
 
 MX = Pathname("../mx/mx").expand_path
+
 GRAAL = Pathname("../graal-coro")
+GRAAL_JAR = GRAAL / "mxbuild/dists/graal-truffle.jar"
 
 TRUFFLE = Pathname("../truffle").expand_path
 TRUFFLE_API_JAR = TRUFFLE / "mxbuild/dists/truffle-api.jar"
@@ -29,7 +31,7 @@ namespace :build do
   task :truffle => TRUFFLE_API_JAR
 
   desc "Build Graal"
-  task :graal => GRAAL
+  task :graal => GRAAL_JAR
 
   task :project => [:javac, ".classpath", ".factorypath"]
   task :javac => MAIN_CLASS
@@ -66,9 +68,12 @@ namespace :build do
   end
   file TRUFFLE_DSL_PROCESSOR_JAR => TRUFFLE_API_JAR
 
-  file GRAAL => [MX, TRUFFLE] do
+  file GRAAL do
     sh "cd .. && git clone https://github.com/eregon/graal-core.git #{GRAAL}"
     sh "cd #{GRAAL} && git checkout coro"
+  end
+
+  file GRAAL_JAR => [GRAAL, MX, TRUFFLE] do
     sh "cd #{GRAAL} && #{MX} --vm server build"
   end
 
