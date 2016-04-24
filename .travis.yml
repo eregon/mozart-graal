@@ -1,0 +1,10 @@
+language: java
+sudo: false
+jdk:
+  - oraclejdk8
+rvm:
+  - 2.2.2
+install:
+  - rake build
+script:
+  - ./oz
