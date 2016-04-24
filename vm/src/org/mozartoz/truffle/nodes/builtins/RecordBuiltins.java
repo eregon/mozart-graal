@@ -8,6 +8,7 @@ import java.util.Map;
 import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.LabelNodeFactory;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzName;
@@ -50,6 +51,12 @@ public abstract class RecordBuiltins {
 	@GenerateNodeFactory
 	@NodeChild("record")
 	public static abstract class LabelNode extends OzNode {
+
+		public static LabelNode create() {
+			return LabelNodeFactory.create(null);
+		}
+
+		public abstract Object executeLabel(Object record);
 
 		@Specialization
 		protected Object label(String atom) {
