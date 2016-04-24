@@ -4,10 +4,10 @@ import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.builtins.RecordBuiltins.LabelNode;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzProc;
-import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -56,17 +56,13 @@ public abstract class CallProcNode extends OzNode {
 	@Specialization
 	protected Object callObject(VirtualFrame frame, OzObject self,
 			@Cached("create()") IndirectCallNode callNode,
-			@Cached("create()") DerefNode derefNode) {
+			@Cached("create()") DerefNode derefNode,
+			@Cached("create()") LabelNode labelNode) {
 		final Object[] args = executeArgumentsNode.executeValues(frame);
 		assert args.length == 1;
 		Object message = derefNode.executeDeref(args[0]);
 
-		final Object name;
-		if (OzGuards.isLiteral(message)) {
-			name = message;
-		} else {
-			name = OzRecord.getLabel((DynamicObject) message);
-		}
+		final Object name = labelNode.executeLabel(message);
 		assert OzGuards.isLiteral(name);
 
 		OzProc method = getMethod(self, name);
