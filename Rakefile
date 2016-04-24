@@ -24,7 +24,7 @@ MAIN_CLASS = Pathname("bin/org/mozartoz/truffle/Main.class")
 JAVA_SOURCES = Dir["src/**/*.java"]
 
 namespace :build do
-  task :all => [:truffle, :mozart2, :bootcompiler, :javac]
+  task :all => [:truffle, :mozart2, :bootcompiler, :project]
 
   task :mozart2 => [MOZART2, OZWISH]
   task :bootcompiler => [:mozart2, BOOTCOMPILER_JAR, BOOTCOMPILER_ECLIPSE]
@@ -85,12 +85,12 @@ namespace :build do
 
   file ".classpath" do
     require 'erb'
-    File.write '.classpath', ERB.new('tool/classpath.erb').result(binding)
+    File.write '.classpath', ERB.new(File.read('tool/classpath.erb')).result(binding)
   end
 
   file ".factorypath" do
     require 'erb'
-    File.write '.factorypath', ERB.new('tool/factorypath.erb').result(binding)
+    File.write '.factorypath', ERB.new(File.read('tool/factorypath.erb')).result(binding)
   end
 
   directory "bin"
