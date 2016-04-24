@@ -30,8 +30,9 @@ JAVA_SOURCES = Dir["src/**/*.java"]
 namespace :build do
   task :all => [:truffle, :mozart2, :bootcompiler, :project]
 
-  task :mozart2 => [MOZART2, OZWISH]
-  task :bootcompiler => [:mozart2, BOOTCOMPILER_JAR, BOOTCOMPILER_ECLIPSE]
+  task :mozart2 => [MOZART2, :ozwish]
+  task :bootcompiler => [MOZART2, BOOTCOMPILER_JAR, BOOTCOMPILER_ECLIPSE]
+  task :ozwish => OZWISH
 
   task :truffle => TRUFFLE_API_JAR
 
@@ -47,7 +48,11 @@ namespace :build do
   end
 
   file OZWISH => OZWISH_SRC do
-    sh "cc -o #{OZWISH} -ltcl -ltk #{OZWISH_SRC}"
+    begin
+      sh "cc -o #{OZWISH} -ltcl -ltk #{OZWISH_SRC}"
+    rescue
+      puts "WARNING: Failed to build ozwish"
+    end
   end
 
   file BOOTCOMPILER_JAR => Dir[BOOTCOMPILER / "src/**/*.scala"] do
