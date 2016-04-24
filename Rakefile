@@ -11,6 +11,7 @@ BOOTCOMPILER_ECLIPSE = BOOTCOMPILER / ".project"
 
 MX = Pathname("../mx/mx").expand_path
 
+JVMCI = Pathname("../jvmci")
 GRAAL = Pathname("../graal-coro")
 GRAAL_JAR = GRAAL / "mxbuild/dists/graal-truffle.jar"
 
@@ -68,12 +69,17 @@ namespace :build do
   end
   file TRUFFLE_DSL_PROCESSOR_JAR => TRUFFLE_API_JAR
 
-  file GRAAL do
+  file JVMCI do
+    sh "cd .. && git clone https://github.com/eregon/jvmci.git"
+    sh "cd #{JVMCI} && git checkout coro"
+  end
+
+  file GRAAL => [TRUFFLE, JVMCI] do
     sh "cd .. && git clone https://github.com/eregon/graal-core.git #{GRAAL}"
     sh "cd #{GRAAL} && git checkout coro"
   end
 
-  file GRAAL_JAR => [GRAAL, MX, TRUFFLE] do
+  file GRAAL_JAR => [GRAAL, MX] do
     sh "cd #{GRAAL} && #{MX} --vm server build"
   end
 
@@ -103,3 +109,12 @@ task :test do
 end
 
 task :default => [:build, :test]
+
+desc "Update all repositories"
+task :up do
+  [".", MOZART2, TRUFFLE, JVMCI, GRAAL].each { |dir|
+    if File.directory?(dir)
+      sh "cd #{dir} && git pull"
+    end
+  }
+end
