@@ -34,7 +34,7 @@ define
       Keys = TestDesc.keys
    in
       if {Member space Keys} then
-         proc {$} raise '  skipped (Space)' end end
+         proc {$} raise skipped(space) end end
       elseif {IsProcedure Test} then
          case {Procedure.arity Test}
          of 0 then Test
@@ -50,6 +50,7 @@ define
    end
 
    TestFiles = {Application.getArgs plain}
+   ExitCode = {NewCell 0}
 
    for File in TestFiles do
       Applied = {Module.link [File]}.1
@@ -67,9 +68,17 @@ define
             {ActualTest}
             {Info '  OK'}
          catch E then
-            {Show E}
+            case E
+            of skipped(Key) then
+               {Info '  skipped ('#Key#')'}
+            else
+               ExitCode := 1
+               {Show E}
+            end
          end
       end
       {NewLine}
    end
+
+   {Application.exit @ExitCode}
 end
