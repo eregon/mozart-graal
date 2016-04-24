@@ -1,5 +1,9 @@
 require 'pathname'
 
+class Pathname
+  alias :/ :+ unless method_defined?(:/)
+end
+
 MOZART2 = Pathname("../mozart2").expand_path
 
 OZWISH = MOZART2 / "wish/ozwish"
