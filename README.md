@@ -23,10 +23,21 @@ mkdir mozart-dev
 cd mozart-dev
 git clone https://github.com/eregon/mozart-graal.git
 cd mozart-graal
-make
+rake
 ```
+
+It takes around 5 min to build everything.
+When asked for which Java, pick any Java 8.
 
 Run with
 ```bash
 ./oz
+```
+
+## Graal
+
+Graal is not built by default to save time.
+To build it, run
+```bash
+rake build:graal
 ```
