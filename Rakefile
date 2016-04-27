@@ -84,7 +84,7 @@ namespace :build do
   end
 
   file GRAAL => [TRUFFLE, JVMCI] do
-    sh "cd .. && git clone https://github.com/eregon/graal-core.git #{GRAAL}"
+    sh "git clone https://github.com/eregon/graal-core.git #{GRAAL}"
     sh "cd #{GRAAL} && git checkout coro"
   end
 
