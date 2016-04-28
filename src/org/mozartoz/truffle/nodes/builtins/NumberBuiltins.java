@@ -82,6 +82,11 @@ public abstract class NumberBuiltins {
 		}
 
 		@Specialization
+		double sub(double a, double b) {
+			return a - b;
+		}
+
+		@Specialization
 		BigInteger sub(BigInteger a, BigInteger b) {
 			return a.subtract(b);
 		}
