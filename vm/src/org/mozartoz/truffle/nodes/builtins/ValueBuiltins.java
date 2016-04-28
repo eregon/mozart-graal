@@ -41,7 +41,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.coro.Coroutine;
 
 public abstract class ValueBuiltins {
 
@@ -59,7 +58,7 @@ public abstract class ValueBuiltins {
 		@Specialization(guards = { "!isBound(a)", "!isBound(b)" })
 		protected boolean equal(OzVar a, OzVar b) {
 			while (!a.isLinkedTo(b) && !a.isBound() && !b.isBound()) {
-				Coroutine.yield();
+				OzThread.getCurrent().yield();
 			}
 			if (a.isLinkedTo(b)) {
 				return true;
@@ -602,7 +601,7 @@ public abstract class ValueBuiltins {
 		@Specialization(guards = "!isBound(var)")
 		Object waitNeeded(OzVar var) {
 			while (!var.isNeeded()) {
-				Coroutine.yield();
+				OzThread.getCurrent().yield();
 			}
 			return unit;
 		}

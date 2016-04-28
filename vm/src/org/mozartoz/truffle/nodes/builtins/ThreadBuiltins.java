@@ -86,13 +86,14 @@ public abstract class ThreadBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("thread")
 	public static abstract class StateNode extends OzNode {
 
 		@Specialization
-		Object state(Object thread) {
-			return unimplemented();
+		String state(OzThread thread) {
+			return thread.getStatus();
 		}
 
 	}
