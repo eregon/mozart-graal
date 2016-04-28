@@ -12,6 +12,7 @@ import org.mozartoz.truffle.nodes.builtins.ObjectBuiltins.AttrPutNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.CatAccessOONodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.CatAssignOONodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.TypeNodeFactory;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzArray;
 import org.mozartoz.truffle.runtime.OzCell;
@@ -39,6 +40,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 
@@ -698,9 +700,12 @@ public abstract class ValueBuiltins {
 	@NodeChild("value")
 	public static abstract class StatusNode extends OzNode {
 
+		static final DynamicObjectFactory DET_FACTORY = Arity.build("det", 1L).createFactory();
+
 		@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" })
-		Object status(Object value) {
-			return unimplemented();
+		Object status(Object value,
+				@Cached("create()") TypeNode typeNode) {
+			return DET_FACTORY.newInstance("det", typeNode.executeType(value));
 		}
 
 		@Specialization(guards = "!isBound(var)")
@@ -719,6 +724,12 @@ public abstract class ValueBuiltins {
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class TypeNode extends OzNode {
+
+		public static TypeNode create() {
+			return TypeNodeFactory.create(null);
+		}
+
+		public abstract String executeType(Object value);
 
 		@Specialization
 		String type(long value) {
