@@ -3,11 +3,11 @@ package org.mozartoz.truffle.nodes.builtins;
 import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzThread;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.coro.Coroutine;
 
 public abstract class TimeBuiltins {
 
@@ -21,7 +21,7 @@ public abstract class TimeBuiltins {
 			long end = now() + delay;
 			while (now() < end) {
 				sleep();
-				Coroutine.yield();
+				OzThread.getCurrent().yield();
 			}
 			return unit;
 		}
