@@ -18,6 +18,7 @@ import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNo
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzException;
+import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.translator.Loader;
 
@@ -30,7 +31,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.coro.Coroutine;
 
 public abstract class OSBuiltins {
 
@@ -496,7 +496,7 @@ public abstract class OSBuiltins {
 			InputStream inputStream = (InputStream) connection.getHead();
 			try {
 				while (inputStream.available() == 0) {
-					Coroutine.yield();
+					OzThread.getCurrent().yield();
 				}
 				byte[] buffer = new byte[(int) count];
 				int bytesRead = inputStream.read(buffer);
