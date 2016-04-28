@@ -57,6 +57,7 @@ public class PropertyRegistry {
 		registerValue("messages.gc", false);
 		registerValue("messages.idle", false);
 
+		registerConstant("platform.arch", System.getProperty("os.arch").intern());
 		registerConstant("platform.os", System.getProperty("os.name").intern());
 		registerConstant("platform.name", System.getProperty("os.name").intern());
 
