@@ -138,12 +138,13 @@ public abstract class SystemBuiltins {
 
 	}
 
+	@Builtin
 	@GenerateNodeFactory
 	public static abstract class OnToplevelNode extends OzNode {
 
 		@Specialization
-		Object onToplevel() {
-			return unimplemented();
+		boolean onToplevel() {
+			return true;
 		}
 
 	}
