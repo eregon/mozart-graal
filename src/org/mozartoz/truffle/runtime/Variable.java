@@ -5,7 +5,6 @@ import org.mozartoz.truffle.nodes.OzNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.coro.Coroutine;
 
 public abstract class Variable {
 
@@ -93,7 +92,7 @@ public abstract class Variable {
 	public Object waitValueQuiet(OzNode currentNode) {
 		assert !isBound();
 		while (!isBound()) {
-			Coroutine.yield();
+			OzThread.getCurrent().yield();
 		}
 		return getBoundValue(currentNode);
 	}
