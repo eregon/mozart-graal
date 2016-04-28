@@ -234,6 +234,11 @@ public abstract class VirtualStringBuiltins {
 	public static abstract class LengthNode extends OzNode {
 
 		@Specialization
+		long length(long number) {
+			return Long.toString(number).length();
+		}
+
+		@Specialization
 		long length(String atom) {
 			return atom.length();
 		}
