@@ -37,6 +37,8 @@ public class OzThread implements Runnable {
 	private final Coroutine coroutine;
 	private final CallTarget target;
 
+	private String status = "runnable";
+
 	private OzThread() {
 		coroutine = (Coroutine) Coroutine.current();
 		target = null;
@@ -57,6 +59,10 @@ public class OzThread implements Runnable {
 		return coroutine;
 	}
 
+	public String getStatus() {
+		return status;
+	}
+
 	@Override
 	public void run() {
 		setInitialOzThread();
@@ -66,7 +72,14 @@ public class OzThread implements Runnable {
 			target.call(arguments);
 		} finally {
 			threadsRunnable--;
+			status = "terminated";
 		}
+	}
+
+	public void yield() {
+		status = "blocked";
+		Coroutine.yield();
+		status = "runnable";
 	}
 
 	private static CallTarget wrap(OzProc proc) {
