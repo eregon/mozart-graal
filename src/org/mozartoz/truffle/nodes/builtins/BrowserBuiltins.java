@@ -54,13 +54,16 @@ public abstract class BrowserBuiltins {
 
 	}
 
+	@Builtin(tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("variable")
 	public static abstract class GetsBoundBNode extends OzNode {
 
 		@Specialization
-		Object getsBoundB(Object variable) {
-			return unimplemented();
+		OzVar getsBoundB(OzVar variable) {
+			OzVar var = new OzVar();
+			variable.link(var);
+			return var;
 		}
 
 	}

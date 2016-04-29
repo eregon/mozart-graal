@@ -79,13 +79,14 @@ public abstract class SystemBuiltins {
 
 	}
 
+	@Builtin(tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class PrintNameNode extends OzNode {
 
 		@Specialization
-		Object printName(Object value) {
-			return unimplemented();
+		String printName(OzVar var) {
+			return "_";
 		}
 
 	}
