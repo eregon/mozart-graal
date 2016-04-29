@@ -233,6 +233,10 @@ public abstract class VirtualStringBuiltins {
 	@NodeChild("value")
 	public static abstract class LengthNode extends OzNode {
 
+		@Child DerefNode derefNode = DerefNode.create();
+
+		public abstract long executeLength(Object value);
+
 		@Specialization
 		long length(long number) {
 			return Long.toString(number).length();
@@ -241,6 +245,37 @@ public abstract class VirtualStringBuiltins {
 		@Specialization
 		long length(String atom) {
 			return atom.length();
+		}
+
+		@TruffleBoundary
+		@Specialization
+		long length(OzCons cons) {
+			Object head = cons.getHead();
+			assert head instanceof Long;
+			Object consTail = deref(cons.getTail());
+			if (consTail == "nil") {
+				return 1;
+			} else {
+				return 1 + executeLength(consTail);
+			}
+		}
+
+		@TruffleBoundary
+		@Specialization
+		long length(DynamicObject record) {
+			assert OzRecord.getLabel(record) == "#";
+			long length = 0;
+			for (Property property : record.getShape().getProperties()) {
+				Object value = deref(property.get(record, record.getShape()));
+				if (value != "nil") {
+					length += executeLength(value);
+				}
+			}
+			return length;
+		}
+
+		private Object deref(Object value) {
+			return derefNode.executeDeref(value);
 		}
 
 	}
