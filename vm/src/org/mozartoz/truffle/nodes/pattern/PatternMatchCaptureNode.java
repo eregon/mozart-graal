@@ -2,6 +2,7 @@ package org.mozartoz.truffle.nodes.pattern;
 
 import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -26,6 +27,12 @@ public abstract class PatternMatchCaptureNode extends OzNode {
 	@Specialization(guards = "!isBound(value)")
 	Object capture(OzVar var, OzVar value) {
 		var.link(value);
+		return unit;
+	}
+
+	@Specialization(guards = "!isBound(future)")
+	Object capture(OzVar var, OzFuture future) {
+		var.link(future);
 		return unit;
 	}
 
