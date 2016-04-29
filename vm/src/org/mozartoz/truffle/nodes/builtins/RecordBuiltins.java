@@ -6,13 +6,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.mozartoz.truffle.nodes.DerefIfBoundNode;
+import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.LabelNodeFactory;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzException;
+import org.mozartoz.truffle.runtime.OzFailedValue;
 import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzRecord;
+import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -151,13 +155,34 @@ public abstract class RecordBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("record")
 	public static abstract class WaitOrNode extends OzNode {
 
+		@Child DerefIfBoundNode derefNode = DerefIfBoundNodeGen.create();
+
 		@Specialization
-		Object waitOr(Object record) {
-			return unimplemented();
+		Object waitOr(DynamicObject record) {
+			Iterable<Property> properties = record.getShape().getProperties();
+			for (;;) {
+				for (Property property : properties) {
+					Object value = deref(property.get(record, record.getShape()));
+					if (OzGuards.isFailedValue(value)) {
+						throw new OzException(this, ((OzFailedValue) value).getData());
+					} else if (OzGuards.isVariable(value)) {
+						// Need to wait
+					} else {
+						return value;
+					}
+				}
+
+				OzThread.getCurrent().yield();
+			}
+		}
+
+		private Object deref(Object value) {
+			return derefNode.executeDerefIfBound(value);
 		}
 
 	}
