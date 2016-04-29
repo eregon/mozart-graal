@@ -60,6 +60,7 @@ public abstract class BuiltinsManager {
 			"Debug",
 			"Reflection",
 			"Space",
+			"Browser",
 	};
 
 	private static final Map<String, OzProc> BUILTINS = new HashMap<>();
