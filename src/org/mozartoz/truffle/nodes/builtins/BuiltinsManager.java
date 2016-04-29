@@ -59,6 +59,7 @@ public abstract class BuiltinsManager {
 			"OS",
 			"Debug",
 			"Reflection",
+			"Space",
 	};
 
 	private static final Map<String, OzProc> BUILTINS = new HashMap<>();
