@@ -747,6 +747,11 @@ public abstract class ValueBuiltins {
 		}
 
 		@Specialization
+		String type(OzCons cons) {
+			return "tuple";
+		}
+
+		@Specialization
 		String type(DynamicObject record) {
 			if (Arity.forRecord(record).isTupleArity()) {
 				return "tuple";
