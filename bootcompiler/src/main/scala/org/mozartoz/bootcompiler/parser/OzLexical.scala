@@ -44,9 +44,9 @@ class OzLexical extends Lexical with OzTokens with ImplicitConversions {
   )
 
   def floatLiteralBase = (
-      stringOf1(digit) ~ stringOf1('.', digit) ~ ((elem('e') | 'E') ~ floatExponentBase).? ^^ {
-        case int ~ frac ~ None => (int + frac).toDouble
-        case int ~ frac ~ Some(e ~ exp) => { (int + frac + e + exp).toDouble }
+      (stringOf1(digit) <~ '.' <~ not('.')) ~ stringOf(digit) ~ opt((elem('e') | 'E') ~> floatExponentBase) ^^ {
+        case int ~ frac ~ None => (int + "." + frac).toDouble
+        case int ~ frac ~ Some(exp) => { (int + "." + frac + "e" + exp).toDouble }
       }
   )
 
