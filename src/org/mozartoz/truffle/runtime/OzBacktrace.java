@@ -52,8 +52,10 @@ public class OzBacktrace {
 			backtrace.add(sourceSection);
 		}
 		Truffle.getRuntime().iterateFrames(frame -> {
-			SourceSection sourceSection = frame.getCallNode().getEncapsulatingSourceSection();
-			backtrace.add(sourceSection);
+			if (frame.getCallNode() != null) {
+				SourceSection sourceSection = frame.getCallNode().getEncapsulatingSourceSection();
+				backtrace.add(sourceSection);
+			}
 			return null;
 		});
 
