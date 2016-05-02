@@ -39,14 +39,22 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.oracle.truffle.coro.AsymCoroutine;
 import com.oracle.truffle.coro.Coroutine;
+import com.oracle.truffle.coro.CoroutineSupport;
 
 @SuppressWarnings("unused")
 public class CoroutineTest {
     private StringBuilder seq;
+
+    @BeforeClass
+    public static void setup() {
+        CoroutineSupport support = CoroutineSupport.currentCoroutineSupport();
+        System.out.println("Coroutine implementation: " + support.getClass().getName());
+    }
 
     @Before
     public void before() {
