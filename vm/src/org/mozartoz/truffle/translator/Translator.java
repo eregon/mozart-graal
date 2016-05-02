@@ -532,7 +532,7 @@ public class Translator {
 
 	private OzNode t(org.mozartoz.bootcompiler.ast.Node node, OzNode ozNode) {
 		SourceSection sourceSection = t(node);
-		ozNode.assignSourceSection(sourceSection);
+		ozNode.setSourceSection(sourceSection);
 		return ozNode;
 	}
 
