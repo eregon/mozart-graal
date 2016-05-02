@@ -63,6 +63,23 @@ public class CoroutineTest {
     }
 
     @Test
+    public void testNewCoroutine() {
+        Coroutine coro = new Coroutine() {
+            @Override
+            protected void run() {
+                seq.append("b");
+            }
+        };
+
+        assertFalse(coro.isFinished());
+        Coroutine.yield();
+        seq.append("c");
+
+        assertTrue(coro.isFinished());
+        assertEquals("abc", seq.toString());
+    }
+
+    @Test
     public void symSequence() {
         Coroutine coro = new Coroutine() {
             @Override
