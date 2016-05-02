@@ -10,10 +10,23 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
+import com.oracle.truffle.api.source.SourceSection;
 
 @TypeSystemReference(OzTypes.class)
 @ImportStatic(OzGuards.class)
 public abstract class OzNode extends Node {
+
+	private SourceSection sourceSection;
+
+	public void setSourceSection(SourceSection sourceSection) {
+		assert this.sourceSection == null;
+		this.sourceSection = sourceSection;
+	}
+
+	@Override
+	public SourceSection getSourceSection() {
+		return sourceSection;
+	}
 
 	protected static final Object unit = Unit.INSTANCE;
 
