@@ -8,6 +8,7 @@ import java.util.List;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzProc;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -62,6 +63,11 @@ public abstract class ProcedureBuiltins {
 			Object[] arguments = list.toArray(new Object[list.size()]);
 			callNode.call(frame, proc.callTarget, OzArguments.pack(proc.declarationFrame, arguments));
 			return unit;
+		}
+
+		@Specialization
+		Object apply(VirtualFrame frame, OzObject object, OzCons args) {
+			return unimplemented();
 		}
 
 	}
