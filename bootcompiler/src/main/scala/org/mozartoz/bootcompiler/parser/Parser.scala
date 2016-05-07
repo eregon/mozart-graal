@@ -47,7 +47,8 @@ class OzParser extends OzTokenParsers with PackratParsers
       "|", "#", ":", "...", "=", ".", ":=", "^", "[]", "$",
       "!", "_", "~", "+", "-", "*", "/", "@", "<-",
       ",", "!!", "<=", "==", "\\=", "<", "=<", ">",
-      ">=", "=:", "\\=:", "<:", "=<:", ">:", ">=:", "::", ":::"
+      ">=", "=:", "\\=:", "<:", "=<:", ">:", ">=:", "::", ":::",
+      ".."
   )
 
   def parseStatement(input: Reader[Char], file: File, defines: Set[String]) =
@@ -418,13 +419,22 @@ class OzParser extends OzTokenParsers with PackratParsers
   // For loops
 
   lazy val forStatement: PackratParser[Statement] = deepPositioned {
-    ("for" ~> formalArg) ~ ("in" ~> expression) ~ ("do" ~> inStatement) <~ "end" ^^ {
+    ("for" ~> formalArg) ~ ("in" ~> forListGenerator) ~ ("do" ~> inStatement) <~ "end" ^^ {
       case arg0 ~ listExpr ~ body0 =>
         val (args, body) = postProcessArgsAndBody(List(arg0), body0)
         val forProc = ProcExpression("ForProc", args, body, Nil)
         CallStatement(RawVariable("ForAll"), List(listExpr, forProc))
     }
   }
+
+  lazy val forListGenerator: PackratParser[Expression] = positioned(
+      expression ~ (".." ~> expression) ^^ {
+        case start ~ end =>
+          val listNumber = BinaryOp(RawVariable("List"), ".", Constant(OzAtom("number")))
+          CallExpression(listNumber, List(start, end, Constant(OzInt(1))))
+      }
+    | expression
+  )
 
   // Operator statement
 
