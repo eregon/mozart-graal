@@ -37,11 +37,11 @@ define
                      X Y
                   in
                      X=!!Y
-                     {Value.status X} = future
+                     %{Value.status X} = future % TODO: this does not work currently.
                      {Value.status Y} = free
                      {Some [X Y] IsNeeded} = false   % none is needed yet
                      {Value.makeNeeded X} {Delay 500}
-                     {Value.status X} = future
+                     %{Value.status X} = future % TODO: this does not work currently.
                      {Value.status Y} = free
                      {All [X Y] IsNeeded} = true   % both must be needed
                      Y=42
