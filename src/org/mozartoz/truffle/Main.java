@@ -21,6 +21,7 @@ public class Main {
 			BASE_TESTS + "conversion.oz",
 			BASE_TESTS + "type.oz",
 			BASE_TESTS + "byneed.oz",
+			BASE_TESTS + "future.oz",
 	};
 
 	public static void main(String[] args) {
