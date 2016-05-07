@@ -799,6 +799,11 @@ public abstract class ValueBuiltins {
 			return feature == 1 || feature == 2;
 		}
 
+		@Specialization(guards = "!isLong(feature)")
+		boolean hasFeature(OzCons cons, Object feature) {
+			return false;
+		}
+
 		@Specialization
 		boolean hasFeature(DynamicObject record, Object feature) {
 			return record.getShape().hasProperty(feature);

@@ -260,7 +260,7 @@ public abstract class RecordBuiltins {
 
 	}
 
-	@Builtin(deref = { 1, 2, 3 })
+	@Builtin(deref = { 1, 2 }, tryDeref = 3)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("record"), @NodeChild("feature"), @NodeChild("fieldValue"), @NodeChild("result") })
 	public static abstract class AdjoinAtIfHasFeatureNode extends OzNode {
@@ -268,6 +268,21 @@ public abstract class RecordBuiltins {
 		@Specialization
 		boolean adjoinAtIfHasFeature(String atom, Object feature, Object fieldValue, OzVar result) {
 			assert OzGuards.isFeature(feature);
+			return false;
+		}
+
+		@Specialization
+		boolean adjoinAtIfHasFeature(OzCons cons, Object feature, Object fieldValue, OzVar result) {
+			assert OzGuards.isFeature(feature);
+			if (feature instanceof Long) {
+				if ((long) feature == 1L) {
+					result.bind(new OzCons(fieldValue, cons.getTail()));
+					return true;
+				} else if ((long) feature == 2L) {
+					result.bind(new OzCons(cons.getHead(), fieldValue));
+					return true;
+				}
+			}
 			return false;
 		}
 
