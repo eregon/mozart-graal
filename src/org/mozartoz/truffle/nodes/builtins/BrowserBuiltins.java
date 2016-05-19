@@ -1,8 +1,11 @@
 package org.mozartoz.truffle.nodes.builtins;
 
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.builtins.RecordBuiltins.IsRecordNode;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.runtime.Variable;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -10,15 +13,21 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 public abstract class BrowserBuiltins {
 
+	@Builtin(tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsRecordCVarNode extends OzNode {
 
-		@Specialization
-		Object isRecordCVar(Object value) {
-			return unimplemented();
+		@Specialization(guards = "!isVariable(value)")
+		boolean isRecordCVar(Object value,
+				@Cached("create()") IsRecordNode isRecordNode) {
+			return isRecordNode.executeIsRecord(value);
 		}
 
+		boolean isRecordCVar(Variable var) {
+			// thanks to tryDeref, we know var is unbound
+			return false;
+		}
 	}
 
 	@GenerateNodeFactory
