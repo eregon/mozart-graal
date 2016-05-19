@@ -9,6 +9,7 @@ import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.IsRecordNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.LabelNodeFactory;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -33,6 +34,12 @@ public abstract class RecordBuiltins {
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsRecordNode extends OzNode {
+
+		public static IsRecordNode create() {
+			return IsRecordNodeFactory.create(null);
+		}
+
+		public abstract boolean executeIsRecord(Object record);
 
 		@Specialization
 		boolean isRecord(String atom) {
