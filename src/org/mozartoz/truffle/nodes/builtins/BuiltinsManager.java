@@ -68,7 +68,10 @@ public abstract class BuiltinsManager {
 	private static DynamicObject BOOT_MODULES_RECORD;
 
 	public static OzProc getBuiltin(String moduleName, String builtinName) {
-		String name = moduleName + "." + builtinName;
+		return getBuiltin(moduleName + "." + builtinName);
+	}
+
+	public static OzProc getBuiltin(String name) {
 		OzProc fun = BUILTINS.get(name);
 		if (fun == null) {
 			throw new Error("No builtin " + name);

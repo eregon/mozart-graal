@@ -16,6 +16,8 @@ public abstract class PatternMatchConsNode extends OzNode {
 		return DerefNodeGen.create(value);
 	}
 
+	public abstract OzNode getValue();
+
 	@Specialization
 	boolean patternMatch(OzCons cons) {
 		return true;

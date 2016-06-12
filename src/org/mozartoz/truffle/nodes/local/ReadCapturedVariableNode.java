@@ -18,6 +18,14 @@ public class ReadCapturedVariableNode extends OzNode {
 		this.depth = depth;
 	}
 
+	public FrameSlot getSlot() {
+		return readFrameSlotNode.getSlot();
+	}
+
+	public int getDepth() {
+		return depth;
+	}
+
 	@Override
 	public Object execute(VirtualFrame frame) {
 		Frame parentFrame = OzArguments.getParentFrame(frame, depth);

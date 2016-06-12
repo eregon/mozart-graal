@@ -14,6 +14,10 @@ public abstract class ReadFrameSlotNode extends Node {
 		this.slot = slot;
 	}
 
+	public FrameSlot getSlot() {
+		return slot;
+	}
+
 	public abstract Object executeRead(Frame frame);
 
 	@Specialization(rewriteOn = FrameSlotTypeException.class)
@@ -29,6 +33,11 @@ public abstract class ReadFrameSlotNode extends Node {
 	@Specialization(contains = { "readLong", "readObject" })
 	protected Object read(Frame frame) {
 		return frame.getValue(slot);
+	}
+
+	@Override
+	public String toString() {
+		return super.toString() + " " + slot.getIdentifier();
 	}
 
 }

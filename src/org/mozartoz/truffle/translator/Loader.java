@@ -44,6 +44,8 @@ public class Loader {
 	static final String BASE_FILE_NAME = MAIN_LIB_DIR + "/base/Base.oz";
 	static final String INIT_FUNCTOR = MAIN_LIB_DIR + "/init/Init.oz";
 
+	static final String BASE_IMAGE = PROJECT_ROOT + "/Base.image";
+
 	public static final String OZWISH = MOZART2_DIR + "/wish/ozwish";
 
 	public static final String[] SYSTEM_FUNCTORS = new String[] {
@@ -89,6 +91,11 @@ public class Loader {
 
 	public DynamicObject loadBase() {
 		if (base == null) {
+			if (new File(BASE_IMAGE).exists()) {
+				base = OzSerializer.deserialize(BASE_IMAGE, DynamicObject.class);
+				return base;
+			}
+
 			OzRootNode baseRootNode = parseBase();
 			Object baseFunctor = execute(baseRootNode);
 
@@ -97,6 +104,13 @@ public class Loader {
 			assert result instanceof DynamicObject;
 
 			base = (DynamicObject) result;
+
+			System.out.println("serializing Base");
+			OzSerializer.serialize(base, BASE_IMAGE);
+
+			System.out.println("deserializing Base");
+			DynamicObject reloaded = OzSerializer.deserialize(BASE_IMAGE, DynamicObject.class);
+			base = reloaded;
 		}
 		return base;
 	}

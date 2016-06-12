@@ -18,6 +18,8 @@ public abstract class ListBuiltins {
 			return DerefNodeGen.create(cons);
 		}
 
+		public abstract OzNode getCons();
+
 		@Specialization
 		protected Object head(OzCons cons) {
 			return cons.getHead();
@@ -32,6 +34,8 @@ public abstract class ListBuiltins {
 		protected OzNode derefCons(OzNode cons) {
 			return DerefNodeGen.create(cons);
 		}
+
+		public abstract OzNode getCons();
 
 		@Specialization
 		protected Object tail(OzCons cons) {

@@ -13,9 +13,18 @@ public class ReadLocalVariableNode extends OzNode {
 		this.readFrameSlotNode = ReadFrameSlotNodeGen.create(slot);
 	}
 
+	public FrameSlot getSlot() {
+		return readFrameSlotNode.getSlot();
+	}
+
 	@Override
 	public Object execute(VirtualFrame frame) {
 		return readFrameSlotNode.executeRead(frame);
+	}
+
+	@Override
+	public String toString() {
+		return super.toString() + " " + getSlot().getIdentifier();
 	}
 
 }

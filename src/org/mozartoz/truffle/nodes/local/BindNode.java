@@ -23,6 +23,14 @@ public abstract class BindNode extends OzNode {
 		writeLeft = writeLeftNode;
 	}
 
+	public abstract OzNode getLeft();
+
+	public abstract OzNode getRight();
+
+	public WriteNode getWriteLeft() {
+		return writeLeft;
+	}
+
 	@CreateCast("left")
 	protected OzNode derefLeft(OzNode var) {
 		return DerefIfBoundNodeGen.create(var);

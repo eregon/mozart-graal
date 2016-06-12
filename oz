@@ -10,7 +10,8 @@ BOOTCOMPILER_JAR = "#{BOOTCOMPILER}/target/scala-2.11/bootcompiler-assembly-2.0-
 TRUFFLE_API_JAR = File.expand_path("../truffle/mxbuild/dists/truffle-api.jar", dir)
 
 BOOTCLASSPATH = [TRUFFLE_API_JAR]
-CLASSPATH = [BOOTCOMPILER_JAR, "bin"]
+maven_classpath = File.read(".classpath").scan(%r{kind="lib" path="([^"]+/\.m2/repository/[^"]+)"}).map(&:first)
+CLASSPATH = [BOOTCOMPILER_JAR, "bin"] + maven_classpath
 
 java_opts = %w[-ea -esa]
 java = if ARGV.delete('--graal')

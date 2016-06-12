@@ -12,6 +12,10 @@ public class LiteralNode extends OzNode {
 		this.value = value;
 	}
 
+	public Object getValue() {
+		return value;
+	}
+
 	@Override
 	public Object execute(VirtualFrame frame) {
 		return value;

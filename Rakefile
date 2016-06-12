@@ -27,6 +27,11 @@ TRUFFLE_DSL_PROCESSOR_JAR = TRUFFLE / "mxbuild/dists/truffle-dsl-processor.jar"
 MAIN_CLASS = Pathname("bin/org/mozartoz/truffle/Main.class")
 JAVA_SOURCES = Dir["src/**/*.java"]
 
+def erb(template, output)
+  require 'erb'
+  File.write output, ERB.new(File.read(template), nil, '<>').result(binding)
+end
+
 namespace :build do
   task :all => [:truffle, :mozart2, :bootcompiler, :project]
 
@@ -93,19 +98,18 @@ namespace :build do
   end
 
   file ".classpath" do
-    require 'erb'
-    File.write '.classpath', ERB.new(File.read('tool/classpath.erb')).result(binding)
+    erb 'tool/classpath.erb', '.classpath'
   end
 
   file ".factorypath" do
-    require 'erb'
-    File.write '.factorypath', ERB.new(File.read('tool/factorypath.erb')).result(binding)
+    erb 'tool/factorypath.erb', '.factorypath'
   end
 
   directory "bin"
 
-  file MAIN_CLASS => ["bin", TRUFFLE_API_JAR, TRUFFLE_DSL_PROCESSOR_JAR, BOOTCOMPILER_JAR, *JAVA_SOURCES] do
-    sh *["javac", "-cp", "#{TRUFFLE_API_JAR}:#{TRUFFLE_DSL_PROCESSOR_JAR}:#{BOOTCOMPILER_JAR}:bin", "-sourcepath", "src", "-d", "bin", *JAVA_SOURCES]
+  file MAIN_CLASS => ["bin", TRUFFLE_API_JAR, TRUFFLE_DSL_PROCESSOR_JAR, BOOTCOMPILER_JAR, ".classpath", *JAVA_SOURCES] do
+    maven_classpath = File.read(".classpath").scan(%r{kind="lib" path="([^"]+/\.m2/repository/[^"]+)"}).map(&:first).join(':')
+    sh *["javac", "-cp", "#{TRUFFLE_API_JAR}:#{TRUFFLE_DSL_PROCESSOR_JAR}:#{BOOTCOMPILER_JAR}:bin:#{maven_classpath}", "-sourcepath", "src", "-d", "bin", *JAVA_SOURCES]
   end
 end
 
