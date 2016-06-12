@@ -5,21 +5,21 @@ import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.runtime.OzProc;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.source.SourceSection;
 
 public class ProcDeclarationNode extends OzNode {
 
 	private final RootCallTarget callTarget;
 	private final int arity;
 
-	public ProcDeclarationNode(SourceSection sourceSection, FrameDescriptor frameDescriptor, OzNode body, int arity) {
-		setSourceSection(sourceSection);
-		OzRootNode rootNode = new OzRootNode(sourceSection, frameDescriptor, body, arity);
-		this.callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-		this.arity = arity;
+	public ProcDeclarationNode(RootCallTarget callTarget) {
+		setSourceSection(callTarget.getRootNode().getSourceSection());
+		this.callTarget = callTarget;
+		this.arity = ((OzRootNode) callTarget.getRootNode()).getArity();
+	}
+
+	public RootCallTarget getCallTarget() {
+		return callTarget;
 	}
 
 	@Override

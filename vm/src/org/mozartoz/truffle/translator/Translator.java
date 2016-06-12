@@ -103,6 +103,8 @@ import scala.collection.JavaConversions;
 import scala.util.parsing.input.OffsetPosition;
 import scala.util.parsing.input.Position;
 
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
@@ -119,6 +121,18 @@ public class Translator {
 			this.parent = parent;
 			this.frameDescriptor = frameDescriptor;
 		}
+
+		private String symbol2identifier(Symbol symbol) {
+			return symbol.fullName().intern();
+		}
+
+		public FrameSlot findLocalVariable(Symbol symbol) {
+			return frameDescriptor.findFrameSlot(symbol2identifier(symbol));
+		}
+
+		public FrameSlot addLocalVariable(Symbol symbol) {
+			return frameDescriptor.addFrameSlot(symbol2identifier(symbol));
+		}
 	}
 
 	private Environment environment = new Environment(null, new FrameDescriptor());
@@ -128,7 +142,7 @@ public class Translator {
 	}
 
 	public FrameSlot addRootSymbol(Symbol symbol) {
-		return rootEnvironment.frameDescriptor.addFrameSlot(symbol);
+		return rootEnvironment.addLocalVariable(symbol);
 	}
 
 	private void pushEnvironment(FrameDescriptor frameDescriptor) {
@@ -144,7 +158,7 @@ public class Translator {
 		Environment environment = this.environment;
 
 		while (environment != null) {
-			FrameSlot slot = environment.frameDescriptor.findFrameSlot(symbol);
+			FrameSlot slot = environment.findLocalVariable(symbol);
 			if (slot != null) {
 				return new FrameSlotAndDepth(slot, depth);
 			} else {
@@ -172,9 +186,8 @@ public class Translator {
 			return SequenceNode.sequence(map(compound.statements(), this::translate));
 		} else if (statement instanceof LocalStatement) {
 			LocalStatement local = (LocalStatement) statement;
-			FrameDescriptor frameDescriptor = environment.frameDescriptor;
 			OzNode[] decls = map(local.declarations(), variable -> {
-				FrameSlot slot = frameDescriptor.addFrameSlot(variable.symbol());
+				FrameSlot slot = environment.addLocalVariable(variable.symbol());
 				return new InitializeVarNode(slot);
 			});
 			return SequenceNode.sequence(decls, translate(local.statement()));
@@ -265,14 +278,14 @@ public class Translator {
 					translate(binaryOp.right()));
 		} else if (expression instanceof ProcExpression) { // proc/fun literal
 			ProcExpression procExpression = (ProcExpression) expression;
-			FrameDescriptor frameDescriptor = new FrameDescriptor();
+			pushEnvironment(new FrameDescriptor());
 
 			int arity = procExpression.args().size();
 			OzNode[] nodes = new OzNode[arity + 1];
 			int i = 0;
 			for (VariableOrRaw variable : toJava(procExpression.args())) {
 				if (variable instanceof Variable) {
-					FrameSlot argSlot = frameDescriptor.addFrameSlot(((Variable) variable).symbol());
+					FrameSlot argSlot = environment.addLocalVariable(((Variable) variable).symbol());
 					nodes[i] = InitializeArgNodeGen.create(argSlot, new ReadArgumentNode(i));
 					i++;
 				} else {
@@ -280,16 +293,14 @@ public class Translator {
 				}
 			}
 
-			pushEnvironment(frameDescriptor);
-			try {
-				nodes[i] = translate(procExpression.body());
-			} finally {
-				popEnvironment();
-			}
+			nodes[i] = translate(procExpression.body());
 
 			OzNode procBody = SequenceNode.sequence(nodes);
 			SourceSection sourceSection = t(expression);
-			return new ProcDeclarationNode(sourceSection, frameDescriptor, procBody, arity);
+			OzRootNode rootNode = new OzRootNode(sourceSection, environment.frameDescriptor, procBody, arity);
+			RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+			popEnvironment();
+			return new ProcDeclarationNode(callTarget);
 		}
 
 		throw unknown("expression", expression);
@@ -321,7 +332,7 @@ public class Translator {
 		LocalExpression guardLocal = (LocalExpression) guard;
 		StatAndExpression guardExpr = ((StatAndExpression) guardLocal.body());
 		Variable resultVar = (Variable) guardExpr.expression();
-		FrameSlot slot = environment.frameDescriptor.addFrameSlot(resultVar.symbol());
+		FrameSlot slot = environment.addLocalVariable(resultVar.symbol());
 		return SequenceNode.sequence(
 				new InitializeVarNode(slot),
 				translate(guardExpr.statement()),
