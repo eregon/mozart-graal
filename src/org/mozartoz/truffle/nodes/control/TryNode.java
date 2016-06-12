@@ -3,7 +3,6 @@ package org.mozartoz.truffle.nodes.control;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.local.WriteNode;
 import org.mozartoz.truffle.runtime.OzException;
-import org.mozartoz.truffle.translator.FrameSlotAndDepth;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -16,10 +15,10 @@ public class TryNode extends OzNode {
 
 	BranchProfile exceptionProfile = BranchProfile.create();
 
-	public TryNode(FrameSlotAndDepth exceptionVarSlot, OzNode body, OzNode catchBody) {
+	public TryNode(WriteNode writeExceptionVarNode, OzNode body, OzNode catchBody) {
 		this.body = body;
 		this.catchBody = catchBody;
-		this.writeExceptionVarNode = exceptionVarSlot.createWriteNode();
+		this.writeExceptionVarNode = writeExceptionVarNode;
 	}
 
 	@Override
