@@ -4,7 +4,6 @@ import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.runtime.Variable;
-import org.mozartoz.truffle.translator.FrameSlotAndDepth;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -20,10 +19,8 @@ public abstract class BindNode extends OzNode {
 
 	@Child UnifyNode unifyNode;
 
-	public BindNode(FrameSlotAndDepth leftSlot) {
-		if (leftSlot != null) {
-			writeLeft = leftSlot.createWriteNode();
-		}
+	public BindNode(WriteNode writeLeftNode) {
+		writeLeft = writeLeftNode;
 	}
 
 	@CreateCast("left")

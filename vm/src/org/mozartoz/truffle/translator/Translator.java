@@ -199,7 +199,7 @@ public class Translator {
 			if (left instanceof Variable) {
 				leftSlot = findVariable(((Variable) left).symbol());
 			}
-			return t(statement, BindNodeGen.create(leftSlot, leftSlot.createReadNode(), translate(right)));
+			return t(statement, BindNodeGen.create(leftSlot.createWriteNode(), leftSlot.createReadNode(), translate(right)));
 		} else if (statement instanceof IfStatement) {
 			IfStatement ifStatement = (IfStatement) statement;
 			return new IfNode(translate(ifStatement.condition()),
