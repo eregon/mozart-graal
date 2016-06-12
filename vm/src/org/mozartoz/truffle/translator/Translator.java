@@ -209,7 +209,7 @@ public class Translator {
 			TryStatement tryStatement = (TryStatement) statement;
 			FrameSlotAndDepth exceptionVarSlot = findVariable(((Variable) tryStatement.exceptionVar()).symbol());
 			return new TryNode(
-					exceptionVarSlot,
+					exceptionVarSlot.createWriteNode(),
 					translate(tryStatement.body()),
 					translate(tryStatement.catchBody()));
 		} else if (statement instanceof MatchStatement) {
