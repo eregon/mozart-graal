@@ -1,13 +1,14 @@
 package org.mozartoz.truffle.runtime;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class OzProc {
 
-	public final RootCallTarget callTarget;
-	public final MaterializedFrame declarationFrame;
+	public @CompilationFinal RootCallTarget callTarget;
+	public @CompilationFinal MaterializedFrame declarationFrame;
 	public final int arity;
 
 	public OzProc(RootCallTarget callTarget, MaterializedFrame declarationFrame, int arity) {

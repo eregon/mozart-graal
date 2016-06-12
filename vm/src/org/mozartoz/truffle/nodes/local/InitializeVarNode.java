@@ -14,6 +14,10 @@ public class InitializeVarNode extends OzNode {
 		this.slot = slot;
 	}
 
+	public FrameSlot getSlot() {
+		return slot;
+	}
+
 	@Override
 	public Object execute(VirtualFrame frame) {
 		frame.setObject(slot, new OzVar());

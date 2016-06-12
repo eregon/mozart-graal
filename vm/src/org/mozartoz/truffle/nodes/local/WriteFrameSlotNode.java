@@ -18,6 +18,10 @@ public abstract class WriteFrameSlotNode extends Node implements WriteNode {
 		this.slot = slot;
 	}
 
+	public FrameSlot getSlot() {
+		return slot;
+	}
+
 	public void write(VirtualFrame frame, Object value) {
 		executeWrite(frame, value);
 	}

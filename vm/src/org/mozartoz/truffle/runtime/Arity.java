@@ -20,7 +20,7 @@ import com.oracle.truffle.api.object.Shape.Allocator;
 
 public class Arity {
 
-	private static final Shape EMPTY = Layout.createLayout().createShape(RecordObjectType.INSTANCE);
+	public static final Shape EMPTY = Layout.createLayout().createShape(RecordObjectType.INSTANCE);
 	private static final Allocator ALLOCATOR = EMPTY.getLayout().createAllocator();
 	private static final HiddenKey LABEL_KEY = new HiddenKey("label");
 	public static final Location LABEL_LOCATION = ALLOCATOR.locationForType(Object.class,

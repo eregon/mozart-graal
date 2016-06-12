@@ -13,6 +13,10 @@ public class AndNode extends OzNode {
 		this.conditions = conditions;
 	}
 
+	public OzNode[] getConditions() {
+		return conditions;
+	}
+
 	@Override
 	@ExplodeLoop
 	public Object execute(VirtualFrame frame) {

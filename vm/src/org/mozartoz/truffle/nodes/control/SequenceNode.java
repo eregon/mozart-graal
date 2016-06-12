@@ -15,6 +15,10 @@ public class SequenceNode extends OzNode {
 
 	@Children final OzNode[] statements;
 
+	public static SequenceNode createFrom(OzNode[] statements) {
+		return new SequenceNode(statements);
+	}
+
 	public static OzNode sequence(OzNode... nodes) {
 		return singleOrSeq(nodes);
 	}
@@ -56,6 +60,10 @@ public class SequenceNode extends OzNode {
 
 	private SequenceNode(OzNode... statements) {
 		this.statements = statements;
+	}
+
+	public OzNode[] getStatements() {
+		return statements;
 	}
 
 	@Override

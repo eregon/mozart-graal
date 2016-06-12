@@ -22,6 +22,14 @@ public class RecordLiteralNode extends OzNode {
 		this.executeValuesNode = new ExecuteValuesNode(derefIfBound(values));
 	}
 
+	public Arity getArity() {
+		return arity;
+	}
+
+	public OzNode[] getValues() {
+		return executeValuesNode.getValues();
+	}
+
 	static OzNode[] derefIfBound(OzNode[] values) {
 		OzNode[] deref = new OzNode[values.length];
 		for (int i = 0; i < values.length; i++) {

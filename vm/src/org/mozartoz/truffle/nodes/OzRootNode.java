@@ -21,6 +21,14 @@ public class OzRootNode extends RootNode {
 		this.arity = arity;
 	}
 
+	public int getArity() {
+		return arity;
+	}
+
+	public OzNode getBody() {
+		return body;
+	}
+
 	@Override
 	public Object execute(VirtualFrame frame) {
 		checkArity(frame);

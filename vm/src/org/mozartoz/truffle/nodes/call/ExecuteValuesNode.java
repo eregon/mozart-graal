@@ -13,6 +13,10 @@ public class ExecuteValuesNode extends OzNode {
 		this.values = values;
 	}
 
+	public OzNode[] getValues() {
+		return values;
+	}
+
 	@Override
 	public Object execute(VirtualFrame frame) {
 		return executeValues(frame);

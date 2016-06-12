@@ -21,6 +21,18 @@ public class TryNode extends OzNode {
 		this.writeExceptionVarNode = writeExceptionVarNode;
 	}
 
+	public OzNode getBody() {
+		return body;
+	}
+
+	public OzNode getCatchBody() {
+		return catchBody;
+	}
+
+	public WriteNode getWriteExceptionVarNode() {
+		return writeExceptionVarNode;
+	}
+
 	@Override
 	public Object execute(VirtualFrame frame) {
 		try {

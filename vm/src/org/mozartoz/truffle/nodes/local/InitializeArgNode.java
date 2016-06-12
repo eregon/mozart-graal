@@ -16,6 +16,12 @@ public abstract class InitializeArgNode extends OzNode {
 		this.writeFrameSlotNode = WriteFrameSlotNodeGen.create(slot);
 	}
 
+	public FrameSlot getSlot() {
+		return writeFrameSlotNode.getSlot();
+	}
+
+	public abstract OzNode getVar();
+
 	@Specialization
 	public Object initializeArg(VirtualFrame frame, Object value) {
 		writeFrameSlotNode.write(frame, value);

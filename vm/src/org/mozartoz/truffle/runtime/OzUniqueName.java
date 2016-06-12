@@ -17,6 +17,10 @@ public class OzUniqueName implements Comparable<OzUniqueName> {
 		this.name = name;
 	}
 
+	public String getName() {
+		return name;
+	}
+
 	@Override
 	public int compareTo(OzUniqueName other) {
 		return name.compareTo(other.name);
