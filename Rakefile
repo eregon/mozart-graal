@@ -98,6 +98,7 @@ namespace :build do
   end
 
   file ".classpath" do
+    sh "mvn dependency:build-classpath"
     erb 'tool/classpath.erb', '.classpath'
   end
 
