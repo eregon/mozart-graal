@@ -52,4 +52,10 @@ public abstract class OzNode extends Node {
 		return new OzException(this, data);
 	}
 
+	private static final DynamicObjectFactory KERNEL_ERROR_FACTORY4 = Arity.build("kernel", 1L, 2L, 3L).createFactory();
+
+	protected OzException kernelError(String kind, Object arg1, Object arg2, Object arg3) {
+		DynamicObject data = OzException.newError(KERNEL_ERROR_FACTORY4.newInstance("kernel", kind, arg1, arg2, arg3));
+		return new OzException(this, data);
+	}
 }

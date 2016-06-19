@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
@@ -16,6 +17,9 @@ import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
+import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltins.RaiseNode;
+import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.RaiseNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.RaiseNodeFactory.RaiseNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ListBuiltins.HeadNode;
 import org.mozartoz.truffle.nodes.builtins.ListBuiltins.TailNode;
 import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.HeadNodeGen;
@@ -32,6 +36,7 @@ import org.mozartoz.truffle.nodes.call.ExecuteValuesNode;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.control.AndNode;
 import org.mozartoz.truffle.nodes.control.IfNode;
+import org.mozartoz.truffle.nodes.control.NoElseNode;
 import org.mozartoz.truffle.nodes.control.SequenceNode;
 import org.mozartoz.truffle.nodes.control.SkipNode;
 import org.mozartoz.truffle.nodes.control.TryNode;
@@ -42,6 +47,7 @@ import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
 import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
+import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeArgNode;
@@ -386,12 +392,18 @@ public class OzSerializer {
 		}
 	}
 
-	private static class SkipNodeSerializer extends Serializer<SkipNode> {
-		public void write(Kryo kryo, Output output, SkipNode object) {
+	private static class NewInstanceSerializer<T> extends Serializer<T> {
+		private final Supplier<T> constructor;
+
+		public NewInstanceSerializer(Supplier<T> constructor) {
+			this.constructor = constructor;
 		}
 
-		public SkipNode read(Kryo kryo, Input input, Class<SkipNode> type) {
-			return new SkipNode();
+		public void write(Kryo kryo, Output output, T object) {
+		}
+
+		public T read(Kryo kryo, Input input, Class<T> type) {
+			return constructor.get();
 		}
 	}
 
@@ -460,11 +472,14 @@ public class OzSerializer {
 		kryo.register(BindNodeGen.class, new TripleSerializer<>(
 				BindNode::getWriteLeft, BindNode::getLeft, BindNode::getRight, BindNodeGen::create));
 
-		kryo.register(SkipNode.class, new SkipNodeSerializer());
+		kryo.register(SkipNode.class, new NewInstanceSerializer<>(SkipNode::new));
+		kryo.register(UnboundLiteralNode.class, new NewInstanceSerializer<>(UnboundLiteralNode::new));
 		kryo.register(IfNode.class,
 				new TripleSerializer<>(IfNode::getCondition, IfNode::getThenExpr, IfNode::getElseExpr, IfNode::new));
 		kryo.register(TryNode.class, new TripleSerializer<>(
 				TryNode::getWriteExceptionVarNode, TryNode::getBody, TryNode::getCatchBody, TryNode::new));
+		kryo.register(RaiseNodeGen.class, new SingleSerializer<>(RaiseNode::getValue, RaiseNodeFactory::create));
+		kryo.register(NoElseNode.class, new SingleSerializer<>(NoElseNode::getValueNode, NoElseNode::new));
 		kryo.register(AndNode.class, new SingleSerializer<>(AndNode::getConditions, AndNode::new));
 		kryo.register(PatternMatchCaptureNodeGen.class, new DoubleSerializer<>(
 				PatternMatchCaptureNode::getVar, PatternMatchCaptureNode::getValue, PatternMatchCaptureNodeGen::create));
