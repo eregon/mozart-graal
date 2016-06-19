@@ -10,24 +10,30 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.mozartoz.bootcompiler.ast.BinaryOp;
+import org.mozartoz.bootcompiler.ast.BindCommon;
 import org.mozartoz.bootcompiler.ast.BindStatement;
+import org.mozartoz.bootcompiler.ast.CallCommon;
 import org.mozartoz.bootcompiler.ast.CallStatement;
 import org.mozartoz.bootcompiler.ast.CompoundStatement;
 import org.mozartoz.bootcompiler.ast.Constant;
 import org.mozartoz.bootcompiler.ast.Expression;
-import org.mozartoz.bootcompiler.ast.IfStatement;
-import org.mozartoz.bootcompiler.ast.LocalExpression;
-import org.mozartoz.bootcompiler.ast.LocalStatement;
-import org.mozartoz.bootcompiler.ast.MatchStatement;
-import org.mozartoz.bootcompiler.ast.MatchStatementClause;
+import org.mozartoz.bootcompiler.ast.FailStatement;
+import org.mozartoz.bootcompiler.ast.IfCommon;
+import org.mozartoz.bootcompiler.ast.LocalCommon;
+import org.mozartoz.bootcompiler.ast.MatchClauseCommon;
+import org.mozartoz.bootcompiler.ast.MatchCommon;
+import org.mozartoz.bootcompiler.ast.NoElseExpression;
 import org.mozartoz.bootcompiler.ast.NoElseStatement;
+import org.mozartoz.bootcompiler.ast.Node;
 import org.mozartoz.bootcompiler.ast.ProcExpression;
+import org.mozartoz.bootcompiler.ast.RaiseCommon;
 import org.mozartoz.bootcompiler.ast.Record;
 import org.mozartoz.bootcompiler.ast.RecordField;
 import org.mozartoz.bootcompiler.ast.SkipStatement;
 import org.mozartoz.bootcompiler.ast.StatAndExpression;
+import org.mozartoz.bootcompiler.ast.StatOrExpr;
 import org.mozartoz.bootcompiler.ast.Statement;
-import org.mozartoz.bootcompiler.ast.TryStatement;
+import org.mozartoz.bootcompiler.ast.TryCommon;
 import org.mozartoz.bootcompiler.ast.UnboundExpression;
 import org.mozartoz.bootcompiler.ast.Variable;
 import org.mozartoz.bootcompiler.ast.VariableOrRaw;
@@ -57,6 +63,8 @@ import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.TopLevelHandlerNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
+import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.FailNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.RaiseNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.IntBuiltinsFactory.DivNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.IntBuiltinsFactory.ModNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.HeadNodeGen;
@@ -76,6 +84,7 @@ import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.control.AndNode;
 import org.mozartoz.truffle.nodes.control.IfNode;
+import org.mozartoz.truffle.nodes.control.NoElseNode;
 import org.mozartoz.truffle.nodes.control.SequenceNode;
 import org.mozartoz.truffle.nodes.control.SkipNode;
 import org.mozartoz.truffle.nodes.control.TryNode;
@@ -89,6 +98,7 @@ import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
+import org.mozartoz.truffle.nodes.local.WriteNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchCaptureNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchDynamicArityNodeGen;
@@ -178,142 +188,164 @@ public class Translator {
 		return new OzRootNode(sourceSection, environment.frameDescriptor, handler, 0);
 	}
 
-	OzNode translate(Statement statement) {
-		if (statement instanceof SkipStatement) {
-			return new SkipNode();
-		} else if (statement instanceof CompoundStatement) {
-			CompoundStatement compound = (CompoundStatement) statement;
+	OzNode translate(StatOrExpr node) {
+		if (node instanceof Expression) {
+			// Literal expressions
+			if (node instanceof Constant) {
+				Constant constant = (Constant) node;
+				return translateConstantNode(constant.value());
+			} else if (node instanceof Record) {
+				Record record = (Record) node;
+				List<RecordField> fields = new ArrayList<>(toJava(record.fields()));
+				if (record.isCons()) {
+					return buildCons(translate(fields.get(0).value()), translate(fields.get(1).value()));
+				} else if (record.hasConstantArity()) {
+					Arity arity = buildArity(record.getConstantArity());
+					if (fields.isEmpty()) {
+						return new LiteralNode(arity.getLabel());
+					}
+					OzNode[] values = new OzNode[fields.size()];
+					for (int i = 0; i < values.length; i++) {
+						values[i] = translate(fields.get(i).value());
+					}
+					return new RecordLiteralNode(arity, values);
+				}
+			} else if (node instanceof Variable) {
+				Variable variable = (Variable) node;
+				return findVariable(variable.symbol()).createReadNode();
+			} else if (node instanceof UnboundExpression) {
+				return new UnboundLiteralNode();
+			} else if (node instanceof BinaryOp) {
+				BinaryOp binaryOp = (BinaryOp) node;
+				return translateBinaryOp(binaryOp.operator(),
+						translate(binaryOp.left()),
+						translate(binaryOp.right()));
+			} else if (node instanceof ProcExpression) { // proc/fun literal
+				ProcExpression procExpression = (ProcExpression) node;
+				pushEnvironment(new FrameDescriptor());
+
+				int arity = procExpression.args().size();
+				OzNode[] nodes = new OzNode[arity + 1];
+				int i = 0;
+				for (VariableOrRaw variable : toJava(procExpression.args())) {
+					if (variable instanceof Variable) {
+						FrameSlot argSlot = environment.addLocalVariable(((Variable) variable).symbol());
+						nodes[i] = InitializeArgNodeGen.create(argSlot, new ReadArgumentNode(i));
+						i++;
+					} else {
+						throw unknown("variable", variable);
+					}
+				}
+
+				nodes[i] = translate(procExpression.body());
+
+				OzNode procBody = SequenceNode.sequence(nodes);
+				SourceSection sourceSection = t(procExpression);
+				OzRootNode rootNode = new OzRootNode(sourceSection, environment.frameDescriptor, procBody, arity);
+				RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+				popEnvironment();
+				return new ProcDeclarationNode(callTarget);
+			}
+		}
+
+		// Structural nodes
+		if (node instanceof CompoundStatement) {
+			CompoundStatement compound = (CompoundStatement) node;
 			return SequenceNode.sequence(map(compound.statements(), this::translate));
-		} else if (statement instanceof LocalStatement) {
-			LocalStatement local = (LocalStatement) statement;
+		} else if (node instanceof StatAndExpression) {
+			StatAndExpression statAndExpr = (StatAndExpression) node;
+			return SequenceNode.sequence(translate(statAndExpr.statement()), translate(statAndExpr.expression()));
+		} else if (node instanceof LocalCommon) {
+			LocalCommon local = (LocalCommon) node;
 			OzNode[] decls = map(local.declarations(), variable -> {
-				FrameSlot slot = environment.addLocalVariable(variable.symbol());
+				FrameSlot slot = environment.addLocalVariable(((Variable) variable).symbol());
 				return new InitializeVarNode(slot);
 			});
-			return SequenceNode.sequence(decls, translate(local.statement()));
-		} else if (statement instanceof BindStatement) {
-			BindStatement bind = (BindStatement) statement;
+			return SequenceNode.sequence(decls, translate(local.body()));
+		} else if (node instanceof CallCommon) {
+			return translateCall((CallCommon) node);
+		} else if (node instanceof SkipStatement) {
+			return new SkipNode();
+		} else if (node instanceof BindCommon) {
+			BindCommon bind = (BindCommon) node;
 			Expression left = bind.left();
 			Expression right = bind.right();
-			FrameSlotAndDepth leftSlot = null;
+			OzNode readLeft;
+			WriteNode writeLeft = null;
 			if (left instanceof Variable) {
-				leftSlot = findVariable(((Variable) left).symbol());
+				FrameSlotAndDepth leftSlot = findVariable(((Variable) left).symbol());
+				writeLeft = leftSlot.createWriteNode();
+				readLeft = leftSlot.createReadNode();
+			} else {
+				readLeft = translate(left);
 			}
-			return t(statement, BindNodeGen.create(leftSlot.createWriteNode(), leftSlot.createReadNode(), translate(right)));
-		} else if (statement instanceof IfStatement) {
-			IfStatement ifStatement = (IfStatement) statement;
-			return new IfNode(translate(ifStatement.condition()),
-					translate(ifStatement.trueStatement()),
-					translate(ifStatement.falseStatement()));
-		} else if (statement instanceof TryStatement) {
-			TryStatement tryStatement = (TryStatement) statement;
-			FrameSlotAndDepth exceptionVarSlot = findVariable(((Variable) tryStatement.exceptionVar()).symbol());
+			return t(node, BindNodeGen.create(writeLeft, readLeft, translate(right)));
+		} else if (node instanceof IfCommon) {
+			IfCommon ifNode = (IfCommon) node;
+			return new IfNode(translate(ifNode.condition()),
+					translate(ifNode.truePart()),
+					translate(ifNode.falsePart()));
+		} else if (node instanceof MatchCommon) {
+			return translateMatch((MatchCommon) node);
+		} else if (node instanceof TryCommon) {
+			TryCommon tryNode = (TryCommon) node;
+			FrameSlotAndDepth exceptionVarSlot = findVariable(((Variable) tryNode.exceptionVar()).symbol());
 			return new TryNode(
 					exceptionVarSlot.createWriteNode(),
-					translate(tryStatement.body()),
-					translate(tryStatement.catchBody()));
-		} else if (statement instanceof MatchStatement) {
-			MatchStatement matchStatement = (MatchStatement) statement;
-
-			assert matchStatement.value() instanceof Variable;
-			OzNode valueNode = translate(matchStatement.value());
-			Statement elseStatement = matchStatement.elseStatement();
-
-			assert !(elseStatement instanceof NoElseStatement);
-			OzNode elseNode = translate(elseStatement);
-
-			List<MatchStatementClause> clauses = new ArrayList<>(toJava(matchStatement.clauses()));
-			Collections.reverse(clauses);
-
-			OzNode caseNode = elseNode;
-			for (MatchStatementClause clause : clauses) {
-				caseNode = translateMatchClause(copy(valueNode), caseNode, clause);
-			}
-
-			return caseNode;
-		} else if (statement instanceof CallStatement) {
-			CallStatement callStatement = (CallStatement) statement;
-			Expression callable = callStatement.callable();
-			List<Expression> args = new ArrayList<>(toJava(callStatement.args()));
-
-			OzNode[] argsNodes = new OzNode[args.size()];
-			for (int i = 0; i < args.size(); i++) {
-				argsNodes[i] = translate(args.get(i));
-			}
-			return t(statement, CallProcNodeGen.create(argsNodes, translate(callable)));
+					translate(tryNode.body()),
+					translate(tryNode.catchBody()));
+		} else if (node instanceof RaiseCommon) {
+			RaiseCommon raiseNode = (RaiseCommon) node;
+			return RaiseNodeFactory.create(translate(raiseNode.exception()));
+		} else if (node instanceof FailStatement) {
+			return FailNodeFactory.create();
 		}
 
-		throw unknown("statement", statement);
+		throw unknown("expression or statement", node);
 	}
 
-	OzNode translate(Expression expression) {
-		if (expression instanceof Constant) {
-			Constant constant = (Constant) expression;
-			return translateConstantNode(constant.value());
-		} else if (expression instanceof Record) {
-			Record record = (Record) expression;
-			List<RecordField> fields = new ArrayList<>(toJava(record.fields()));
-			if (record.isCons()) {
-				return buildCons(translate(fields.get(0).value()), translate(fields.get(1).value()));
-			} else if (record.hasConstantArity()) {
-				Arity arity = buildArity(record.getConstantArity());
-				if (fields.isEmpty()) {
-					return new LiteralNode(arity.getLabel());
-				}
-				OzNode[] values = new OzNode[fields.size()];
-				for (int i = 0; i < values.length; i++) {
-					values[i] = translate(fields.get(i).value());
-				}
-				return new RecordLiteralNode(arity, values);
-			}
-		} else if (expression instanceof Variable) {
-			Variable variable = (Variable) expression;
-			return findVariable(variable.symbol()).createReadNode();
-		} else if (expression instanceof UnboundExpression) {
-			return new UnboundLiteralNode();
-		} else if (expression instanceof BinaryOp) {
-			BinaryOp binaryOp = (BinaryOp) expression;
-			return translateBinaryOp(binaryOp.operator(),
-					translate(binaryOp.left()),
-					translate(binaryOp.right()));
-		} else if (expression instanceof ProcExpression) { // proc/fun literal
-			ProcExpression procExpression = (ProcExpression) expression;
-			pushEnvironment(new FrameDescriptor());
+	private OzNode translateCall(CallCommon call) {
+		Expression callable = call.callable();
+		List<Expression> args = new ArrayList<>(toJava(call.args()));
 
-			int arity = procExpression.args().size();
-			OzNode[] nodes = new OzNode[arity + 1];
-			int i = 0;
-			for (VariableOrRaw variable : toJava(procExpression.args())) {
-				if (variable instanceof Variable) {
-					FrameSlot argSlot = environment.addLocalVariable(((Variable) variable).symbol());
-					nodes[i] = InitializeArgNodeGen.create(argSlot, new ReadArgumentNode(i));
-					i++;
-				} else {
-					throw unknown("variable", variable);
-				}
-			}
+		OzNode[] argsNodes = new OzNode[args.size()];
+		for (int i = 0; i < args.size(); i++) {
+			argsNodes[i] = translate(args.get(i));
+		}
+		return t(call, CallProcNodeGen.create(argsNodes, translate(callable)));
+	}
 
-			nodes[i] = translate(procExpression.body());
+	private OzNode translateMatch(MatchCommon match) {
+		assert match.value() instanceof Variable;
+		OzNode valueNode = translate(match.value());
+		StatOrExpr elsePart = match.elsePart();
 
-			OzNode procBody = SequenceNode.sequence(nodes);
-			SourceSection sourceSection = t(expression);
-			OzRootNode rootNode = new OzRootNode(sourceSection, environment.frameDescriptor, procBody, arity);
-			RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-			popEnvironment();
-			return new ProcDeclarationNode(callTarget);
+		final OzNode elseNode;
+		if (elsePart instanceof NoElseStatement || elsePart instanceof NoElseExpression) {
+			elseNode = t(elsePart, new NoElseNode(valueNode));
+		} else {
+			elseNode = translate(elsePart);
 		}
 
-		throw unknown("expression", expression);
+		List<MatchClauseCommon> clauses = new ArrayList<MatchClauseCommon>(toJava(match.clauses()));
+		Collections.reverse(clauses);
+
+		OzNode caseNode = elseNode;
+		for (MatchClauseCommon clause : clauses) {
+			caseNode = translateMatchClause(copy(valueNode), caseNode, clause);
+		}
+
+		return caseNode;
 	}
 
-	private OzNode translateMatchClause(OzNode valueNode, OzNode elseNode, MatchStatementClause clause) {
+	private OzNode translateMatchClause(OzNode valueNode, OzNode elseNode, MatchClauseCommon clause) {
 		List<OzNode> checks = new ArrayList<>();
 		List<OzNode> bindings = new ArrayList<>();
 		translateMatcher(clause.pattern(), valueNode, checks, bindings);
 		OzNode body = translate(clause.body());
 		final IfNode matchNode;
 		if (clause.hasGuard()) {
-			OzNode guard = translateGuard(clause.guard().get());
+			OzNode guard = translate(clause.guard().get());
 			// First the checks, then the bindings and then the guard (possibly using the bindings)
 			bindings.add(guard);
 			checks.add(SequenceNode.sequence(bindings.toArray(new OzNode[bindings.size()])));
@@ -324,19 +356,7 @@ public class Translator {
 					SequenceNode.sequence(bindings.toArray(new OzNode[bindings.size()]), body),
 					elseNode);
 		}
-		return t(clause, matchNode);
-	}
-
-	// We manually translate a LocalExpression here. Other local are already converted to statements.
-	private OzNode translateGuard(Expression guard) {
-		LocalExpression guardLocal = (LocalExpression) guard;
-		StatAndExpression guardExpr = ((StatAndExpression) guardLocal.body());
-		Variable resultVar = (Variable) guardExpr.expression();
-		FrameSlot slot = environment.addLocalVariable(resultVar.symbol());
-		return SequenceNode.sequence(
-				new InitializeVarNode(slot),
-				translate(guardExpr.statement()),
-				deref(translate(resultVar)));
+		return t((Node) clause, matchNode);
 	}
 
 	private void translateMatcher(Object matcher, OzNode valueNode, List<OzNode> checks, List<OzNode> bindings) {
@@ -541,15 +561,19 @@ public class Translator {
 		return new RuntimeException("Unknown " + type + " " + description.getClass() + ": " + description);
 	}
 
-	private OzNode t(org.mozartoz.bootcompiler.ast.Node node, OzNode ozNode) {
+	private OzNode t(Node node, OzNode ozNode) {
 		SourceSection sourceSection = t(node);
 		ozNode.setSourceSection(sourceSection);
 		return ozNode;
 	}
 
+	private OzNode t(StatOrExpr node, OzNode ozNode) {
+		return t((Node) node, ozNode);
+	}
+
 	private static final Map<String, Source> SOURCES = new HashMap<>();
 
-	private SourceSection t(org.mozartoz.bootcompiler.ast.Node node) {
+	private SourceSection t(Node node) {
 		Position pos = node.pos();
 		if (pos instanceof FilePosition) {
 			return t(pos);

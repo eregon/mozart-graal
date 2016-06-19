@@ -14,7 +14,7 @@ import org.mozartoz.bootcompiler.transform.DesugarClass;
 import org.mozartoz.bootcompiler.transform.DesugarFunctor;
 import org.mozartoz.bootcompiler.transform.Namer;
 import org.mozartoz.bootcompiler.transform.PatternMatcher;
-import org.mozartoz.bootcompiler.transform.Unnester;
+import org.mozartoz.bootcompiler.transform.Simplify;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
@@ -223,7 +223,7 @@ public class Loader {
 		PatternMatcher.apply(program);
 
 		ConstantFolding.apply(program);
-		Unnester.apply(program);
+		Simplify.apply(program);
 
 		return program.rawCode();
 	}

@@ -29,6 +29,8 @@ public abstract class ExceptionBuiltins {
 	@NodeChild("value")
 	public static abstract class RaiseNode extends OzNode {
 
+		public abstract OzNode getValue();
+
 		@TruffleBoundary
 		@Specialization
 		Object raise(Object data) {
