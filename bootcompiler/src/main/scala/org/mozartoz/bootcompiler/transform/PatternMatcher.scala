@@ -32,7 +32,7 @@ object PatternMatcher extends Transformer with TreeDSL {
   }
 
   override def transformExpr(expression: Expression) = expression match {
-    case matchStat @ MatchExpression(value, clauses, elseExpr)
+    case matchExpr @ MatchExpression(value, clauses, elseExpr)
     if clauses exists (clause => containsVariable(clause.pattern)) =>
       val newCaptures = new ListBuffer[Variable]
 
@@ -46,7 +46,7 @@ object PatternMatcher extends Transformer with TreeDSL {
 
       transformExpr {
         LOCAL (newCaptures:_*) IN {
-          treeCopy.MatchExpression(matchStat, value, newClauses, elseExpr)
+          treeCopy.MatchExpression(matchExpr, value, newClauses, elseExpr)
         }
       }
 
