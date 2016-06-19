@@ -40,38 +40,40 @@ public abstract class UnifyNode extends OzNode {
 	@Specialization(guards = { "!a.isBound()", "!b.isBound()" })
 	Object unifyUnboundUnbound(Variable a, Variable b) {
 		a.link(b);
-		return unit;
+		return a;
 	}
 
 	@Specialization(guards = { "isBound(a)", "!isBound(b)" })
 	Object unifyLeftBound(OzVar a, OzVar b) {
-		b.bind(a.getBoundValue(this));
-		return unit;
+		Object value = a.getBoundValue(this);
+		b.bind(value);
+		return value;
 	}
 
 	@Specialization(guards = { "!isBound(a)", "isBound(b)" })
 	Object unifyRightBound(OzVar a, OzVar b) {
-		a.bind(b.getBoundValue(this));
-		return unit;
+		Object value = b.getBoundValue(this);
+		a.bind(value);
+		return value;
 	}
 
 	@Specialization(guards = { "!isVariable(a)", "!isBound(b)" })
 	Object unify(Object a, OzVar b) {
 		b.bind(a);
-		return unit;
+		return a;
 	}
 
 	@Specialization(guards = { "!isBound(a)", "!isVariable(b)" })
 	Object unify(OzVar a, Object b) {
 		a.bind(b);
-		return unit;
+		return b;
 	}
 
 	@Specialization
 	Object unify(OzCons a, OzCons b) {
 		unify(a.getHead(), b.getHead());
 		unify(a.getTail(), b.getTail());
-		return unit;
+		return a;
 	}
 
 	@Specialization(guards = "a.getShape() == b.getShape()")
@@ -81,7 +83,7 @@ public abstract class UnifyNode extends OzNode {
 			Object bValue = property.get(b, b.getShape());
 			unify(aValue, bValue);
 		}
-		return unit;
+		return a;
 	}
 
 	@Specialization(guards = { "!isVariable(a)", "!isVariable(b)", "!isCons(a)", "!isCons(b)" })
@@ -90,7 +92,7 @@ public abstract class UnifyNode extends OzNode {
 			CompilerDirectives.transferToInterpreter();
 			throw new OzException(this, "Failed unification: " + a + " != " + b);
 		}
-		return unit;
+		return a;
 	}
 
 	private Object deref(Object value) {
