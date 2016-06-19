@@ -24,6 +24,7 @@ public abstract class BrowserBuiltins {
 			return isRecordNode.executeIsRecord(value);
 		}
 
+		@Specialization
 		boolean isRecordCVar(Variable var) {
 			// thanks to tryDeref, we know var is unbound
 			return false;
