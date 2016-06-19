@@ -171,12 +171,7 @@ public class OzSerializer {
 
 			for (int i = 0; i < n; i++) {
 				Property property = propertyList.get(i);
-				Object key = property.getKey();
 				Object value = kryo.readClassAndObject(input);
-				if (key.toString().startsWith("AAAA")) {
-					System.out.println("HERE " + key);
-					System.out.println(value);
-				}
 				property.setInternal(dynamicObject, value);
 			}
 			return dynamicObject;
