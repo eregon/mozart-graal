@@ -22,8 +22,7 @@ import org.mozartoz.bootcompiler.ast.IfCommon;
 import org.mozartoz.bootcompiler.ast.LocalCommon;
 import org.mozartoz.bootcompiler.ast.MatchClauseCommon;
 import org.mozartoz.bootcompiler.ast.MatchCommon;
-import org.mozartoz.bootcompiler.ast.NoElseExpression;
-import org.mozartoz.bootcompiler.ast.NoElseStatement;
+import org.mozartoz.bootcompiler.ast.NoElseCommon;
 import org.mozartoz.bootcompiler.ast.Node;
 import org.mozartoz.bootcompiler.ast.ProcExpression;
 import org.mozartoz.bootcompiler.ast.RaiseCommon;
@@ -327,7 +326,7 @@ public class Translator {
 		StatOrExpr elsePart = match.elsePart();
 
 		final OzNode elseNode;
-		if (elsePart instanceof NoElseStatement || elsePart instanceof NoElseExpression) {
+		if (elsePart instanceof NoElseCommon) {
 			elseNode = t(elsePart, new NoElseNode(valueNode));
 		} else {
 			elseNode = translate(elsePart);
