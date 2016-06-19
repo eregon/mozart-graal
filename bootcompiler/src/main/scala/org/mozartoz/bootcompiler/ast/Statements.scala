@@ -99,7 +99,6 @@ case class MatchStatement(value: Expression,
  */
 case class MatchStatementClause(pattern: Expression, guard: Option[Expression],
     body: Statement) extends MatchClauseCommon {
-  def hasGuard = guard.isDefined
 }
 
 /** Special node to mark that there is no else statement */
@@ -201,8 +200,7 @@ case class RaiseStatement(
  *  }}}
  */
 case class BindStatement(left: Expression,
-    right: Expression) extends Statement with InfixSyntax {
-  protected val opSyntax = " = "
+    right: Expression) extends Statement with BindCommon {
 }
 
 /** Binary operator statement

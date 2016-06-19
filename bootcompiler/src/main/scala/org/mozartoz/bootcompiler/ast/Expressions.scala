@@ -136,7 +136,6 @@ case class MatchExpression(value: Expression,
  */
 case class MatchExpressionClause(pattern: Expression, guard: Option[Expression],
     body: Expression) extends MatchClauseCommon {
-  def hasGuard = guard.isDefined
 }
 
 /** Special node to mark that there is no else expression */
@@ -228,8 +227,7 @@ case class RaiseExpression(
  *  }}}
  */
 case class BindExpression(left: Expression,
-    right: Expression) extends Expression with InfixSyntax {
-  protected val opSyntax = " = "
+    right: Expression) extends Expression with BindCommon {
 }
 
 /** Dot-assign expression

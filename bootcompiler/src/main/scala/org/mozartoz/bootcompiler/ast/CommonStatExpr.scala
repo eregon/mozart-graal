@@ -103,6 +103,8 @@ trait MatchClauseCommon extends Node {
   protected val guard: Option[Expression]
   protected val body: StatOrExpr
 
+  def hasGuard = guard.isDefined
+
   def syntax(indent: String) = {
     val subIndent = indent + "   "
 
@@ -181,4 +183,11 @@ trait RaiseCommon extends StatOrExpr {
   def syntax(indent: String) = {
     "raise " + exception.syntax(indent + "      ") + " end"
   }
+}
+
+trait BindCommon extends StatOrExpr with InfixSyntax {
+  protected val left: Expression
+  protected val right: Expression
+
+  protected val opSyntax = " = "
 }
