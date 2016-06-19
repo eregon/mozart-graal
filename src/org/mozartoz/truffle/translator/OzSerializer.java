@@ -45,6 +45,7 @@ import org.mozartoz.truffle.nodes.literal.ConsLiteralNode;
 import org.mozartoz.truffle.nodes.literal.ConsLiteralNodeGen;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
+import org.mozartoz.truffle.nodes.literal.MakeDynamicRecordNode;
 import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
@@ -468,6 +469,8 @@ public class OzSerializer {
 				ProcDeclarationNode::getCallTarget, ProcDeclarationNode::new));
 		kryo.register(RecordLiteralNode.class, new DoubleSerializer<>(
 				RecordLiteralNode::getArity, RecordLiteralNode::getValues, RecordLiteralNode::new));
+		kryo.register(MakeDynamicRecordNode.class, new TripleSerializer<>(
+				MakeDynamicRecordNode::getLabel, MakeDynamicRecordNode::getFeatures, MakeDynamicRecordNode::getValues, MakeDynamicRecordNode::new));
 
 		kryo.register(BindNodeGen.class, new TripleSerializer<>(
 				BindNode::getWriteLeft, BindNode::getLeft, BindNode::getRight, BindNodeGen::create));
