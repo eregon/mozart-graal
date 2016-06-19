@@ -118,6 +118,10 @@ trait MatchClauseCommon extends Node {
   }
 }
 
+trait NoElseCommon extends StatOrExpr {
+  def syntax(indent: String) = "<noelse>"
+}
+
 trait ThreadCommon extends StatOrExpr {
   protected val body: StatOrExpr
 
