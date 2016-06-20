@@ -62,7 +62,6 @@ public abstract class OSBuiltins {
 				path = url;
 			}
 
-			System.out.println("Loading " + path);
 			if (new File(path).exists()) {
 				Source source = Loader.createSource(path);
 				Loader loader = Loader.getInstance();

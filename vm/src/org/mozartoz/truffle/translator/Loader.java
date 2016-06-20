@@ -168,8 +168,9 @@ public class Loader {
 	public OzRootNode parseFunctor(Source source) {
 		DynamicObject base = loadBase();
 
-		tick("start parse");
 		String fileName = new File(source.getPath()).getName();
+		System.out.println("Loading " + fileName);
+		tick("start parse");
 		Program program = Main.buildModuleProgram(source.getPath(), BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
 		tick("parse functor " + fileName);
 		Statement ast = compile(program, fileName);
