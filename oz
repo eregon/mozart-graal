@@ -25,12 +25,19 @@ else
   'java'
 end
 
+args = ARGV.drop_while { |arg|
+  if arg.start_with? '-'
+    java_opts << arg
+  end
+}
+
 cmd = [
   java,
   *java_opts,
   "-Xbootclasspath/p:" + BOOTCLASSPATH.join(':'),
   '-cp', CLASSPATH.join(':'),
-  'org.mozartoz.truffle.Main'] + ARGV
+  'org.mozartoz.truffle.Main'
+] + args
 
 puts "$ #{cmd.join(' ')}"
 exec(*cmd)

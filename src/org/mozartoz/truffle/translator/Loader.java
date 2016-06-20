@@ -74,6 +74,21 @@ public class Loader {
 
 	// public static final PolyglotEngine ENGINE = PolyglotEngine.newBuilder().build();
 
+	private static final boolean MEASURE_STARTUP = System.getProperty("oz.measure.startup") != null;
+
+	private static long last = System.currentTimeMillis();
+
+	private static void tick(String desc) {
+		if (MEASURE_STARTUP) {
+			long now = System.currentTimeMillis();
+			long duration = now - last;
+			if (duration > 5) {
+				System.out.println(String.format("%4d", duration) + " " + desc);
+			}
+			last = now;
+		}
+	}
+
 	private static final Loader INSTANCE = new Loader();
 
 	public static Loader getInstance() {
@@ -91,12 +106,15 @@ public class Loader {
 
 	public DynamicObject loadBase() {
 		if (base == null) {
+			tick("start loading Base");
 			if (new File(BASE_IMAGE).exists()) {
 				base = OzSerializer.deserialize(BASE_IMAGE, DynamicObject.class);
+				tick("deserialized Base");
 				return base;
 			}
 
 			OzRootNode baseRootNode = parseBase();
+			tick("translated Base");
 			Object baseFunctor = execute(baseRootNode);
 
 			OzRootNode applyBase = BaseFunctor.apply(baseFunctor);
@@ -105,18 +123,20 @@ public class Loader {
 
 			base = (DynamicObject) result;
 
-			System.out.println("serializing Base");
 			OzSerializer.serialize(base, BASE_IMAGE);
+			tick("serialized Base");
 
-			System.out.println("deserializing Base");
 			DynamicObject reloaded = OzSerializer.deserialize(BASE_IMAGE, DynamicObject.class);
+			tick("deserialized Base");
 			base = reloaded;
 		}
 		return base;
 	}
 
 	private OzRootNode parseBase() {
+		tick("enter parseBase");
 		Program program = Main.buildBaseEnvProgram(BASE_FILE_NAME, BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
+		tick("parse Base");
 		Statement ast = compile(program, "the base environment");
 
 		Translator translator = new Translator();
@@ -148,20 +168,25 @@ public class Loader {
 	public OzRootNode parseFunctor(Source source) {
 		DynamicObject base = loadBase();
 
+		tick("start parse");
 		String fileName = new File(source.getPath()).getName();
 		Program program = Main.buildModuleProgram(source.getPath(), BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
+		tick("parse functor " + fileName);
 		Statement ast = compile(program, fileName);
+		tick("compiled functor " + fileName);
 
 		Translator translator = new Translator();
 		FrameSlot baseSlot = translator.addRootSymbol(program.baseEnvSymbol());
 		FrameSlot topLevelResultSlot = translator.addRootSymbol(program.topLevelResultSymbol());
-		return translator.translateAST(fileName, ast, node -> {
+		OzRootNode rootNode = translator.translateAST(fileName, ast, node -> {
 			return SequenceNode.sequence(
 					new InitializeTmpNode(baseSlot, new LiteralNode(base)),
 					new InitializeVarNode(topLevelResultSlot),
 					node,
 					DerefNodeGen.create(new ReadLocalVariableNode(topLevelResultSlot)));
 		});
+		tick("translated functor " + fileName);
+		return rootNode;
 	}
 
 	public void run(Source source) {
@@ -206,7 +231,9 @@ public class Loader {
 	public Object execute(OzRootNode rootNode) {
 		RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 		Object[] arguments = OzArguments.pack(null, new Object[0]);
-		return callTarget.call(arguments);
+		Object value = callTarget.call(arguments);
+		tick("executed " + rootNode.getSourceSection().getIdentifier());
+		return value;
 	}
 
 	private Statement compile(Program program, String fileName) {
