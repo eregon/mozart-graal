@@ -89,6 +89,7 @@ import org.mozartoz.truffle.nodes.control.SkipNode;
 import org.mozartoz.truffle.nodes.control.TryNode;
 import org.mozartoz.truffle.nodes.literal.BooleanLiteralNode;
 import org.mozartoz.truffle.nodes.literal.ConsLiteralNodeGen;
+import org.mozartoz.truffle.nodes.literal.EnsureOzLiteralNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
 import org.mozartoz.truffle.nodes.literal.MakeDynamicRecordNode;
@@ -209,6 +210,8 @@ public class Translator {
 						values[i] = translate(fields.get(i).value());
 					}
 					return new RecordLiteralNode(arity, values);
+				} else if (record.fields().size() == 0) {
+					return new EnsureOzLiteralNode(translate(record.label()));
 				} else {
 					OzNode label = translate(record.label());
 					OzNode[] features = map(record.fields(), field -> translate(field.feature()));
