@@ -97,12 +97,12 @@ namespace :build do
     sh "cd #{GRAAL} && #{MX} --vm server build"
   end
 
-  file ".classpath" do
+  file ".classpath" => "tool/classpath.erb" do
     sh "mvn dependency:build-classpath"
     erb 'tool/classpath.erb', '.classpath'
   end
 
-  file ".factorypath" do
+  file ".factorypath" => "tool/factorypath.erb" do
     erb 'tool/factorypath.erb', '.factorypath'
   end
 
