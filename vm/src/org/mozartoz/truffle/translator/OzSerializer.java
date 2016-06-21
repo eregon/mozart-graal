@@ -32,7 +32,6 @@ import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory.EqualNodeGen;
 import org.mozartoz.truffle.nodes.call.CallProcNode;
 import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
-import org.mozartoz.truffle.nodes.call.ExecuteValuesNode;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.control.AndNode;
 import org.mozartoz.truffle.nodes.control.IfNode;
@@ -454,7 +453,6 @@ public class OzSerializer {
 		kryo.register(CallProcNodeGen.class,
 				new DoubleSerializer<>(CallProcNode::getArguments, CallProcNode::getFunction, CallProcNodeGen::create));
 
-		kryo.register(ExecuteValuesNode.class);
 		kryo.register(ReadLocalVariableNode.class, new SingleSerializer<>(
 				ReadLocalVariableNode::getSlot, ReadLocalVariableNode::new));
 		kryo.register(ReadCapturedVariableNode.class, new DoubleSerializer<>(

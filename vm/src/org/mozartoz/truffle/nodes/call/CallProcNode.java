@@ -2,6 +2,7 @@ package org.mozartoz.truffle.nodes.call;
 
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.NodeHelpers;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.RecordBuiltins.LabelNode;
@@ -27,16 +28,16 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 @NodeChildren({ @NodeChild("function") })
 public abstract class CallProcNode extends OzNode {
 
-	@Child ExecuteValuesNode executeArgumentsNode;
+	@Children final OzNode[] argumentNodes;
 
 	public CallProcNode(OzNode[] argumentNodes) {
-		this.executeArgumentsNode = new ExecuteValuesNode(argumentNodes);
+		this.argumentNodes = argumentNodes;
 	}
 
 	public abstract OzNode getFunction();
 
 	public OzNode[] getArguments() {
-		return executeArgumentsNode.values;
+		return argumentNodes;
 	}
 
 	@CreateCast("function")
@@ -50,14 +51,14 @@ public abstract class CallProcNode extends OzNode {
 	protected Object callDirect(VirtualFrame frame, OzProc function,
 			@Cached("function.callTarget") RootCallTarget cachedCallTarget,
 			@Cached("create(cachedCallTarget)") DirectCallNode callNode) {
-		final Object[] arguments = executeArgumentsNode.executeValues(frame);
+		final Object[] arguments = NodeHelpers.executeValues(frame, argumentNodes);
 		return callNode.call(frame, OzArguments.pack(function.declarationFrame, arguments));
 	}
 
 	@Specialization
 	protected Object callIndirect(VirtualFrame frame, OzProc function,
 			@Cached("create()") IndirectCallNode callNode) {
-		final Object[] arguments = executeArgumentsNode.executeValues(frame);
+		final Object[] arguments = NodeHelpers.executeValues(frame, argumentNodes);
 		return callNode.call(frame, function.callTarget, OzArguments.pack(function.declarationFrame, arguments));
 	}
 
@@ -68,7 +69,7 @@ public abstract class CallProcNode extends OzNode {
 			@Cached("create()") IndirectCallNode callNode,
 			@Cached("create()") DerefNode derefNode,
 			@Cached("create()") LabelNode labelNode) {
-		final Object[] args = executeArgumentsNode.executeValues(frame);
+		final Object[] args = NodeHelpers.executeValues(frame, argumentNodes);
 		assert args.length == 1;
 		Object message = derefNode.executeDeref(args[0]);
 

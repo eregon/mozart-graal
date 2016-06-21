@@ -1,8 +1,7 @@
 package org.mozartoz.truffle.nodes.literal;
 
-import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
+import org.mozartoz.truffle.nodes.NodeHelpers;
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.call.ExecuteValuesNode;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.ArrayUtils;
 
@@ -13,13 +12,13 @@ public class RecordLiteralNode extends OzNode {
 
 	final Arity arity;
 	final DynamicObjectFactory factory;
-	@Child ExecuteValuesNode executeValuesNode;
+	@Children final OzNode[] valueNodes;
 
 	public RecordLiteralNode(Arity arity, OzNode[] values) {
 		assert arity.getWidth() == values.length;
 		this.arity = arity;
 		this.factory = arity.getShape().createFactory();
-		this.executeValuesNode = new ExecuteValuesNode(derefIfBound(values));
+		this.valueNodes = NodeHelpers.derefIfBound(values);
 	}
 
 	public Arity getArity() {
@@ -27,20 +26,12 @@ public class RecordLiteralNode extends OzNode {
 	}
 
 	public OzNode[] getValues() {
-		return executeValuesNode.getValues();
-	}
-
-	static OzNode[] derefIfBound(OzNode[] values) {
-		OzNode[] deref = new OzNode[values.length];
-		for (int i = 0; i < values.length; i++) {
-			deref[i] = DerefIfBoundNodeGen.create(values[i]);
-		}
-		return deref;
+		return valueNodes;
 	}
 
 	@Override
 	public Object execute(VirtualFrame frame) {
-		Object[] values = executeValuesNode.executeValues(frame);
+		Object[] values = NodeHelpers.executeValues(frame, valueNodes);
 		Object[] initialValues = ArrayUtils.unshift(arity.getLabel(), values);
 		return factory.newInstance(initialValues);
 	}
