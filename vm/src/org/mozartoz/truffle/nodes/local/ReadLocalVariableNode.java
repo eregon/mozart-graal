@@ -5,7 +5,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class ReadLocalVariableNode extends OzNode {
+public class ReadLocalVariableNode extends OzNode implements FrameSlotNode {
 
 	@Child ReadFrameSlotNode readFrameSlotNode;
 

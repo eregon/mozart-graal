@@ -6,7 +6,7 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.nodes.Node;
 
-public abstract class ReadFrameSlotNode extends Node {
+public abstract class ReadFrameSlotNode extends Node implements FrameSlotNode {
 
 	private final FrameSlot slot;
 
