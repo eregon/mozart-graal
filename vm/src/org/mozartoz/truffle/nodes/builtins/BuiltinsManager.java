@@ -135,7 +135,7 @@ public abstract class BuiltinsManager {
 			}
 			OzNode node = factory.createNode(readArguments);
 			if (!builtin.proc()) {
-				node = BindNodeGen.create(null, new ReadArgumentNode(arity), node);
+				node = BindNodeGen.create(new ReadArgumentNode(arity), node);
 				arity++;
 			}
 
