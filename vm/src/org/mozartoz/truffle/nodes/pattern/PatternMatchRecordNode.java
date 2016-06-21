@@ -18,12 +18,6 @@ public abstract class PatternMatchRecordNode extends OzNode {
 		this.arity = arity;
 	}
 
-	public abstract OzNode getValue();
-
-	public Arity getArity() {
-		return arity;
-	}
-
 	@CreateCast("value")
 	protected OzNode derefValue(OzNode value) {
 		return DerefNodeGen.create(value);

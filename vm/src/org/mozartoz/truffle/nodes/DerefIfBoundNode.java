@@ -15,8 +15,6 @@ public abstract class DerefIfBoundNode extends OzNode {
 		return DerefIfBoundNodeGen.create(null);
 	}
 
-	public abstract OzNode getValue();
-
 	public abstract Object executeDerefIfBound(Object value);
 
 	@Specialization

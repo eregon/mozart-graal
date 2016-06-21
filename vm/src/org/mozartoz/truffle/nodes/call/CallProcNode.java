@@ -34,12 +34,6 @@ public abstract class CallProcNode extends OzNode {
 		this.argumentNodes = argumentNodes;
 	}
 
-	public abstract OzNode getFunction();
-
-	public OzNode[] getArguments() {
-		return argumentNodes;
-	}
-
 	@CreateCast("function")
 	protected OzNode derefFunction(OzNode var) {
 		return DerefNodeGen.create(var);

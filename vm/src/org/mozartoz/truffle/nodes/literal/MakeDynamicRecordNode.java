@@ -25,18 +25,6 @@ public class MakeDynamicRecordNode extends OzNode {
 		this.valueNodes = NodeHelpers.derefIfBound(values);
 	}
 
-	public OzNode getLabel() {
-		return labelNode;
-	}
-
-	public OzNode[] getFeatures() {
-		return featureNodes;
-	}
-
-	public OzNode[] getValues() {
-		return valueNodes;
-	}
-
 	@Override
 	public Object execute(VirtualFrame frame) {
 		Object label = labelNode.execute(frame);

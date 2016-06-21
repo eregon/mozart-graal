@@ -9,9 +9,9 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class TryNode extends OzNode {
 
+	@Child WriteNode writeExceptionVarNode;
 	@Child OzNode body;
 	@Child OzNode catchBody;
-	@Child WriteNode writeExceptionVarNode;
 
 	BranchProfile exceptionProfile = BranchProfile.create();
 
@@ -19,18 +19,6 @@ public class TryNode extends OzNode {
 		this.body = body;
 		this.catchBody = catchBody;
 		this.writeExceptionVarNode = writeExceptionVarNode;
-	}
-
-	public OzNode getBody() {
-		return body;
-	}
-
-	public OzNode getCatchBody() {
-		return catchBody;
-	}
-
-	public WriteNode getWriteExceptionVarNode() {
-		return writeExceptionVarNode;
 	}
 
 	@Override

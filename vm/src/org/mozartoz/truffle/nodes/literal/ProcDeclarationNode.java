@@ -18,10 +18,6 @@ public class ProcDeclarationNode extends OzNode {
 		this.arity = ((OzRootNode) callTarget.getRootNode()).getArity();
 	}
 
-	public RootCallTarget getCallTarget() {
-		return callTarget;
-	}
-
 	@Override
 	public Object execute(VirtualFrame frame) {
 		return new OzProc(callTarget, frame.materialize(), arity);

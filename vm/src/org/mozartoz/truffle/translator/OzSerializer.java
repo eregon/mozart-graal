@@ -5,32 +5,22 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
-import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
-import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
-import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltins.RaiseNode;
-import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.RaiseNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.RaiseNodeFactory.RaiseNodeGen;
-import org.mozartoz.truffle.nodes.builtins.ListBuiltins.HeadNode;
-import org.mozartoz.truffle.nodes.builtins.ListBuiltins.TailNode;
 import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.HeadNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.TailNodeGen;
-import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.DotNode;
-import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.EqualNode;
-import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.DotNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.DotNodeFactory.DotNodeGen;
-import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory.EqualNodeGen;
-import org.mozartoz.truffle.nodes.call.CallProcNode;
 import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.control.AndNode;
@@ -40,7 +30,6 @@ import org.mozartoz.truffle.nodes.control.SequenceNode;
 import org.mozartoz.truffle.nodes.control.SkipNode;
 import org.mozartoz.truffle.nodes.control.TryNode;
 import org.mozartoz.truffle.nodes.literal.BooleanLiteralNode;
-import org.mozartoz.truffle.nodes.literal.ConsLiteralNode;
 import org.mozartoz.truffle.nodes.literal.ConsLiteralNodeGen;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
@@ -48,25 +37,18 @@ import org.mozartoz.truffle.nodes.literal.MakeDynamicRecordNode;
 import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
-import org.mozartoz.truffle.nodes.local.BindNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
+import org.mozartoz.truffle.nodes.local.FrameSlotNode;
 import org.mozartoz.truffle.nodes.local.InitializeArgNode;
-import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.local.ReadCapturedVariableNode;
-import org.mozartoz.truffle.nodes.local.ReadFrameSlotNode;
 import org.mozartoz.truffle.nodes.local.ReadFrameSlotNodeGen;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.nodes.local.WriteCapturedVariableNode;
-import org.mozartoz.truffle.nodes.local.WriteFrameSlotNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNodeGen;
-import org.mozartoz.truffle.nodes.pattern.PatternMatchCaptureNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchCaptureNodeGen;
-import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
-import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNodeGen;
-import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzChunk;
@@ -88,10 +70,16 @@ import com.esotericsoftware.kryo.io.Output;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleRuntime;
+import com.oracle.truffle.api.dsl.GeneratedBy;
+import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeClass;
+import com.oracle.truffle.api.nodes.NodeFieldAccessor;
+import com.oracle.truffle.api.nodes.NodeFieldAccessor.NodeFieldKind;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -297,83 +285,137 @@ public class OzSerializer {
 		}
 	}
 
-	private static class SingleSerializer<N, T> extends Serializer<N> {
-
-		private final Function<N, T> get;
-		private final Function<T, N> create;
-
-		public SingleSerializer(Function<N, T> get, Function<T, N> create) {
-			this.get = get;
-			this.create = create;
+	private static class FileSourceSerializer extends Serializer<Source> {
+		public void write(Kryo kryo, Output output, Source source) {
+			output.writeString(source.getName());
 		}
 
-		public void write(Kryo kryo, Output output, N node) {
-			kryo.writeClassAndObject(output, get.apply(node));
-		}
-
-		@SuppressWarnings("unchecked")
-		public N read(Kryo kryo, Input input, Class<N> type) {
-			T value = (T) kryo.readClassAndObject(input);
-			return create.apply(value);
+		public Source read(Kryo kryo, Input input, Class<Source> type) {
+			return sourceFromPath(input.readString());
 		}
 	}
 
-	private static class DoubleSerializer<N, T, U> extends Serializer<N> {
+	private static class NodeSerializer extends Serializer<Node> {
+		private final Field[] fields;
+		private final Constructor<?> constructor;
 
-		private final Function<N, T> get1;
-		private final Function<N, U> get2;
-		private final BiFunction<T, U, N> create;
+		public NodeSerializer(Class<? extends Node> klass) {
+			Constructor<?>[] constructors = klass.getDeclaredConstructors();
+			assert constructors.length == 1 : klass;
+			constructor = constructors[0];
+			constructor.setAccessible(true);
+			Class<?>[] parameterTypes = constructor.getParameterTypes();
 
-		public DoubleSerializer(Function<N, T> get1, Function<N, U> get2, BiFunction<T, U, N> create) {
-			this.get1 = get1;
-			this.get2 = get2;
-			this.create = create;
+			List<Field> toSave = new ArrayList<>();
+			int i = 0;
+			for (Field field : klass.getDeclaredFields()) {
+				Class<?> type = field.getType();
+				if (type == parameterTypes[i]) {
+					field.setAccessible(true);
+					toSave.add(field);
+					i++;
+				} else if (parameterTypes[i] == FrameSlot.class && FrameSlotNode.class.isAssignableFrom(klass)) {
+					toSave.add(null);
+					i++;
+				}
+				if (i == parameterTypes.length) {
+					break;
+				}
+			}
+			fields = toSave.toArray(new Field[toSave.size()]);
+			assert i == parameterTypes.length;
 		}
 
-		public void write(Kryo kryo, Output output, N node) {
-			kryo.writeClassAndObject(output, get1.apply(node));
-			kryo.writeClassAndObject(output, get2.apply(node));
+		public void write(Kryo kryo, Output output, Node node) {
+			try {
+				for (Field field : fields) {
+					Object value;
+					if (field == null) {
+						value = ((FrameSlotNode) node).getSlot();
+					} else {
+						value = field.get(node);
+					}
+					kryo.writeClassAndObject(output, value);
+				}
+			} catch (ReflectiveOperationException e) {
+				throw new Error(e);
+			}
 		}
 
-		@SuppressWarnings("unchecked")
-		public N read(Kryo kryo, Input input, Class<N> type) {
-			T value1 = (T) kryo.readClassAndObject(input);
-			U value2 = (U) kryo.readClassAndObject(input);
-			return create.apply(value1, value2);
+		public Node read(Kryo kryo, Input input, Class<Node> type) {
+			Object[] values = new Object[fields.length];
+			for (int i = 0; i < fields.length; i++) {
+				values[i] = kryo.readClassAndObject(input);
+			}
+			try {
+				return (Node) constructor.newInstance(values);
+			} catch (ReflectiveOperationException e) {
+				throw new Error(e);
+			}
 		}
 	}
 
-	@FunctionalInterface
-	public static interface TriFunction<T, U, V, R> {
-		R apply(T t, U u, V v);
-	}
 
-	public static class TripleSerializer<N, T, U, V> extends Serializer<N> {
+	private static class DSLNodeSerializer extends Serializer<Node> {
+		private final NodeFieldAccessor[] fields;
+		private final Method constructor;
 
-		private final Function<N, T> get1;
-		private final Function<N, U> get2;
-		private final Function<N, V> get3;
-		private final TriFunction<T, U, V, N> create;
+		public DSLNodeSerializer(Class<? extends Node> genClass) {
+			Class<?> baseClass = genClass.getAnnotation(GeneratedBy.class).value();
+			NodeClass nodeClass = NodeClass.get(genClass);
+			List<NodeFieldAccessor> toSave = new ArrayList<>();
 
-		public TripleSerializer(Function<N, T> get1, Function<N, U> get2, Function<N, V> get3, TriFunction<T, U, V, N> create) {
-			this.get1 = get1;
-			this.get2 = get2;
-			this.get3 = get3;
-			this.create = create;
+			for (NodeFieldAccessor field : nodeClass.getFields()) {
+				String name = field.getName();
+				if (!name.equals("specialization_")
+						&& !name.equals("sourceSection")
+						&& !name.startsWith("seenUnsupported")
+						&& !name.startsWith("exclude")) {
+					if (!(field.getDeclaringClass() == baseClass && field.getKind() == NodeFieldKind.CHILD)) {
+						toSave.add(field);
+					}
+				}
+			}
+
+			fields = toSave.toArray(new NodeFieldAccessor[toSave.size()]);
+			Class<?>[] parameterTypes = new Class[fields.length];
+
+			for (int i = 0; i < fields.length; i++) {
+				parameterTypes[i] = fields[i].getType();
+			}
+
+			Class<?> enclosingClass = genClass.getEnclosingClass();
+			final Class<?> factoryClass;
+			if (enclosingClass != null && NodeFactory.class.isAssignableFrom(enclosingClass)) {
+				factoryClass = enclosingClass;
+			} else {
+				factoryClass = genClass;
+			}
+
+			try {
+				constructor = factoryClass.getMethod("create", parameterTypes);
+			} catch (NoSuchMethodException | SecurityException e) {
+				throw new Error(e);
+			}
 		}
 
-		public void write(Kryo kryo, Output output, N node) {
-			kryo.writeClassAndObject(output, get1.apply(node));
-			kryo.writeClassAndObject(output, get2.apply(node));
-			kryo.writeClassAndObject(output, get3.apply(node));
+		public void write(Kryo kryo, Output output, Node node) {
+			for (NodeFieldAccessor field : fields) {
+				Object value = field.loadValue(node);
+				kryo.writeClassAndObject(output, value);
+			}
 		}
 
-		@SuppressWarnings("unchecked")
-		public N read(Kryo kryo, Input input, Class<N> type) {
-			T value1 = (T) kryo.readClassAndObject(input);
-			U value2 = (U) kryo.readClassAndObject(input);
-			V value3 = (V) kryo.readClassAndObject(input);
-			return create.apply(value1, value2, value3);
+		public Node read(Kryo kryo, Input input, Class<Node> type) {
+			Object[] values = new Object[fields.length];
+			for (int i = 0; i < fields.length; i++) {
+				values[i] = kryo.readClassAndObject(input);
+			}
+			try {
+				return (Node) constructor.invoke(null, values);
+			} catch (ReflectiveOperationException e) {
+				throw new Error(e);
+			}
 		}
 	}
 
@@ -389,21 +431,6 @@ public class OzSerializer {
 
 		public Object read(Kryo kryo, Input input, Class<Object> type) {
 			return singleton;
-		}
-	}
-
-	private static class NewInstanceSerializer<T> extends Serializer<T> {
-		private final Supplier<T> constructor;
-
-		public NewInstanceSerializer(Supplier<T> constructor) {
-			this.constructor = constructor;
-		}
-
-		public void write(Kryo kryo, Output output, T object) {
-		}
-
-		public T read(Kryo kryo, Input input, Class<T> type) {
-			return constructor.get();
 		}
 	}
 
@@ -425,8 +452,10 @@ public class OzSerializer {
 		kryo.setReferences(true);
 		kryo.setInstantiatorStrategy(new DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
 
+		// atoms
 		kryo.register(String.class, new StringSerializer());
 
+		// procs
 		kryo.register(SHAPE, new ShapeSerializer());
 		kryo.register(DYNAMIC_OBJECT, new DynamicObjectSerializer());
 
@@ -436,87 +465,64 @@ public class OzSerializer {
 
 		// nodes
 		kryo.register(OzNode[].class);
-		kryo.register(SequenceNode.class, new SingleSerializer<>(
-				SequenceNode::getStatements, SequenceNode::createFrom));
-		kryo.register(InitializeArgNodeGen.class,
-				new DoubleSerializer<>(InitializeArgNode::getSlot, InitializeArgNode::getVar, InitializeArgNodeGen::create));
-		kryo.register(InitializeVarNode.class,
-				new SingleSerializer<>(InitializeVarNode::getSlot, InitializeVarNode::new));
-		kryo.register(ReadArgumentNode.class, new SingleSerializer<>(
-				ReadArgumentNode::getIndex, ReadArgumentNode::new));
+		registerNode(kryo, SequenceNode.class);
+		registerNode(kryo, InitializeArgNode.class);
+		registerNode(kryo, InitializeVarNode.class);
+		registerNode(kryo, ReadArgumentNode.class);
 
-		kryo.register(FrameSlot.class, new FrameSlotSerializer());
-		kryo.register(WriteFrameSlotNodeGen.class,
-				new SingleSerializer<>(WriteFrameSlotNode::getSlot, WriteFrameSlotNodeGen::create));
-		kryo.register(ReadFrameSlotNodeGen.class,
-				new SingleSerializer<>(ReadFrameSlotNode::getSlot, ReadFrameSlotNodeGen::create));
-		kryo.register(CallProcNodeGen.class,
-				new DoubleSerializer<>(CallProcNode::getArguments, CallProcNode::getFunction, CallProcNodeGen::create));
+		registerNode(kryo, WriteFrameSlotNodeGen.class);
+		registerNode(kryo, ReadFrameSlotNodeGen.class);
+		registerNode(kryo, CallProcNodeGen.class);
 
-		kryo.register(ReadLocalVariableNode.class, new SingleSerializer<>(
-				ReadLocalVariableNode::getSlot, ReadLocalVariableNode::new));
-		kryo.register(ReadCapturedVariableNode.class, new DoubleSerializer<>(
-				ReadCapturedVariableNode::getSlot, ReadCapturedVariableNode::getDepth, ReadCapturedVariableNode::new));
-		kryo.register(WriteCapturedVariableNode.class, new DoubleSerializer<>(
-				WriteCapturedVariableNode::getSlot, WriteCapturedVariableNode::getDepth, WriteCapturedVariableNode::new));
-		kryo.register(DerefNodeGen.class, new SingleSerializer<>(
-				DerefNode::getValue, DerefNodeGen::create));
-		kryo.register(DerefIfBoundNodeGen.class, new SingleSerializer<>(
-				DerefIfBoundNode::getValue, DerefIfBoundNodeGen::create));
-		kryo.register(ProcDeclarationNode.class, new SingleSerializer<>(
-				ProcDeclarationNode::getCallTarget, ProcDeclarationNode::new));
-		kryo.register(RecordLiteralNode.class, new DoubleSerializer<>(
-				RecordLiteralNode::getArity, RecordLiteralNode::getValues, RecordLiteralNode::new));
-		kryo.register(MakeDynamicRecordNode.class, new TripleSerializer<>(
-				MakeDynamicRecordNode::getLabel, MakeDynamicRecordNode::getFeatures, MakeDynamicRecordNode::getValues, MakeDynamicRecordNode::new));
+		registerNode(kryo, ReadLocalVariableNode.class);
+		registerNode(kryo, ReadCapturedVariableNode.class);
+		registerNode(kryo, WriteCapturedVariableNode.class);
+		registerNode(kryo, DerefNodeGen.class);
+		registerNode(kryo, DerefIfBoundNodeGen.class);
+		registerNode(kryo, ProcDeclarationNode.class);
+		registerNode(kryo, RecordLiteralNode.class);
+		registerNode(kryo, MakeDynamicRecordNode.class);
 
-		kryo.register(BindNodeGen.class, new TripleSerializer<>(
-				BindNode::getWriteLeft, BindNode::getLeft, BindNode::getRight, BindNodeGen::create));
+		registerNode(kryo, SkipNode.class);
+		registerNode(kryo, UnboundLiteralNode.class);
+		registerNode(kryo, IfNode.class);
+		registerNode(kryo, TryNode.class);
+		registerNode(kryo, RaiseNodeGen.class);
+		registerNode(kryo, NoElseNode.class);
+		registerNode(kryo, AndNode.class);
 
-		kryo.register(SkipNode.class, new NewInstanceSerializer<>(SkipNode::new));
-		kryo.register(UnboundLiteralNode.class, new NewInstanceSerializer<>(UnboundLiteralNode::new));
-		kryo.register(IfNode.class,
-				new TripleSerializer<>(IfNode::getCondition, IfNode::getThenExpr, IfNode::getElseExpr, IfNode::new));
-		kryo.register(TryNode.class, new TripleSerializer<>(
-				TryNode::getWriteExceptionVarNode, TryNode::getBody, TryNode::getCatchBody, TryNode::new));
-		kryo.register(RaiseNodeGen.class, new SingleSerializer<>(RaiseNode::getValue, RaiseNodeFactory::create));
-		kryo.register(NoElseNode.class, new SingleSerializer<>(NoElseNode::getValueNode, NoElseNode::new));
-		kryo.register(AndNode.class, new SingleSerializer<>(AndNode::getConditions, AndNode::new));
-		kryo.register(PatternMatchCaptureNodeGen.class, new DoubleSerializer<>(
-				PatternMatchCaptureNode::getVar, PatternMatchCaptureNode::getValue, PatternMatchCaptureNodeGen::create));
-		kryo.register(PatternMatchEqualNodeGen.class, new DoubleSerializer<>(
-				PatternMatchEqualNode::getConstant, PatternMatchEqualNode::getValue, PatternMatchEqualNodeGen::create));
-		kryo.register(PatternMatchConsNodeGen.class, new SingleSerializer<>(
-				PatternMatchConsNode::getValue, PatternMatchConsNodeGen::create));
-		kryo.register(PatternMatchRecordNodeGen.class, new DoubleSerializer<>(
-				PatternMatchRecordNode::getArity, PatternMatchRecordNode::getValue, PatternMatchRecordNodeGen::create));
+		registerNode(kryo, BindNodeGen.class);
+		registerNode(kryo, PatternMatchCaptureNodeGen.class);
+		registerNode(kryo, PatternMatchEqualNodeGen.class);
+		registerNode(kryo, PatternMatchConsNodeGen.class);
+		registerNode(kryo, PatternMatchRecordNodeGen.class);
 
-		kryo.register(DotNodeGen.class, new DoubleSerializer<>(
-				DotNode::getRecord, DotNode::getFeature, DotNodeFactory::create));
-		kryo.register(EqualNodeGen.class, new DoubleSerializer<>(
-				EqualNode::getLeft, EqualNode::getRight, EqualNodeFactory::create));
-		kryo.register(HeadNodeGen.class, new SingleSerializer<>(HeadNode::getCons, HeadNodeGen::create));
-		kryo.register(TailNodeGen.class, new SingleSerializer<>(TailNode::getCons, TailNodeGen::create));
+		registerNode(kryo, DotNodeGen.class);
+		registerNode(kryo, EqualNodeGen.class);
+		registerNode(kryo, HeadNodeGen.class);
+		registerNode(kryo, TailNodeGen.class);
 
+		registerNode(kryo, LiteralNode.class);
+		registerNode(kryo, BooleanLiteralNode.class);
+		registerNode(kryo, LongLiteralNode.class);
+		registerNode(kryo, ConsLiteralNodeGen.class);
+
+		// sources
 		Source fileSource = sourceFromPath(Loader.INIT_FUNCTOR);
-		kryo.register(fileSource.getClass(), new SingleSerializer<>(Source::getName, OzSerializer::sourceFromPath));
+		kryo.register(fileSource.getClass(), new FileSourceSerializer());
 		kryo.register(SourceSection.class);
 		kryo.register(String[].class);
 
+		// frames
+		kryo.register(FrameSlot.class, new FrameSlotSerializer());
 		kryo.register(FrameDescriptor.class, new FrameDescriptorSerializer());
-
 		kryo.register(VIRTUAL_FRAME);
 		kryo.register(MATERIALIZED_FRAME);
 		kryo.register(Object[].class);
 		kryo.register(long[].class);
 		kryo.register(byte[].class);
 
-		kryo.register(LiteralNode.class, new SingleSerializer<>(LiteralNode::getValue, LiteralNode::new));
-		kryo.register(BooleanLiteralNode.class, new SingleSerializer<>(BooleanLiteralNode::getValue, BooleanLiteralNode::new));
-		kryo.register(LongLiteralNode.class, new SingleSerializer<>(LongLiteralNode::getValue, LongLiteralNode::new));
-		kryo.register(ConsLiteralNodeGen.class, new DoubleSerializer<>(
-				ConsLiteralNode::getHead, ConsLiteralNode::getTail, ConsLiteralNodeGen::create));
-
+		// values
 		kryo.register(Arity.class);
 		kryo.register(OzLanguage.class, new SingletonSerializer(OzLanguage.INSTANCE));
 		kryo.register(Unit.class, new SingletonSerializer(Unit.INSTANCE));
@@ -527,6 +533,14 @@ public class OzSerializer {
 		kryo.register(OzChunk.class);
 
 		return kryo;
+	}
+
+	private static void registerNode(Kryo kryo, Class<? extends Node> klass) {
+		if (klass.getName().endsWith("Gen")) {
+			kryo.register(klass, new DSLNodeSerializer(klass));
+		} else {
+			kryo.register(klass, new NodeSerializer(klass));
+		}
 	}
 
 	private static Source sourceFromPath(String path) throws Error {

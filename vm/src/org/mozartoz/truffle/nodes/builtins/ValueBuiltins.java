@@ -55,10 +55,6 @@ public abstract class ValueBuiltins {
 			return EqualNodeFactory.create(null, null);
 		}
 
-		public abstract OzNode getLeft();
-
-		public abstract OzNode getRight();
-
 		public abstract boolean executeEqual(Object a, Object b);
 
 		@Specialization(guards = { "!isBound(a)", "!isBound(b)" })
@@ -296,10 +292,6 @@ public abstract class ValueBuiltins {
 	public static abstract class DotNode extends OzNode {
 
 		public abstract Object executeDot(Object record, Object feature);
-
-		public abstract OzNode getRecord();
-
-		public abstract OzNode getFeature();
 
 		@Specialization(guards = "feature == 1")
 		protected Object getHead(OzCons cons, long feature) {
