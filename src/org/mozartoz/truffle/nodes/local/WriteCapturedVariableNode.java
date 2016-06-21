@@ -7,11 +7,11 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 
-public class WriteCapturedVariableNode extends Node implements WriteNode {
-
-	final int depth;
+public class WriteCapturedVariableNode extends Node implements WriteNode, FrameSlotNode {
 
 	@Child WriteFrameSlotNode writeFrameSlotNode;
+
+	final int depth;
 
 	public WriteCapturedVariableNode(FrameSlot slot, int depth) {
 		this.depth = depth;

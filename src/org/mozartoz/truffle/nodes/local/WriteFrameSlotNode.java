@@ -10,7 +10,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 
 @ImportStatic(FrameSlotKind.class)
-public abstract class WriteFrameSlotNode extends Node implements WriteNode {
+public abstract class WriteFrameSlotNode extends Node implements WriteNode, FrameSlotNode {
 
 	private final FrameSlot slot;
 
