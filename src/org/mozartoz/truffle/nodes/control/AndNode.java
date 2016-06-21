@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.nodes.control;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.NodeHelpers;
 import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -11,15 +11,7 @@ public class AndNode extends OzNode {
 	@Children final OzNode[] conditions;
 
 	public AndNode(OzNode[] conditions) {
-		this.conditions = deref(conditions);
-	}
-
-	static OzNode[] deref(OzNode[] values) {
-		OzNode[] deref = new OzNode[values.length];
-		for (int i = 0; i < values.length; i++) {
-			deref[i] = DerefNodeGen.create(values[i]);
-		}
-		return deref;
+		this.conditions = NodeHelpers.deref(conditions);
 	}
 
 	public OzNode[] getConditions() {

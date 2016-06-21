@@ -3,10 +3,9 @@ package org.mozartoz.truffle.nodes.literal;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.NodeHelpers;
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.call.ExecuteValuesNode;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzRecord;
 
@@ -16,14 +15,14 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public class MakeDynamicRecordNode extends OzNode {
 
 	@Child OzNode labelNode;
-	@Child ExecuteValuesNode featuresNode;
-	@Child ExecuteValuesNode valuesNode;
+	@Children final OzNode[] featureNodes;
+	@Children final OzNode[] valueNodes;
 
 	public MakeDynamicRecordNode(OzNode label, OzNode[] features, OzNode[] values) {
 		assert features.length == values.length;
 		this.labelNode = DerefNodeGen.create(label);
-		this.featuresNode = new ExecuteValuesNode(derefIfBound(features));
-		this.valuesNode = new ExecuteValuesNode(derefIfBound(values));
+		this.featureNodes = NodeHelpers.derefIfBound(features);
+		this.valueNodes = NodeHelpers.derefIfBound(values);
 	}
 
 	public OzNode getLabel() {
@@ -31,26 +30,18 @@ public class MakeDynamicRecordNode extends OzNode {
 	}
 
 	public OzNode[] getFeatures() {
-		return featuresNode.getValues();
+		return featureNodes;
 	}
 
 	public OzNode[] getValues() {
-		return valuesNode.getValues();
-	}
-
-	static OzNode[] derefIfBound(OzNode[] values) {
-		OzNode[] deref = new OzNode[values.length];
-		for (int i = 0; i < values.length; i++) {
-			deref[i] = DerefIfBoundNodeGen.create(values[i]);
-		}
-		return deref;
+		return valueNodes;
 	}
 
 	@Override
 	public Object execute(VirtualFrame frame) {
 		Object label = labelNode.execute(frame);
-		Object[] features = featuresNode.executeValues(frame);
-		Object[] values = valuesNode.executeValues(frame);
+		Object[] features = NodeHelpers.executeValues(frame, featureNodes);
+		Object[] values = NodeHelpers.executeValues(frame, valueNodes);
 
 		return makeRecord(label, features, values);
 	}
