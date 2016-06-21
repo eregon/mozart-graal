@@ -12,10 +12,6 @@ public class BooleanLiteralNode extends OzNode {
 		this.value = value;
 	}
 
-	public boolean getValue() {
-		return value;
-	}
-
 	@Override
 	public Object execute(VirtualFrame frame) {
 		return value;

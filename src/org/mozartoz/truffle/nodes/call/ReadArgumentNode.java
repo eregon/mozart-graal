@@ -13,10 +13,6 @@ public class ReadArgumentNode extends OzNode {
 		this.index = index;
 	}
 
-	public int getIndex() {
-		return index;
-	}
-
 	@Override
 	public Object execute(VirtualFrame frame) {
 		return OzArguments.getArgument(frame, index);

@@ -14,10 +14,6 @@ public class AndNode extends OzNode {
 		this.conditions = NodeHelpers.deref(conditions);
 	}
 
-	public OzNode[] getConditions() {
-		return conditions;
-	}
-
 	@Override
 	@ExplodeLoop
 	public Object execute(VirtualFrame frame) {

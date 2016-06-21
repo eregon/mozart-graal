@@ -23,18 +23,6 @@ public class IfNode extends OzNode {
 		this.derefNode = DerefNode.create();
 	}
 
-	public OzNode getCondition() {
-		return condition;
-	}
-
-	public OzNode getThenExpr() {
-		return thenExpr;
-	}
-
-	public OzNode getElseExpr() {
-		return elseExpr;
-	}
-
 	@Override
 	public Object execute(VirtualFrame frame) {
 		if (profile.profile((boolean) derefNode.executeDeref(condition.execute(frame)))) {

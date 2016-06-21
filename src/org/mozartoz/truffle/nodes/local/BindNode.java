@@ -17,10 +17,6 @@ public abstract class BindNode extends OzNode {
 
 	@Child UnifyNode unifyNode;
 
-	public abstract OzNode getLeft();
-
-	public abstract OzNode getRight();
-
 	@CreateCast("left")
 	protected OzNode derefLeft(OzNode var) {
 		return DerefIfBoundNodeGen.create(var);

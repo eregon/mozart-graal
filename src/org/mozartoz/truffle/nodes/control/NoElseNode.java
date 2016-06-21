@@ -13,10 +13,6 @@ public class NoElseNode extends OzNode {
 		this.valueNode = valueNode;
 	}
 
-	public OzNode getValueNode() {
-		return valueNode;
-	}
-
 	@Override
 	public Object execute(VirtualFrame frame) {
 		Object value = valueNode.execute(frame);

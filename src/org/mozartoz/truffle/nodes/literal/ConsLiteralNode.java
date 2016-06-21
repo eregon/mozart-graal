@@ -22,10 +22,6 @@ public abstract class ConsLiteralNode extends OzNode {
 		return DerefIfBoundNodeGen.create(var);
 	}
 
-	public abstract OzNode getHead();
-
-	public abstract OzNode getTail();
-
 	@Specialization
 	public Object execute(Object head, Object tail) {
 		return new OzCons(head, tail);

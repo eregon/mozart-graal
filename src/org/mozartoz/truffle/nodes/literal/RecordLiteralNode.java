@@ -21,14 +21,6 @@ public class RecordLiteralNode extends OzNode {
 		this.valueNodes = NodeHelpers.derefIfBound(values);
 	}
 
-	public Arity getArity() {
-		return arity;
-	}
-
-	public OzNode[] getValues() {
-		return valueNodes;
-	}
-
 	@Override
 	public Object execute(VirtualFrame frame) {
 		Object[] values = NodeHelpers.executeValues(frame, valueNodes);
