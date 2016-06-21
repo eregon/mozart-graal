@@ -80,7 +80,6 @@ import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanNodeFa
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanOrEqualNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.NotEqualNodeFactory;
 import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
-import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.control.AndNode;
 import org.mozartoz.truffle.nodes.control.IfNode;
 import org.mozartoz.truffle.nodes.control.NoElseNode;
@@ -97,9 +96,8 @@ import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
-import org.mozartoz.truffle.nodes.local.InitializeArgNodeGen;
+import org.mozartoz.truffle.nodes.local.InitializeArgNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
-import org.mozartoz.truffle.nodes.local.WriteNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchCaptureNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchDynamicArityNodeGen;
@@ -238,7 +236,7 @@ public class Translator {
 				for (VariableOrRaw variable : toJava(procExpression.args())) {
 					if (variable instanceof Variable) {
 						FrameSlot argSlot = environment.addLocalVariable(((Variable) variable).symbol());
-						nodes[i] = InitializeArgNodeGen.create(argSlot, new ReadArgumentNode(i));
+						nodes[i] = new InitializeArgNode(argSlot, i);
 						i++;
 					} else {
 						throw unknown("variable", variable);
