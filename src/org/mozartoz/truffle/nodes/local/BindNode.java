@@ -15,21 +15,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 @NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 public abstract class BindNode extends OzNode {
 
-	@Child WriteNode writeLeft;
-
 	@Child UnifyNode unifyNode;
-
-	public BindNode(WriteNode writeLeftNode) {
-		writeLeft = writeLeftNode;
-	}
 
 	public abstract OzNode getLeft();
 
 	public abstract OzNode getRight();
-
-	public WriteNode getWriteLeft() {
-		return writeLeft;
-	}
 
 	@CreateCast("left")
 	protected OzNode derefLeft(OzNode var) {

@@ -278,16 +278,7 @@ public class Translator {
 			BindCommon bind = (BindCommon) node;
 			Expression left = bind.left();
 			Expression right = bind.right();
-			OzNode readLeft;
-			WriteNode writeLeft = null;
-			if (left instanceof Variable) {
-				FrameSlotAndDepth leftSlot = findVariable(((Variable) left).symbol());
-				writeLeft = leftSlot.createWriteNode();
-				readLeft = leftSlot.createReadNode();
-			} else {
-				readLeft = translate(left);
-			}
-			return t(node, BindNodeGen.create(writeLeft, readLeft, translate(right)));
+			return t(node, BindNodeGen.create(translate(left), translate(right)));
 		} else if (node instanceof IfCommon) {
 			IfCommon ifNode = (IfCommon) node;
 			return new IfNode(translate(ifNode.condition()),
