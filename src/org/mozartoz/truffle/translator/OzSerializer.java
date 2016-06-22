@@ -11,7 +11,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
+import org.mozartoz.truffle.nodes.DerefIfBoundNode;
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
@@ -295,6 +296,16 @@ public class OzSerializer {
 		}
 	}
 
+	private static Object underef(Object value) {
+		if (value instanceof DerefNode) {
+			return ((DerefNode) value).getValue();
+		} else if (value instanceof DerefIfBoundNode) {
+			return ((DerefIfBoundNode) value).getValue();
+		} else {
+			return value;
+		}
+	}
+
 	private static class NodeSerializer extends Serializer<Node> {
 		private final Field[] fields;
 		private final Constructor<?> constructor;
@@ -334,6 +345,16 @@ public class OzSerializer {
 						value = ((FrameSlotNode) node).getSlot();
 					} else {
 						value = field.get(node);
+						if (value instanceof OzNode[]) {
+							OzNode[] nodes = (OzNode[]) value;
+							OzNode[] values = new OzNode[nodes.length];
+							for (int i = 0; i < nodes.length; i++) {
+								values[i] = (OzNode) underef(nodes[i]);
+							}
+							value = values;
+						} else {
+							value = underef(value);
+						}
 					}
 					kryo.writeClassAndObject(output, value);
 				}
@@ -359,6 +380,7 @@ public class OzSerializer {
 	private static class DSLNodeSerializer extends Serializer<Node> {
 		private final NodeFieldAccessor[] fields;
 		private final Method constructor;
+		private final boolean removeDeref;
 
 		public DSLNodeSerializer(Class<? extends Node> genClass) {
 			Class<?> baseClass = genClass.getAnnotation(GeneratedBy.class).value();
@@ -385,12 +407,9 @@ public class OzSerializer {
 			}
 
 			Class<?> enclosingClass = genClass.getEnclosingClass();
-			final Class<?> factoryClass;
-			if (enclosingClass != null && NodeFactory.class.isAssignableFrom(enclosingClass)) {
-				factoryClass = enclosingClass;
-			} else {
-				factoryClass = genClass;
-			}
+			boolean hasFactoryClass = enclosingClass != null && NodeFactory.class.isAssignableFrom(enclosingClass);
+			final Class<?> factoryClass = hasFactoryClass ? enclosingClass : genClass;
+			this.removeDeref = !hasFactoryClass;
 
 			try {
 				constructor = factoryClass.getMethod("create", parameterTypes);
@@ -402,6 +421,9 @@ public class OzSerializer {
 		public void write(Kryo kryo, Output output, Node node) {
 			for (NodeFieldAccessor field : fields) {
 				Object value = field.loadValue(node);
+				if (removeDeref) {
+					value = underef(value);
+				}
 				kryo.writeClassAndObject(output, value);
 			}
 		}
@@ -477,8 +499,6 @@ public class OzSerializer {
 		registerNode(kryo, ReadLocalVariableNode.class);
 		registerNode(kryo, ReadCapturedVariableNode.class);
 		registerNode(kryo, WriteCapturedVariableNode.class);
-		registerNode(kryo, DerefNodeGen.class);
-		registerNode(kryo, DerefIfBoundNodeGen.class);
 		registerNode(kryo, ProcDeclarationNode.class);
 		registerNode(kryo, RecordLiteralNode.class);
 		registerNode(kryo, MakeDynamicRecordNode.class);
@@ -497,6 +517,7 @@ public class OzSerializer {
 		registerNode(kryo, PatternMatchConsNodeGen.class);
 		registerNode(kryo, PatternMatchRecordNodeGen.class);
 
+		registerNode(kryo, DerefNodeGen.class);
 		registerNode(kryo, DotNodeGen.class);
 		registerNode(kryo, EqualNodeGen.class);
 		registerNode(kryo, HeadNodeGen.class);

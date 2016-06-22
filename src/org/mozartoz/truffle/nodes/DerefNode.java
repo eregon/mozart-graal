@@ -16,8 +16,12 @@ public abstract class DerefNode extends OzNode {
 	}
 
 	public static DerefNode create(OzNode node) {
+		assert !(node instanceof DerefNode);
+		assert !(node instanceof DerefIfBoundNode);
 		return DerefNodeGen.create(node);
 	}
+
+	public abstract OzNode getValue();
 
 	public abstract Object executeDeref(Object value);
 
