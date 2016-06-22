@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.nodes.pattern;
 
-import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
+import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzVar;
@@ -15,7 +15,7 @@ public abstract class PatternMatchCaptureNode extends OzNode {
 
 	@CreateCast("value")
 	protected OzNode derefValue(OzNode value) {
-		return DerefIfBoundNodeGen.create(value);
+		return DerefIfBoundNode.create(value);
 	}
 
 	@Specialization(guards = "!isVariable(value)")

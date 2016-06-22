@@ -57,7 +57,7 @@ import org.mozartoz.bootcompiler.parser.OzPreprocessor.PreprocessorPosition;
 import org.mozartoz.bootcompiler.symtab.Builtin;
 import org.mozartoz.bootcompiler.symtab.Symbol;
 import org.mozartoz.bootcompiler.util.FilePosition;
-import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.TopLevelHandlerNode;
@@ -527,7 +527,7 @@ public class Translator {
 	}
 
 	private OzNode deref(OzNode node) {
-		return DerefNodeGen.create(node);
+		return DerefNode.create(node);
 	}
 
 	private static <E> Collection<E> toJava(scala.collection.immutable.Iterable<E> scalaIterable) {

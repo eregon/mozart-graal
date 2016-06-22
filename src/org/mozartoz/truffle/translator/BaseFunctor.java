@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.translator;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.TopLevelHandlerNode;
@@ -24,7 +24,7 @@ public abstract class BaseFunctor {
 				new OzNode[] { new LiteralNode(imports), new LiteralNode(result) },
 				DotNodeFactory.create(new LiteralNode(baseFunctor), new LiteralNode("apply")));
 
-		OzNode node = SequenceNode.sequence(apply, DerefNodeGen.create(new LiteralNode(result)));
+		OzNode node = SequenceNode.sequence(apply, DerefNode.create(new LiteralNode(result)));
 		SourceSection sourceSection = SourceSection.createUnavailable("main", "Base.apply");
 		return new OzRootNode(sourceSection, new FrameDescriptor(), new TopLevelHandlerNode(node), 0);
 	}

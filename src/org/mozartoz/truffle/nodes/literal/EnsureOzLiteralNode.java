@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.nodes.literal;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 
@@ -11,7 +11,7 @@ public class EnsureOzLiteralNode extends OzNode {
 	@Child OzNode child;
 
 	public EnsureOzLiteralNode(OzNode child) {
-		this.child = DerefNodeGen.create(child);
+		this.child = DerefNode.create(child);
 	}
 
 	@Override

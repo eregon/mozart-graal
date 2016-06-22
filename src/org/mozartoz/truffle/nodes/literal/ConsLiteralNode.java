@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.nodes.literal;
 
-import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
+import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
 
@@ -14,12 +14,12 @@ public abstract class ConsLiteralNode extends OzNode {
 
 	@CreateCast("head")
 	protected OzNode derefHead(OzNode var) {
-		return DerefIfBoundNodeGen.create(var);
+		return DerefIfBoundNode.create(var);
 	}
 
 	@CreateCast("tail")
 	protected OzNode derefTail(OzNode var) {
-		return DerefIfBoundNodeGen.create(var);
+		return DerefIfBoundNode.create(var);
 	}
 
 	@Specialization

@@ -1,7 +1,6 @@
 package org.mozartoz.truffle.nodes.call;
 
 import org.mozartoz.truffle.nodes.DerefNode;
-import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.NodeHelpers;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
@@ -36,7 +35,7 @@ public abstract class CallProcNode extends OzNode {
 
 	@CreateCast("function")
 	protected OzNode derefFunction(OzNode var) {
-		return DerefNodeGen.create(var);
+		return DerefNode.create(var);
 	}
 
 	public abstract Object executeCall(VirtualFrame frame, OzProc function);

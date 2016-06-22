@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.nodes.builtins;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
 
@@ -15,7 +15,7 @@ public abstract class ListBuiltins {
 
 		@CreateCast("cons")
 		protected OzNode derefCons(OzNode cons) {
-			return DerefNodeGen.create(cons);
+			return DerefNode.create(cons);
 		}
 
 		@Specialization
@@ -30,7 +30,7 @@ public abstract class ListBuiltins {
 
 		@CreateCast("cons")
 		protected OzNode derefCons(OzNode cons) {
-			return DerefNodeGen.create(cons);
+			return DerefNode.create(cons);
 		}
 
 		@Specialization

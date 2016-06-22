@@ -15,7 +15,7 @@ import org.mozartoz.bootcompiler.transform.DesugarFunctor;
 import org.mozartoz.bootcompiler.transform.Namer;
 import org.mozartoz.bootcompiler.transform.PatternMatcher;
 import org.mozartoz.bootcompiler.transform.Simplify;
-import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
 import org.mozartoz.truffle.nodes.control.SequenceNode;
@@ -145,7 +145,7 @@ public class Loader {
 			return SequenceNode.sequence(
 					new InitializeVarNode(topLevelResultSlot),
 					node,
-					DerefNodeGen.create(new ReadLocalVariableNode(topLevelResultSlot)));
+					DerefNode.create(new ReadLocalVariableNode(topLevelResultSlot)));
 		});
 	}
 
@@ -184,7 +184,7 @@ public class Loader {
 					new InitializeTmpNode(baseSlot, new LiteralNode(base)),
 					new InitializeVarNode(topLevelResultSlot),
 					node,
-					DerefNodeGen.create(new ReadLocalVariableNode(topLevelResultSlot)));
+					DerefNode.create(new ReadLocalVariableNode(topLevelResultSlot)));
 		});
 		tick("translated functor " + fileName);
 		return rootNode;

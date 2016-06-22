@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.nodes.pattern;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzRecord;
@@ -23,7 +23,7 @@ public abstract class PatternMatchDynamicArityNode extends OzNode {
 
 	@CreateCast("value")
 	protected OzNode derefValue(OzNode value) {
-		return DerefNodeGen.create(value);
+		return DerefNode.create(value);
 	}
 
 	@TruffleBoundary
