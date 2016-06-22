@@ -17,7 +17,7 @@ public abstract class NodeHelpers {
 	public static OzNode[] deref(OzNode[] values) {
 		OzNode[] deref = new OzNode[values.length];
 		for (int i = 0; i < values.length; i++) {
-			deref[i] = DerefNodeGen.create(values[i]);
+			deref[i] = DerefNode.create(values[i]);
 		}
 		return deref;
 	}
@@ -25,7 +25,7 @@ public abstract class NodeHelpers {
 	public static OzNode[] derefIfBound(OzNode[] values) {
 		OzNode[] deref = new OzNode[values.length];
 		for (int i = 0; i < values.length; i++) {
-			deref[i] = DerefIfBoundNodeGen.create(values[i]);
+			deref[i] = DerefIfBoundNode.create(values[i]);
 		}
 		return deref;
 	}

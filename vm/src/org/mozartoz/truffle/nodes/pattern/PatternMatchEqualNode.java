@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.nodes.pattern;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.EqualNode;
 
@@ -17,7 +17,7 @@ public abstract class PatternMatchEqualNode extends OzNode {
 
 	@CreateCast("value")
 	protected OzNode derefValue(OzNode value) {
-		return DerefNodeGen.create(value);
+		return DerefNode.create(value);
 	}
 
 	public PatternMatchEqualNode(Object constant) {

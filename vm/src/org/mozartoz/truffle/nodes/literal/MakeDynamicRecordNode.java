@@ -3,7 +3,7 @@ package org.mozartoz.truffle.nodes.literal;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.NodeHelpers;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -20,8 +20,8 @@ public class MakeDynamicRecordNode extends OzNode {
 
 	public MakeDynamicRecordNode(OzNode label, OzNode[] features, OzNode[] values) {
 		assert features.length == values.length;
-		this.labelNode = DerefNodeGen.create(label);
-		this.featureNodes = NodeHelpers.derefIfBound(features);
+		this.labelNode = DerefNode.create(label);
+		this.featureNodes = NodeHelpers.deref(features);
 		this.valueNodes = NodeHelpers.derefIfBound(values);
 	}
 

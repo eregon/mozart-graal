@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.nodes.local;
 
-import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
+import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.runtime.Variable;
@@ -19,12 +19,12 @@ public abstract class BindNode extends OzNode {
 
 	@CreateCast("left")
 	protected OzNode derefLeft(OzNode var) {
-		return DerefIfBoundNodeGen.create(var);
+		return DerefIfBoundNode.create(var);
 	}
 
 	@CreateCast("right")
 	protected OzNode derefRight(OzNode var) {
-		return DerefIfBoundNodeGen.create(var);
+		return DerefIfBoundNode.create(var);
 	}
 
 	@Specialization(guards = { "!left.isBound()", "!right.isBound()" })
