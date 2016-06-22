@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.mozartoz.bootcompiler.Main;
+import org.mozartoz.bootcompiler.BootCompiler;
 import org.mozartoz.bootcompiler.ast.Statement;
 import org.mozartoz.bootcompiler.symtab.Program;
 import org.mozartoz.bootcompiler.transform.ConstantFolding;
@@ -135,7 +135,7 @@ public class Loader {
 
 	private OzRootNode parseBase() {
 		tick("enter parseBase");
-		Program program = Main.buildBaseEnvProgram(BASE_FILE_NAME, BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
+		Program program = BootCompiler.buildBaseEnvProgram(BASE_FILE_NAME, BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
 		tick("parse Base");
 		Statement ast = compile(program, "the base environment");
 
@@ -153,7 +153,7 @@ public class Loader {
 		DynamicObject base = loadBase();
 
 		String fileName = new File(source.getPath()).getName();
-		Program program = Main.buildMainProgram(source.getPath(), BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
+		Program program = BootCompiler.buildMainProgram(source.getPath(), BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
 		Statement ast = compile(program, fileName);
 
 		Translator translator = new Translator();
@@ -171,7 +171,7 @@ public class Loader {
 		String fileName = new File(source.getPath()).getName();
 		System.out.println("Loading " + fileName);
 		tick("start parse");
-		Program program = Main.buildModuleProgram(source.getPath(), BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
+		Program program = BootCompiler.buildModuleProgram(source.getPath(), BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
 		tick("parse functor " + fileName);
 		Statement ast = compile(program, fileName);
 		tick("compiled functor " + fileName);
@@ -239,7 +239,7 @@ public class Loader {
 
 	private Statement compile(Program program, String fileName) {
 		Statement ast = applyTransformations(program);
-		Main.checkCompileErrors(program, fileName);
+		BootCompiler.checkCompileErrors(program, fileName);
 		return ast;
 	}
 
