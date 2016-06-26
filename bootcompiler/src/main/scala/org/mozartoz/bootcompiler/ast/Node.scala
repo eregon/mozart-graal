@@ -39,7 +39,7 @@ abstract class Node extends Product with Positional {
   private def walkBreakInner(element: Any, handler: Node => Boolean) {
     element match {
       case node:Node => {
-        if (handler(this)) {
+        if (handler(node)) {
           node.productIterator foreach { walkBreakInner(_, handler) }
         }
       }
