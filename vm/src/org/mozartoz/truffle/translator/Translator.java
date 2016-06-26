@@ -568,8 +568,6 @@ public class Translator {
 		return t((Node) node, ozNode);
 	}
 
-	private static final Map<String, Source> SOURCES = new HashMap<>();
-
 	private SourceSection t(Node node) {
 		Position pos = node.pos();
 		if (pos instanceof FilePosition) {
@@ -604,13 +602,7 @@ public class Translator {
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
-			Source source = SOURCES.computeIfAbsent(canonicalPath, file -> {
-				try {
-					return Source.fromFileName(file);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			});
+			Source source = getSource(canonicalPath);
 
 			PreprocessorPosition preprocessorPosition = (PreprocessorPosition) pos;
 			OffsetPosition offsetPosition = (OffsetPosition) preprocessorPosition.getUnderlying();
@@ -619,6 +611,18 @@ public class Translator {
 		} else {
 			return SourceSection.createUnavailable("unavailable", "");
 		}
+	}
+
+	private static final Map<String, Source> SOURCES = new HashMap<>();
+
+	private Source getSource(String path) {
+		return SOURCES.computeIfAbsent(path, file -> {
+			try {
+				return Source.fromFileName(file);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		});
 	}
 
 }
