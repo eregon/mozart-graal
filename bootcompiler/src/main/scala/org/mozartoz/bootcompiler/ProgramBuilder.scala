@@ -21,7 +21,7 @@ object ProgramBuilder extends TreeDSL with TransformUtils {
    */
   def buildModuleProgram(prog: Program, functor: Expression) {
     prog.rawCode = {
-      prog.topLevelResultSymbol === functor
+      prog.topLevelResultSymbol.copyAttrs(functor) === functor
     }
   }
 

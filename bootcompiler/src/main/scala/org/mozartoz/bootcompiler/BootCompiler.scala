@@ -3,66 +3,52 @@ package org.mozartoz.bootcompiler
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
-
 import scala.collection.immutable.PagedSeq
 import scala.collection.mutable.Buffer
 import scala.util.parsing.input.PagedSeqReader
-
 import org.mozartoz.bootcompiler.parser.OzParser
 import org.mozartoz.bootcompiler.symtab.Builtins
 import org.mozartoz.bootcompiler.symtab.Program
+import org.mozartoz.bootcompiler.fastparse.Parser
+import com.oracle.truffle.api.source.Source
 
 /**
  * Main interface, called from Java
  */
 object BootCompiler {
 
-  def buildBaseEnvProgram(fileName: String, builtins: Builtins, baseDecls: Buffer[String]) = {
+  def buildBaseEnvProgram(source: Source, builtins: Builtins, baseDecls: Buffer[String]) = {
     val program = new Program(true, builtins, baseDecls)
-    val functor = parseExpression(readerForFile(fileName), new File(fileName), Set.empty)
+    val functor = parseExpression(source, Set.empty)
     ProgramBuilder.buildModuleProgram(program, functor)
     program
   }
 
-  def buildMainProgram(fileName: String, builtins: Builtins, baseDecls: Buffer[String]) = {
+  def buildMainProgram(source: Source, builtins: Builtins, baseDecls: Buffer[String]) = {
     val program = new Program(false, builtins, baseDecls)
-    val statement = parseStatement(readerForFile(fileName), new File(fileName), Set.empty)
+    val statement = parseStatement(source, Set.empty)
     program.rawCode = statement
     program
   }
 
-  def buildModuleProgram(fileName: String, builtins: Builtins, baseDecls: Buffer[String]) = {
+  def buildModuleProgram(source: Source, builtins: Builtins, baseDecls: Buffer[String]) = {
     val program = new Program(false, builtins, baseDecls)
-    val functor = parseExpression(readerForFile(fileName), new File(fileName), Set.empty)
+    val functor = parseExpression(source, Set.empty)
     ProgramBuilder.buildModuleProgram(program, functor)
     program
   }
 
   /**
-   * Parses an Oz statement from a reader
-   *
-   *  Upon lexical or syntactical error, displays a user-friendly error
-   *  message on stderr and halts the program.
-   *
-   *  @param reader input reader
-   *  @return The statement AST
+   * Parses an Oz statement from a Source
    */
-  private def parseStatement(reader: PagedSeqReader, file: File,
-                             defines: Set[String]) =
-    new ParserWrapper().parseStatement(reader, file, defines)
+  private def parseStatement(source: Source, defines: Set[String]) =
+    Parser.parseStatement(source, defines)
 
   /**
-   * Parses an Oz expression from a reader
-   *
-   *  Upon lexical or syntactical error, displays a user-friendly error
-   *  message on stderr and halts the program.
-   *
-   *  @param reader input reader
-   *  @return The expression AST
+   * Parses an Oz expression from a Source
    */
-  private def parseExpression(reader: PagedSeqReader, file: File,
-                              defines: Set[String]) =
-    new ParserWrapper().parseExpression(reader, file, defines)
+  private def parseExpression(source: Source, defines: Set[String]) =
+    Parser.parseExpression(source, defines)
 
   /**
    * Utility wrapper for an [[org.mozartoz.bootcompiler.parser.OzParser]]
@@ -111,7 +97,7 @@ object BootCompiler {
    *
    *  @param fileName name of the file to be read
    */
-  private def readerForFile(fileName: String) = {
+  def readerForFile(fileName: String) = {
     new PagedSeqReader(PagedSeq.fromReader(
       new BufferedReader(new FileReader(fileName))))
   }

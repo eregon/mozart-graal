@@ -400,7 +400,8 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
         val initNames = CompoundStatement(for {
           decl <- namedDecls
         } yield {
-          decl === (builtins.newName callExpr ())
+          val newName = Constant(OzBuiltin(builtins.newName)).copyAttrs(decl)
+          decl === (newName callExpr ())
         })
 
         treeCopy.LocalExpression(clazz, namedDecls,

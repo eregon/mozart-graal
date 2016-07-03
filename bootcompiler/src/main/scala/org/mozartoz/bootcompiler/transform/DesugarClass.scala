@@ -265,7 +265,7 @@ object DesugarClass extends Transformer with TreeDSL {
             program.reportError("Duplicate nesting marker", name)
             None
           } else {
-            val resVar = Variable.newSynthetic("<Result>")
+            val resVar = Variable.newSynthetic("<Result>").copyAttrs(name)
             resultVar = Some(resVar)
             paramVars += resVar
             Some(resVar)

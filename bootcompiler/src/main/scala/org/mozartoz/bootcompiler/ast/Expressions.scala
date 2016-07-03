@@ -20,6 +20,8 @@ sealed abstract class Expression extends StatOrExpr
  */
 case class StatAndExpression(statement: Statement,
     expression: Expression) extends Expression {
+  posFrom(statement, expression)
+
   def syntax(indent: String) = {
     statement.syntax(indent) + "\n" + indent + expression.syntax(indent)
   }
@@ -355,13 +357,13 @@ trait VarOrConst extends Expression
 trait VariableOrRaw extends Expression
 
 /** Raw variable (unnamed) */
-case class RawVariable(name: String) extends VariableOrRaw with RawDeclaration {
+case class RawVariable(name: String) extends VariableOrRaw with RawDeclaration with Phrase {
   def syntax(indent: String) =
     name
 }
 
 /** Variable */
-case class Variable(symbol: Symbol) extends VarOrConst with VariableOrRaw
+case class Variable(symbol: Symbol) extends VarOrConst with VariableOrRaw with Phrase
     with RawDeclarationOrVar {
   def syntax(indent: String) =
     symbol.fullName
@@ -378,32 +380,32 @@ object Variable extends (Symbol => Variable) {
 }
 
 /** Escaped variable (that is not declared when in an lhs) */
-case class EscapedVariable(variable: RawVariable) extends Expression {
+case class EscapedVariable(variable: RawVariable) extends Expression with Phrase {
   def syntax(indent: String) = "!" + variable.syntax(indent+"  ")
 }
 
 /** Wildcard `_` */
-case class UnboundExpression() extends Expression {
+case class UnboundExpression() extends Expression with Phrase {
   def syntax(indent: String) = "_"
 }
 
 /** Constant value */
-case class Constant(value: OzValue) extends VarOrConst {
+case class Constant(value: OzValue) extends VarOrConst with Phrase {
   def syntax(indent: String) = value.syntax()
 }
 
 /** Dummy placeholder for an implicit feature of a record field */
-case class AutoFeature() extends Expression {
+case class AutoFeature() extends Expression with Phrase {
   def syntax(indent: String) = ""
 }
 
 /** Nexting marker $ */
-case class NestingMarker() extends Expression {
+case class NestingMarker() extends Expression with Phrase {
   def syntax(indent: String) = "$"
 }
 
 /** self */
-case class Self() extends Expression {
+case class Self() extends Expression with Phrase {
   def syntax(indent: String) = "self"
 }
 

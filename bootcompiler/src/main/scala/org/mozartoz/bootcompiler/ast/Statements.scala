@@ -124,7 +124,7 @@ case class ThreadStatement(
  *  fail
  *  }}}
  */
-case class FailStatement() extends Statement {
+case class FailStatement() extends Statement with Phrase {
   def syntax(indent: String) = "fail"
 }
 
@@ -231,6 +231,6 @@ case class DotAssignStatement(left: Expression, center: Expression,
  *  skip
  *  }}}
  */
-case class SkipStatement() extends Statement {
+case class SkipStatement() extends Statement with Phrase {
   def syntax(indent: String) = "skip"
 }

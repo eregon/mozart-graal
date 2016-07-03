@@ -64,7 +64,7 @@ object Desugar extends Transformer with TreeDSL {
 
   override def transformExpr(expression: Expression) = expression match {
     case fun @ FunExpression(name, args, body, flags) =>
-      val result = Variable.newSynthetic("<Result>", formal = true)
+      val result = Variable.newSynthetic("<Result>", formal = true).copyAttrs(fun)
 
       val isLazy = flags contains "lazy"
       val newFlags =
@@ -74,7 +74,7 @@ object Desugar extends Transformer with TreeDSL {
       val proc = atPos(fun) {
         PROC(name, args :+ result, newFlags) {
           if (isLazy) {
-            val result2 = Variable.newSynthetic("<Result2>")
+            val result2 = Variable.newSynthetic("<Result2>").copyAttrs(fun)
             LOCAL (result2) IN {
               THREAD {
                 (builtins.waitNeeded call (result2)) ~
@@ -138,7 +138,8 @@ object Desugar extends Transformer with TreeDSL {
       transformExpr(builtins.unaryOpToBuiltin(op) callExpr (arg))
 
     case BinaryOp(module @ Variable(sym), ".", rhs) if !program.isBaseEnvironment && sym.isImport =>
-      transformExpr(baseEnvironment("ByNeedDot") callExpr (module, rhs))
+      transformExpr(
+        baseEnvironment("ByNeedDot").copyAttrs(expression) callExpr (module, rhs))
 
     case BinaryOp(lhs, op, rhs) =>
       transformExpr(builtins.binaryOpToBuiltin(op) callExpr (lhs, rhs))

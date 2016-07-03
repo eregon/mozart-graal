@@ -51,14 +51,24 @@ package object ast {
     node
   }
 
-  /** Gives a position to a subtree
+  /**
+   * Gives a position to a subtree
    *
    *  This is similar to the other overload of `atPos()`, except that it takes
    *  a [[scala.util.parsing.input.Positional]]. The position is extracted from
    *  the given positional.
    */
-  def atPos[A <: Node](positional: Positional)(node: A): A =
-    atPos(positional.pos)(node)
+  def atPos[A <: Node](positional: Node)(node: A): A = {
+    node walkBreak { subNode =>
+      if (subNode.section != null) {
+        false
+      } else {
+        subNode.copyAttrs(positional)
+        true
+      }
+    }
+    node
+  }
 
   /** Builds an Oz List expression from a list of expressions */
   def exprListToListExpr(elems: List[Expression]): Expression = {
