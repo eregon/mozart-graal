@@ -569,6 +569,9 @@ public class Translator {
 	}
 
 	private SourceSection t(Node node) {
+		if (node.section() != null) {
+			return node.section();
+		}
 		Position pos = node.pos();
 		if (pos instanceof FilePosition) {
 			return t(pos);
