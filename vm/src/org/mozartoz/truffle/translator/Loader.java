@@ -135,7 +135,8 @@ public class Loader {
 
 	private OzRootNode parseBase() {
 		tick("enter parseBase");
-		Program program = BootCompiler.buildBaseEnvProgram(BASE_FILE_NAME, BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
+		Program program = BootCompiler.buildBaseEnvProgram(createSource(BASE_FILE_NAME),
+				BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
 		tick("parse Base");
 		Statement ast = compile(program, "the base environment");
 
@@ -153,7 +154,8 @@ public class Loader {
 		DynamicObject base = loadBase();
 
 		String fileName = new File(source.getPath()).getName();
-		Program program = BootCompiler.buildMainProgram(source.getPath(), BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
+		Program program = BootCompiler.buildMainProgram(source,
+				BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
 		Statement ast = compile(program, fileName);
 
 		Translator translator = new Translator();
@@ -171,7 +173,8 @@ public class Loader {
 		String fileName = new File(source.getPath()).getName();
 		System.out.println("Loading " + fileName);
 		tick("start parse");
-		Program program = BootCompiler.buildModuleProgram(source.getPath(), BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
+		Program program = BootCompiler.buildModuleProgram(source,
+				BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
 		tick("parse functor " + fileName);
 		Statement ast = compile(program, fileName);
 		tick("compiled functor " + fileName);
