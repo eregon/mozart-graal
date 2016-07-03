@@ -520,11 +520,11 @@ public class Translator {
 		return DerefNode.create(node);
 	}
 
-	private static <E> Collection<E> toJava(scala.collection.immutable.Iterable<E> scalaIterable) {
+	private static <E> Collection<E> toJava(scala.collection.Iterable<E> scalaIterable) {
 		return JavaConversions.asJavaCollection(scalaIterable);
 	}
 
-	private static <E> OzNode[] map(scala.collection.immutable.Iterable<E> scalaIterable, Function<E, OzNode> apply) {
+	private static <E> OzNode[] map(scala.collection.Iterable<E> scalaIterable, Function<E, OzNode> apply) {
 		Collection<E> collection = toJava(scalaIterable);
 		OzNode[] result = new OzNode[collection.size()];
 		int i = 0;
@@ -534,7 +534,7 @@ public class Translator {
 		return result;
 	}
 
-	private static <E> Object[] mapObjects(scala.collection.immutable.Iterable<E> scalaIterable, Function<E, Object> apply) {
+	private static <E> Object[] mapObjects(scala.collection.Iterable<E> scalaIterable, Function<E, Object> apply) {
 		Collection<E> collection = toJava(scalaIterable);
 		Object[] result = new Object[collection.size()];
 		int i = 0;
