@@ -16,7 +16,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
        * -> merge them
        */
 
-      val mergedRequireImport = require ::: imports
+      val mergedRequireImport = require ++ imports
 
       val mergedPrepareDefine = {
         if (prepare.isEmpty) define
@@ -24,7 +24,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
         else {
           val LocalStatement(prepareDecls, prepareStat) = prepare.get
           val LocalStatement(defineDecls, defineStat) = define.get
-          Some(LocalStatement(prepareDecls ::: defineDecls,
+          Some(LocalStatement(prepareDecls ++ defineDecls,
               prepareStat ~ defineStat))
         }
       }
@@ -44,7 +44,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
       val applyFun = makeApplyFun(define, imports, exports)
 
       val functorRec = atPos(functor) {
-        Record(OzAtom("functor"), List(
+        Record(OzAtom("functor"), Seq(
             RecordField(OzAtom("import"), importsRec),
             RecordField(OzAtom("export"), exportsRec),
             RecordField(OzAtom("apply"), applyFun)))
@@ -56,7 +56,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
       super.transformExpr(expression)
   }
 
-  def makeImportsRec(imports: List[FunctorImport]): Expression = {
+  def makeImportsRec(imports: Seq[FunctorImport]): Expression = {
     val resultFields = for {
       FunctorImport(Variable(module), aliases, location) <- imports
     } yield {
@@ -79,7 +79,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
         RecordField(OzAtom("from"), OzAtom(loc))
       }
 
-      val info = Record(OzAtom("info"), List(typeField, fromField))
+      val info = Record(OzAtom("info"), Seq(typeField, fromField))
 
       RecordField(OzAtom(modName), info)
     }
@@ -87,7 +87,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
     Record(OzAtom("import"), resultFields)
   }
 
-  def makeExportsRec(exports: List[FunctorExport]): Expression = {
+  def makeExportsRec(exports: Seq[FunctorExport]): Expression = {
     val resultFields = for {
       FunctorExport(Constant(feature:OzFeature), _) <- exports
     } yield {
@@ -98,8 +98,8 @@ object DesugarFunctor extends Transformer with TreeDSL {
   }
 
   def makeApplyFun(define: Option[LocalStatementOrRaw],
-      imports: List[FunctorImport],
-      exports: List[FunctorExport]): Expression = {
+      imports: Seq[FunctorImport],
+      exports: Seq[FunctorExport]): Expression = {
     val importsParam = Variable.newSynthetic("<Imports>", formal = true)
 
     val importedDecls = extractAllImportedDecls(imports)
@@ -121,7 +121,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
 
     val allDecls = importedDecls ++ definedDecls ++ utilsDecls
 
-    FUN("<Apply>", List(importsParam)) {
+    FUN("<Apply>", Seq(importsParam)) {
       LOCAL (allDecls:_*) IN {
         val statements = new ListBuffer[Statement]
         def exec(statement: Statement) = statements += statement
@@ -150,13 +150,13 @@ object DesugarFunctor extends Transformer with TreeDSL {
         val exportRec = Record(OzAtom("export"), exportFields)
 
         // Final body
-        CompoundStatement(statements.toList) ~>
+        CompoundStatement(statements) ~>
         exportRec
       }
     }
   }
 
-  def extractAllImportedDecls(imports: List[FunctorImport]) = {
+  def extractAllImportedDecls(imports: Seq[FunctorImport]) = {
     val result = new ListBuffer[Variable]
 
     for (FunctorImport(module:Variable, aliases, _) <- imports) {
@@ -166,6 +166,6 @@ object DesugarFunctor extends Transformer with TreeDSL {
         result += variable
     }
 
-    result.toList
+    result
   }
 }

@@ -37,23 +37,11 @@ object CompatAPI {
 
   implicit def parser2mapper[T](p: Parser[T]) = new ParserMapper(p)
 
-  implicit def transform1toList[T, R](f: List[T] => R): Seq[T] => R = {
-    a => f(a.toList)
-  }
   implicit def transform2[T, U, R](f: (T, U) => R): ((T, U)) => R = {
     case (a, b) => f(a, b)
   }
-  implicit def transform2toList1[T, U, R](f: (List[T], U) => R): ((Seq[T], U)) => R = {
-    case (a, b) => f(a.toList, b)
-  }
-  implicit def transform2toList2[T, U, R](f: (T, List[U]) => R): ((T, Seq[U])) => R = {
-    case (a, b) => f(a, b.toList)
-  }
   implicit def transform3[T, U, V, R](f: (T, U, V) => R): ((T, U, V)) => R = {
     case (a, b, c) => f(a, b, c)
-  }
-  implicit def transform3toList2[T, U, V, R](f: (T, List[U], V) => R): ((T, Seq[U], V)) => R = {
-    case (a, b, c) => f(a, b.toList, c)
   }
 }
 
@@ -61,7 +49,7 @@ object Lexer {
   import CompatAPI._
   import fastparse.all._
 
-  val reserved = List(
+  val reserved = Seq(
     "andthen", "at", "attr", "case", "catch", "choice",
     "class", "cond", "declare", "define", "dis", "div",
     "do", "else", "elsecase", "elseif", "elseof", "end",
@@ -72,7 +60,7 @@ object Lexer {
     "self", "skip", "then", "thread", "true", "try",
     "unit")
 
-  val delimiters = List(
+  val delimiters = Seq(
     "(", ")", "[", "]", "{", "}",
     "|", "#", ":", "...", "=", ".", ":=", "^", "[]", "$",
     "!", "_", "~", "+", "-", "*", "/", "@", "<-",
@@ -104,7 +92,7 @@ object Lexer {
     val d = new Array[String](delimiters.size)
     delimiters.copyToArray(d, 0)
     scala.util.Sorting.quickSort(d)
-    (d.toList map { s => s.! }).foldRight(
+    d.map { s => s.! }.foldRight(
       Fail.opaque("no matching delimiter"): Parser[String])((x, y) => y | x)
   }
 
@@ -380,7 +368,7 @@ object Parser {
   val featureConst: P[OzFeature] = integerConst | literalConst
 
   val stringConst: P[OzValue] =
-    stringLit ^^ (chars => OzList(chars.toList map (c => OzInt(c.toInt))))
+    stringLit ^^ (chars => OzList(chars map (c => OzInt(c.toInt))))
 
   val featureNoVar = positioned(featureConst ^^ Constant)
 
@@ -468,7 +456,7 @@ object Parser {
   val lvl9: P[Phrase] = leftAssoc(lvlA, ("*" | "/" | `div` | `mod`).!.~/, BinaryOpPhrase)
   val lvl8: P[Phrase] = leftAssoc(lvl9, ("+" | "-").!.~/, BinaryOpPhrase)
   val lvl7: P[Phrase] = P(lvl8 ~ ("#" ~/ lvl8).rep).map {
-    case (first, rest) if !rest.isEmpty => sharp(first :: rest.toList)
+    case (first, rest) if !rest.isEmpty => sharp(first +: rest)
     case (first, _)                     => first
   }
   val lvl6: P[Phrase] = P(lvl7 ~ ("|" ~/ lvl6).?).map {
@@ -526,8 +514,8 @@ object Parser {
   val procExpression: P[Phrase] = deepPositioned {
     P(`proc` ~/ procFlags ~ "{" ~ dollarOrExpr ~/ formalArgs ~ "}" ~/ inPhrase ~ `end`).map {
       case (flags, name, args0, body0) =>
-        val (args, body) = postProcessArgsAndBody(args0.toList, body0)
-        val proc = ProcPhrase("", args, body, flags.toList)
+        val (args, body) = postProcessArgsAndBody(args0, body0)
+        val proc = ProcPhrase("", args, body, flags)
         name match {
           case Some(expr) => BindPhrase(expr, proc)
           case None       => proc
@@ -538,8 +526,8 @@ object Parser {
   val funExpression: P[Phrase] = deepPositioned {
     P(`fun` ~/ procFlags ~ "{" ~ dollarOrExpr ~/ formalArgs ~ "}" ~/ inPhrase ~ `end`).map {
       case (flags, name, args0, body0) =>
-        val (args, body) = postProcessArgsAndBody(args0.toList, body0)
-        val fun = FunPhrase("", args, body, flags.toList)
+        val (args, body) = postProcessArgsAndBody(args0, body0)
+        val fun = FunPhrase("", args, body, flags)
         name match {
           case Some(expr) => BindPhrase(expr, fun)
           case None       => fun
@@ -588,7 +576,7 @@ object Parser {
   // Pattern
 
   val pattern: P[Phrase] = P(pattern1 ~ ("=" ~/ pattern).?).map {
-    case (lhs, Some(rhs)) => PatternConjunctionPhrase(List(lhs, rhs))
+    case (lhs, Some(rhs)) => PatternConjunctionPhrase(Seq(lhs, rhs))
     case (lhs, None)      => lhs
   }
 
@@ -598,14 +586,14 @@ object Parser {
   }
 
   val pattern2: P[Phrase] = P(pattern3 ~ ("#" ~/ pattern3).rep).map {
-    case (first, rest) if !rest.isEmpty => sharp(first :: rest.toList)
+    case (first, rest) if !rest.isEmpty => sharp(first +: rest)
     case (first, _)                     => first
   }
 
   val pattern3: P[Phrase] = P(
     positioned((recordLabel ~ "(" ~/ patternRecordField.rep ~ `...`.!.? ~ ")") ^^ {
-      case (label, fields, Some(openMarker)) => OpenRecordPatternPhrase(label, fields.toList)
-      case (label, fields, None)             => RecordPhrase(label, fields.toList)
+      case (label, fields, Some(openMarker)) => OpenRecordPatternPhrase(label, fields)
+      case (label, fields, None)             => RecordPhrase(label, fields)
     })
       | positioned("[" ~/ pattern.rep(1) ~ "]" ^^ exprListToListExpr)
       | floatConstExpr | integerConstExpr | literalConstExpr | stringConstExpr
@@ -645,7 +633,7 @@ object Parser {
           case Some(catchClauses) =>
             val excVar = RawVariable(generateExcIdent())
             TryPhrase(body, excVar,
-              MatchPhrase(excVar, catchClauses.toList, RaisePhrase(excVar)))
+              MatchPhrase(excVar, catchClauses, RaisePhrase(excVar)))
         }
 
         optFinallyBody match {
@@ -667,9 +655,9 @@ object Parser {
   val forStatement = deepPositioned {
     P(`for` ~/ formalArg ~ `in` ~/ forListGenerator ~ `do` ~/ inPhrase ~ `end`) ^^ {
       case (arg0, listExpr, body0) =>
-        val (args, body) = postProcessArgsAndBody(List(arg0), body0)
+        val (args, body) = postProcessArgsAndBody(Seq(arg0), body0)
         val forProc = ProcPhrase("ForProc", args, body, Nil)
-        CallPhrase(RawVariable("ForAll"), List(listExpr, forProc))
+        CallPhrase(RawVariable("ForAll"), Seq(listExpr, forProc))
     }
   }
 
@@ -677,7 +665,7 @@ object Parser {
     expression ~ (`..` ~/ expression).? ^^ {
       case (start, Some(end)) =>
         val listNumber = BinaryOpPhrase(RawVariable("List"), ".", Constant(OzAtom("number")))
-        CallPhrase(listNumber, List(start, end, Constant(OzInt(1))))
+        CallPhrase(listNumber, Seq(start, end, Constant(OzInt(1))))
       case (expr, None) => expr
     }
   }
@@ -698,16 +686,16 @@ object Parser {
     }))
 
   val functorClause: P[FunctorPhrase] = P(positioned(
-    `require` ~/ importElem.rep ^^ (r => partialFunctor(require = r.toList))
+    `require` ~/ importElem.rep ^^ (r => partialFunctor(require = r))
       | `prepare` ~/ defineBody ^^ (p => partialFunctor(prepare = Some(p)))
-      | `import` ~/ importElem.rep ^^ (i => partialFunctor(imports = i.toList))
+      | `import` ~/ importElem.rep ^^ (i => partialFunctor(imports = i))
       | `define` ~/ defineBody ^^ (d => partialFunctor(define = Some(d)))
-      | `export` ~/ exportElem.rep ^^ (e => partialFunctor(exports = e.toList))))
+      | `export` ~/ exportElem.rep ^^ (e => partialFunctor(exports = e))))
 
   val importElem: P[FunctorImport] = positioned(
     P(variable ~ ("(" ~/ importAlias.rep ~ ")").? ~ importLocation.?).map {
       case (module, None, location)          => FunctorImport(module, Nil, location)
-      case (module, Some(aliases), location) => FunctorImport(module, aliases.toList, location)
+      case (module, Some(aliases), location) => FunctorImport(module, aliases, location)
     })
 
   val importAlias: P[AliasedFeature] = positioned {
@@ -747,11 +735,11 @@ object Parser {
   })
 
   val classContentsItem: P[ClassPhrase] = P(
-    `from` ~/ expression.rep ^^ (p => partialClass(parents = p.toList))
-      | `feat` ~/ classFeatOrAttr.rep ^^ (f => partialClass(features = f.toList))
-      | `attr` ~/ classFeatOrAttr.rep ^^ (a => partialClass(attributes = a.toList))
-      | `prop` ~/ expression.rep ^^ (p => partialClass(properties = p.toList))
-      | classMethod ^^ (m => partialClass(methods = List(m))))
+    `from` ~/ expression.rep ^^ (p => partialClass(parents = p))
+      | `feat` ~/ classFeatOrAttr.rep ^^ (f => partialClass(features = f))
+      | `attr` ~/ classFeatOrAttr.rep ^^ (a => partialClass(attributes = a))
+      | `prop` ~/ expression.rep ^^ (p => partialClass(properties = p))
+      | classMethod ^^ (m => partialClass(methods = Seq(m))))
 
   val classFeatOrAttr: P[FeatOrAttrPhrase] = positioned {
     P(attrOrFeat ~ (`:` ~/ expression).?) ^^ FeatOrAttrPhrase
@@ -772,7 +760,7 @@ object Parser {
   val methodHeader: P[MethodHeaderPhrase] = P(positioned(
     (methodHeaderLabel ~ ("(" ~/ methodParam.rep ~ `...`.!.? ~ ")").?).map {
       case (label, None)                 => MethodHeaderPhrase(label, Nil, false)
-      case (label, Some((params, open))) => MethodHeaderPhrase(label, params.toList, open.isDefined)
+      case (label, Some((params, open))) => MethodHeaderPhrase(label, params, open.isDefined)
     }))
 
   val classMethod: P[MethodDefPhrase] =
@@ -782,18 +770,18 @@ object Parser {
 
   // Helpers
 
-  def postProcessArgsAndBody(args: List[Phrase], body: Phrase) = {
+  def postProcessArgsAndBody(args: Seq[Phrase], body: Phrase) = {
     if (args.forall(_.isInstanceOf[RawVariable])) {
       (args.map(_.asInstanceOf[RawVariable]), body)
     } else {
       val (newArgs, patMatValue, pattern) = postProcessArgsInner(args)
       (newArgs, MatchPhrase(patMatValue,
-        List(MatchPhraseClause(pattern, None, body).copyAttrs(patMatValue)),
+        Seq(MatchPhraseClause(pattern, None, body).copyAttrs(patMatValue)),
         NoElsePhrase()))
     }
   }
 
-  def postProcessArgsInner(args: List[Phrase]) = {
+  def postProcessArgsInner(args: Seq[Phrase]) = {
     val newArgs = new ListBuffer[RawVariable]
     val patMatValueItems = new ListBuffer[RawVariable]
     val patternItems = new ListBuffer[Phrase]
@@ -814,19 +802,18 @@ object Parser {
     assert(!patMatValueItems.isEmpty)
 
     if (patMatValueItems.size == 1) {
-      (newArgs.toList, patMatValueItems.head, patternItems.head)
+      (newArgs, patMatValueItems.head, patternItems.head)
     } else {
-      (newArgs.toList, sharp(patMatValueItems.toList),
-        sharp(patternItems.toList))
+      (newArgs, sharp(patMatValueItems), sharp(patternItems))
     }
   }
 
   def partialFunctor(name: String = "",
-                     require: List[FunctorImport] = Nil,
+                     require: Seq[FunctorImport] = Nil,
                      prepare: Option[Phrase] = None,
-                     imports: List[FunctorImport] = Nil,
+                     imports: Seq[FunctorImport] = Nil,
                      define: Option[Phrase] = None,
-                     exports: List[FunctorExport] = Nil) = {
+                     exports: Seq[FunctorExport] = Nil) = {
     FunctorPhrase(name, require, prepare, imports, define, exports)
   }
 
@@ -838,14 +825,14 @@ object Parser {
       rhsImports, rhsDefine, rhsExports) = rhs
 
     FunctorPhrase(if (lhsName.isEmpty) rhsName else lhsName,
-      lhsRequire ::: rhsRequire, lhsPrepare orElse rhsPrepare,
-      lhsImports ::: rhsImports, lhsDefine orElse rhsDefine,
-      lhsExports ::: rhsExports)
+      lhsRequire ++ rhsRequire, lhsPrepare orElse rhsPrepare,
+      lhsImports ++ rhsImports, lhsDefine orElse rhsDefine,
+      lhsExports ++ rhsExports)
   }
 
-  def partialClass(name: String = "", parents: List[Phrase] = Nil,
-                   features: List[FeatOrAttrPhrase] = Nil, attributes: List[FeatOrAttrPhrase] = Nil,
-                   properties: List[Phrase] = Nil, methods: List[MethodDefPhrase] = Nil) =
+  def partialClass(name: String = "", parents: Seq[Phrase] = Nil,
+                   features: Seq[FeatOrAttrPhrase] = Nil, attributes: Seq[FeatOrAttrPhrase] = Nil,
+                   properties: Seq[Phrase] = Nil, methods: Seq[MethodDefPhrase] = Nil) =
     ClassPhrase(name, parents, features, attributes, properties, methods)
 
   def mergePartialClasses(lhs: ClassPhrase, rhs: ClassPhrase) = {
@@ -856,22 +843,22 @@ object Parser {
       rhsProperties, rhsMethods) = rhs
 
     ClassPhrase(if (lhsName.isEmpty) rhsName else lhsName,
-      lhsParents ::: rhsParents, lhsFeatures ::: rhsFeatures,
-      lhsAttributes ::: rhsAttributes, lhsProperties ::: rhsProperties,
-      lhsMethods ::: rhsMethods)
+      lhsParents ++ rhsParents, lhsFeatures ++ rhsFeatures,
+      lhsAttributes ++ rhsAttributes, lhsProperties ++ rhsProperties,
+      lhsMethods ++ rhsMethods)
   }
 
-  def exprListToListExpr(elems: List[Phrase]): Phrase = {
+  def exprListToListExpr(elems: Seq[Phrase]): Phrase = {
     val nil: Phrase = Constant(OzAtom("nil")).copyAttrs(elems(0))
     elems.foldRight(nil)((e, tail) => cons(e, tail))
   }
 
   def cons(head: Phrase, tail: Phrase) = atPos(head) {
     RecordPhrase(Constant(OzAtom("|")),
-      List(withAutoFeature(head), withAutoFeature(tail)))
+      Seq(withAutoFeature(head), withAutoFeature(tail)))
   }
 
-  def sharp(fields: List[Phrase]) = {
+  def sharp(fields: Seq[Phrase]) = {
     if (fields.isEmpty) Constant(OzAtom("#"))
     else {
       atPos(fields.head) {

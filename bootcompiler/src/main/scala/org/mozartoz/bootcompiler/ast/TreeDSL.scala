@@ -23,7 +23,7 @@ trait TreeDSL {
         right
 
       case _ =>
-        treeCopy.CompoundStatement(self, List(self, right))
+        treeCopy.CompoundStatement(self, Seq(self, right))
     }
 
     /** `self ~> right` sequentially composes `self` and `right` */
@@ -44,11 +44,11 @@ trait TreeDSL {
 
     /** Call `self` with arguments `args` as a statement */
     def call(args: Expression*) =
-      treeCopy.CallStatement(self, self, args.toList)
+      treeCopy.CallStatement(self, self, args)
 
     /** Call `self` with arguments `args` as an expression */
     def callExpr(args: Expression*) =
-      treeCopy.CallExpression(self, self, args.toList)
+      treeCopy.CallExpression(self, self, args)
 
     /** `==` operator */
     def =?= (rhs: Expression) =
@@ -119,13 +119,13 @@ trait TreeDSL {
    *
    *  Usage:
    *  {{{
-   *  PROC (<name>, List(<args>...) [, <flags>]) {
+   *  PROC (<name>, Seq(<args>...) [, <flags>]) {
    *    <body>
    *  }
    *  }}}
    */
-  def PROC(name: String, args: List[VariableOrRaw],
-      flags: List[String] = Nil)(body: Statement) = {
+  def PROC(name: String, args: Seq[VariableOrRaw],
+      flags: Seq[String] = Nil)(body: Statement) = {
     treeCopy.ProcExpression(body, name, args, body, flags)
   }
 
@@ -133,13 +133,13 @@ trait TreeDSL {
    *
    *  Usage:
    *  {{{
-   *  FUN (<name>, List(<args>...) [, <flags>]) {
+   *  FUN (<name>, Seq(<args>...) [, <flags>]) {
    *    <body>
    *  }
    *  }}}
    */
-  def FUN(name: String, args: List[VariableOrRaw],
-      flags: List[String] = Nil)(body: Expression) = {
+  def FUN(name: String, args: Seq[VariableOrRaw],
+      flags: Seq[String] = Nil)(body: Expression) = {
     treeCopy.FunExpression(body, name, args, body, flags)
   }
 
@@ -166,10 +166,10 @@ trait TreeDSL {
    */
   def RAWLOCAL(decls: RawDeclaration*) = new {
     def IN(body: Statement) =
-      treeCopy.RawLocalStatement(body, decls.toList, body)
+      treeCopy.RawLocalStatement(body, decls, body)
 
     def IN(body: Expression) =
-      treeCopy.RawLocalExpression(body, decls.toList, body)
+      treeCopy.RawLocalExpression(body, decls, body)
   }
 
   /** Construct LocalStatements and LocalExpressions
@@ -183,10 +183,10 @@ trait TreeDSL {
    */
   def LOCAL(decls: Variable*) = new {
     def IN(body: Statement) =
-      treeCopy.LocalStatement(body, decls.toList, body)
+      treeCopy.LocalStatement(body, decls, body)
 
     def IN(body: Expression) =
-      treeCopy.LocalExpression(body, decls.toList, body)
+      treeCopy.LocalExpression(body, decls, body)
   }
 
   /** Declare a synthetic temporary variable in a statement

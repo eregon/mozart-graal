@@ -4,7 +4,7 @@ package ast
 trait StatOrExpr extends Node
 
 trait LocalCommon extends StatOrExpr {
-  protected val declarations: List[RawDeclarationOrVar]
+  protected val declarations: Seq[RawDeclarationOrVar]
   protected val body: StatOrExpr
 
   def syntax(indent: String) = {
@@ -23,9 +23,9 @@ trait LocalCommon extends StatOrExpr {
 trait ProcFunExpression extends StatOrExpr {
   protected val keyword: String
 
-  protected val args: List[VariableOrRaw]
+  protected val args: Seq[VariableOrRaw]
   protected val body: StatOrExpr
-  protected val flags: List[String]
+  protected val flags: Seq[String]
 
   def syntax(indent: String) = {
     val flagsSyntax = flags.foldLeft("") { _ + " " + _ }
@@ -43,7 +43,7 @@ trait ProcFunExpression extends StatOrExpr {
 
 trait CallCommon extends StatOrExpr {
   protected val callable: Expression
-  protected val args: List[Expression]
+  protected val args: Seq[Expression]
 
   def syntax(indent: String) = args match {
     case Nil => "{" + callable.syntax() + "}"
@@ -80,7 +80,7 @@ trait IfCommon extends StatOrExpr {
 
 trait MatchCommon extends StatOrExpr {
   protected val value: Expression
-  protected val clauses: List[MatchClauseCommon]
+  protected val clauses: Seq[MatchClauseCommon]
   protected val elsePart: StatOrExpr
 
   def syntax(indent: String) = {

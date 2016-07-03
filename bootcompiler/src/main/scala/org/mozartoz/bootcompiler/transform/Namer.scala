@@ -56,7 +56,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
    *  @return result of `f` evaluated with the given environment
    */
   private def withEnvironmentFromDecls[A](
-      decls: List[Variable])(f: => A) = {
+      decls: Seq[Variable])(f: => A) = {
     val newEnv = (decls map (decl => decl.symbol.name -> decl.symbol))
     withEnvironment(env ++ newEnv)(f)
   }
@@ -103,7 +103,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
           }
         }
       }
-      val decls = declsBuilder.toList
+      val decls = declsBuilder
 
       val newMatchStat = treeCopy.MatchStatement(
           matchStat, transformExpr(value), newClauses, transformStat(elseStat))
@@ -124,7 +124,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
       val newBody = transformStat(body)
       val namedExcVar = nameDecl(exceptionVar, capture = true)
 
-      val newCatchBody = withEnvironmentFromDecls(List(namedExcVar)) {
+      val newCatchBody = withEnvironmentFromDecls(Seq(namedExcVar)) {
         transformStat(catchBody)
       }
 
@@ -180,7 +180,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
           }
         }
       }
-      val decls = declsBuilder.toList
+      val decls = declsBuilder
 
       val newMatchExpr = treeCopy.MatchExpression(
           matchExpr, transformExpr(value), newClauses, transformExpr(elseExpr))
@@ -201,7 +201,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
       val newBody = transformExpr(body)
       val namedExcVar = nameDecl(exceptionVar, capture = true)
 
-      val newCatchBody = withEnvironmentFromDecls(List(namedExcVar)) {
+      val newCatchBody = withEnvironmentFromDecls(Seq(namedExcVar)) {
         transformExpr(catchBody)
       }
 
@@ -316,7 +316,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
     }
   }
 
-  def transformFunctorImports(imports: List[FunctorImport]) = {
+  def transformFunctorImports(imports: Seq[FunctorImport]) = {
     val decls = new ListBuffer[Variable]
     val newImports = new ListBuffer[FunctorImport]
 
@@ -341,7 +341,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
           newAliases, location)
     }
 
-    (decls.toList, newImports.toList)
+    (decls, newImports)
   }
 
   def transformFunctorDefine(define: Option[LocalStatementOrRaw]) = {
@@ -369,7 +369,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
     (decls, Some(newDefine))
   }
 
-  def transformFunctorExports(exports: List[FunctorExport]) = {
+  def transformFunctorExports(exports: Seq[FunctorExport]) = {
     for (export @ FunctorExport(feature, value: RawVariable) <- exports) yield {
       val newFeature = feature match {
         case AutoFeature() =>
@@ -411,7 +411,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
   }
 
   /** Returns the raw variables that are implicitly introduced in a class */
-  def classDeclarations(clazz: ClassExpression): List[RawVariable] = {
+  def classDeclarations(clazz: ClassExpression): Seq[RawVariable] = {
     val result = new ListBuffer[RawVariable]
 
     for (FeatOrAttr(nameVar: RawVariable, _) <- clazz.features)
@@ -424,7 +424,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
         nameVar: RawVariable, _, _), _, _) <- clazz.methods)
       result += nameVar
 
-    result.toList
+    result
   }
 
   override def transformMethodDef(method: MethodDef) = {
@@ -448,7 +448,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
           name
       }
 
-      withEnvironmentFromDecls(namedParams.toList) {
+      withEnvironmentFromDecls(namedParams) {
         val newDefault = default map transformExpr
 
         treeCopy.MethodParam(param, transformExpr(feature), newName, newDefault)
@@ -461,7 +461,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
       named
     }
 
-    val newBody = withEnvironmentFromDecls(namedParams.toList) {
+    val newBody = withEnvironmentFromDecls(namedParams) {
       body match {
         case stat:Statement => transformStat(stat)
         case expr:Expression => transformExpr(expr)
@@ -477,9 +477,9 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
 
   /** Returns (named(PV(D)), D without singleton vars) for a given D */
   def extractDecls(
-      declarations: List[RawDeclaration]): (List[Variable], List[Statement]) = {
-    val decls = patternVariables(declarations).toList
-    val namedDecls = nameDecls(decls)
+      declarations: Seq[RawDeclaration]): (Seq[Variable], Seq[Statement]) = {
+    val decls = patternVariables(declarations)
+    val namedDecls = nameDecls(decls.toSeq)
 
     val statements = for {
       decl <- declarations
@@ -495,7 +495,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
    *    Definition of the PV set</a>
    */
   private def patternVariables(
-      declarations: List[RawDeclaration]): Set[RawVariable] = {
+      declarations: Seq[RawDeclaration]): Set[RawVariable] = {
     declarations.foldLeft(Set.empty[RawVariable]) {
       (prev, declaration) => prev ++ patternVariables(declaration)
     }
@@ -553,17 +553,17 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
   }
 
   /** Processes a pattern */
-  def processPattern(pattern: Expression): (List[Variable], Expression) = {
+  def processPattern(pattern: Expression): (Seq[Variable], Expression) = {
     val variables = new ListBuffer[Variable]
     val newPattern = processPatternInner(pattern, variables)
-    (variables.toList, newPattern)
+    (variables, newPattern)
   }
 
   /** Processes a pattern (inner) */
   private def processPatternInner(pattern: Expression,
       variables: ListBuffer[Variable]): Expression = {
 
-    def processRecordFields(fields: List[RecordField]) = {
+    def processRecordFields(fields: Seq[RecordField]) = {
       for (field @ RecordField(feature, value) <- fields) yield {
         val newValue = processPatternInner(value, variables)
         treeCopy.RecordField(field, feature, newValue)
@@ -604,7 +604,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
   }
 
   /** Names a list of raw variables */
-  def nameDecls(decls: List[RawVariable], capture: Boolean = false) = {
+  def nameDecls(decls: Seq[RawVariable], capture: Boolean = false) = {
     for (v <- decls) yield
       nameDecl(v, capture = capture)
   }
@@ -616,7 +616,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
   }
 
   /** Names a list of formal parameters */
-  def nameFormals(args: List[VariableOrRaw]) = {
+  def nameFormals(args: Seq[VariableOrRaw]) = {
     for (v @ RawVariable(name) <- args) yield {
       val symbol = new Symbol(name, formal = true)
       treeCopy.Variable(v, symbol)

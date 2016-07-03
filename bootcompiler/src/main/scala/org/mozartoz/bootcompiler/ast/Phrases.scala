@@ -11,7 +11,7 @@ abstract class PhraseNode extends Phrase {
   def stat(phrase: Phrase) = TypeAST.stat(phrase)
 }
 
-case class CompoundPhrase(parts: List[Phrase]) extends PhraseNode {
+case class CompoundPhrase(parts: Seq[Phrase]) extends PhraseNode {
   posFrom(parts(0), parts.last)
 }
 
@@ -19,15 +19,15 @@ case class RawLocalPhrase(declarations: Phrase, body: Phrase) extends PhraseNode
   posFrom(declarations, body)
 }
 
-case class ProcPhrase(name: String, args: List[VariableOrRaw], body: Phrase, flags: List[String]) extends PhraseNode
+case class ProcPhrase(name: String, args: Seq[VariableOrRaw], body: Phrase, flags: Seq[String]) extends PhraseNode
 
-case class FunPhrase(name: String, args: List[VariableOrRaw], body: Phrase, flags: List[String]) extends PhraseNode
+case class FunPhrase(name: String, args: Seq[VariableOrRaw], body: Phrase, flags: Seq[String]) extends PhraseNode
 
-case class CallPhrase(callable: Phrase, args: List[Phrase]) extends PhraseNode
+case class CallPhrase(callable: Phrase, args: Seq[Phrase]) extends PhraseNode
 
 case class IfPhrase(condition: Phrase, truePhrase: Phrase, falsePhrase: Phrase) extends PhraseNode
 
-case class MatchPhrase(value: Phrase, clauses: List[MatchPhraseClause], elsePhrase: Phrase) extends PhraseNode
+case class MatchPhrase(value: Phrase, clauses: Seq[MatchPhraseClause], elsePhrase: Phrase) extends PhraseNode
 
 case class MatchPhraseClause(pattern: Phrase, guard: Option[Phrase], body: Phrase) extends PhraseNode {
   def toExpr = MatchExpressionClause(expr(pattern), guard.map(expr), expr(body)).copyAttrs(this)
@@ -58,14 +58,14 @@ case class DotAssignPhrase(left: Phrase, center: Phrase, right: Phrase) extends 
 
 case class AliasedFeaturePhrase(feature: Constant, alias: Option[VariableOrRaw]) extends PhraseNode
 
-case class FunctorImportPhrase(module: VariableOrRaw, aliases: List[AliasedFeature], location: Option[String]) extends PhraseNode
+case class FunctorImportPhrase(module: VariableOrRaw, aliases: Seq[AliasedFeature], location: Option[String]) extends PhraseNode
 
 case class FunctorExportPhrase(feature: Phrase, value: Phrase) extends PhraseNode
 
 case class FunctorPhrase(name: String,
-                         require: List[FunctorImport], prepare: Option[Phrase],
-                         imports: List[FunctorImport], define: Option[Phrase],
-                         exports: List[FunctorExport]) extends PhraseNode
+                         require: Seq[FunctorImport], prepare: Option[Phrase],
+                         imports: Seq[FunctorImport], define: Option[Phrase],
+                         exports: Seq[FunctorExport]) extends PhraseNode
 
 // Operations
 
@@ -90,11 +90,11 @@ case class RecordFieldPhrase(feature: Phrase, value: Phrase) extends PhraseNode 
   def toExpr = RecordField(expr(feature), expr(value))
 }
 
-case class RecordPhrase(label: Phrase, fields: List[RecordFieldPhrase]) extends PhraseNode
+case class RecordPhrase(label: Phrase, fields: Seq[RecordFieldPhrase]) extends PhraseNode
 
-case class OpenRecordPatternPhrase(label: Phrase, fields: List[RecordFieldPhrase]) extends PhraseNode
+case class OpenRecordPatternPhrase(label: Phrase, fields: Seq[RecordFieldPhrase]) extends PhraseNode
 
-case class PatternConjunctionPhrase(parts: List[Phrase]) extends PhraseNode {
+case class PatternConjunctionPhrase(parts: Seq[Phrase]) extends PhraseNode {
   posFrom(parts(0), parts.last)
 }
 
@@ -108,7 +108,7 @@ case class MethodParamPhrase(feature: Phrase, name: Phrase, default: Option[Phra
   def toExpr = MethodParam(expr(feature), expr(name), default.map(expr))
 }
 
-case class MethodHeaderPhrase(name: Phrase, params: List[MethodParamPhrase], open: Boolean) extends PhraseNode {
+case class MethodHeaderPhrase(name: Phrase, params: Seq[MethodParamPhrase], open: Boolean) extends PhraseNode {
   def toExpr = MethodHeader(expr(name), params.map(_.toExpr), open)
 }
 
@@ -120,7 +120,7 @@ case class MethodDefPhrase(header: MethodHeaderPhrase, messageVar: Option[Variab
   }
 }
 
-case class ClassPhrase(name: String, parents: List[Phrase],
-                       features: List[FeatOrAttrPhrase], attributes: List[FeatOrAttrPhrase],
-                       properties: List[Phrase],
-                       methods: List[MethodDefPhrase]) extends PhraseNode
+case class ClassPhrase(name: String, parents: Seq[Phrase],
+                       features: Seq[FeatOrAttrPhrase], attributes: Seq[FeatOrAttrPhrase],
+                       properties: Seq[Phrase],
+                       methods: Seq[MethodDefPhrase]) extends PhraseNode

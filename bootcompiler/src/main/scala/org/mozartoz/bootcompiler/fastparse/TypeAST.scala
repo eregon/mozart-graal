@@ -102,10 +102,10 @@ object TypeAST {
       treeCopy.LockObjectStatement(p, stat(body))
   }
 
-  def localDecls(p: Phrase): List[RawDeclaration] = p match {
-    case CompoundPhrase(parts) => parts.flatMap(localDecls).toList
-    case v @ RawVariable(name) => List(v)
-    case _                     => List(stat(p).asInstanceOf[RawDeclaration])
+  def localDecls(p: Phrase): Seq[RawDeclaration] = p match {
+    case CompoundPhrase(parts) => parts.flatMap(localDecls)
+    case v @ RawVariable(name) => Seq(v)
+    case _                     => Seq(stat(p).asInstanceOf[RawDeclaration])
   }
 
   def functorBody(p: Phrase): LocalStatementOrRaw = p match {

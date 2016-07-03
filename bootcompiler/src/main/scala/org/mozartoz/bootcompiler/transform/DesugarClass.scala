@@ -189,12 +189,12 @@ object DesugarClass extends Transformer with TreeDSL {
       super.transformExpr(expression)
   }
 
-  def transformParents(parents: List[Expression]): Expression = {
+  def transformParents(parents: Seq[Expression]): Expression = {
     exprListToListExpr(parents)
   }
 
   def transformFeatOrAttr(label: String,
-      featOrAttrs: List[FeatOrAttr]): Expression = {
+      featOrAttrs: Seq[FeatOrAttr]): Expression = {
     val specs = for {
       featOrAttr @ FeatOrAttr(name, value) <- featOrAttrs
     } yield {
@@ -205,22 +205,22 @@ object DesugarClass extends Transformer with TreeDSL {
     Record(OzAtom(label), specs)
   }
 
-  def transformProperties(properties: List[Expression]) = {
+  def transformProperties(properties: Seq[Expression]) = {
     exprListToListExpr(properties)
   }
 
-  def transformMethods(methods: List[MethodInfo]): Expression = {
+  def transformMethods(methods: Seq[MethodInfo]): Expression = {
     val newMethods = for {
       MethodInfo(symbol, name, _) <- methods
     } yield {
-      sharp(List(name, symbol))
+      sharp(Seq(name, symbol))
     }
 
     sharp(newMethods)
   }
 
   def makeMethods(className: String,
-      methods: List[MethodDef]): List[MethodInfo] = {
+      methods: Seq[MethodDef]): Seq[MethodInfo] = {
     for {
       method @ MethodDef(MethodHeader(name, _, _), _, _) <- methods
     } yield {
@@ -299,11 +299,11 @@ object DesugarClass extends Transformer with TreeDSL {
     }
 
     atPos(method) {
-      PROC (name, List(selfParam, msgParam)) {
+      PROC (name, Seq(selfParam, msgParam)) {
         LOCAL (paramVars:_*) IN {
           withSelf(selfParam) {
             transformStat {
-              CompoundStatement(fetchParamStats.toList) ~ {
+              CompoundStatement(fetchParamStats) ~ {
                 if (resultVar.isDefined) {
                   resultVar.get === body.asInstanceOf[Expression]
                 } else {

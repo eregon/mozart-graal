@@ -68,7 +68,7 @@ case class UnitVal() extends BuiltinName("unit")
 
 /** Arity of a record */
 case class OzArity(label: OzLiteral,
-    features: List[OzFeature]) extends OzValue {
+    features: Seq[OzFeature]) extends OzValue {
   def syntax() =
     "<Arity/" + (if (features.isEmpty) label else toTuple).syntax() + ">"
 
@@ -98,7 +98,7 @@ case class OzRecordField(feature: OzFeature, value: OzValue) {
 
 /** Oz record */
 case class OzRecord(label: OzLiteral,
-    fields: List[OzRecordField]) extends OzValue {
+    fields: Seq[OzRecordField]) extends OzValue {
   require(!fields.isEmpty)
 
   def syntax() = {
@@ -133,8 +133,8 @@ case class OzRecord(label: OzLiteral,
 }
 
 /** Factory and pattern matching for Oz tuples */
-object OzTuple extends ((OzLiteral, List[OzValue]) => OzRecord) {
-  def apply(label: OzLiteral, fields: List[OzValue]) = {
+object OzTuple extends ((OzLiteral, Seq[OzValue]) => OzRecord) {
+  def apply(label: OzLiteral, fields: Seq[OzValue]) = {
     val recordFields =
       for ((value, index) <- fields.zipWithIndex)
         yield OzRecordField(OzInt(index+1), value)
@@ -150,7 +150,7 @@ object OzTuple extends ((OzLiteral, List[OzValue]) => OzRecord) {
 /** Factory and pattern matching for Oz conses */
 object OzCons extends ((OzValue, OzValue) => OzRecord) {
   def apply(head: OzValue, tail: OzValue) =
-    OzTuple(OzAtom("|"), List(head, tail))
+    OzTuple(OzAtom("|"), Seq(head, tail))
 
   def unapply(record: OzRecord) = {
     if (record.isCons) Some((record.fields(0).value, record.fields(1).value))
@@ -159,8 +159,8 @@ object OzCons extends ((OzValue, OzValue) => OzRecord) {
 }
 
 /** Factory and pattern matching for #-tuples */
-object OzSharp extends (List[OzValue] => OzRecord) {
-  def apply(fields: List[OzValue]) =
+object OzSharp extends (Seq[OzValue] => OzRecord) {
+  def apply(fields: Seq[OzValue]) =
     OzTuple(OzAtom("#"), fields)
 
   def unapply(record: OzRecord) = record match {
@@ -170,8 +170,8 @@ object OzSharp extends (List[OzValue] => OzRecord) {
 }
 
 /** Factory for Oz lists */
-object OzList extends (List[OzValue] => OzValue) {
-  def apply(elems: List[OzValue]): OzValue =
+object OzList extends (Seq[OzValue] => OzValue) {
+  def apply(elems: Seq[OzValue]): OzValue =
     if (elems.isEmpty) OzAtom("nil")
     else OzCons(elems.head, OzList(elems.tail))
 }
@@ -192,7 +192,7 @@ case class OzPatMatCapture(variable: symtab.Symbol) extends OzValue {
 }
 
 /** Special value representing a pattern conjunction */
-case class OzPatMatConjunction(parts: List[OzValue]) extends OzValue {
+case class OzPatMatConjunction(parts: Seq[OzValue]) extends OzValue {
   def syntax() = {
     if (parts.isEmpty) "_"
     else {
@@ -205,7 +205,7 @@ case class OzPatMatConjunction(parts: List[OzValue]) extends OzValue {
 
 /** Special value representing an open record pattern */
 case class OzPatMatOpenRecord(label: OzLiteral,
-    fields: List[OzRecordField]) extends OzValue {
+    fields: Seq[OzRecordField]) extends OzValue {
   def syntax() = {
     if (fields.isEmpty) {
       label.syntax() + "(...)"

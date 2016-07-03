@@ -8,18 +8,18 @@ import symtab._
 class TreeCopier {
   // Statements
 
-  def CompoundStatement(tree: Node, statements: List[Statement]) =
+  def CompoundStatement(tree: Node, statements: Seq[Statement]) =
     new CompoundStatement(statements).copyAttrs(tree)
 
-  def RawLocalStatement(tree: Node, declarations: List[RawDeclaration],
+  def RawLocalStatement(tree: Node, declarations: Seq[RawDeclaration],
       statement: Statement) =
     new RawLocalStatement(declarations, statement).copyAttrs(tree)
 
-  def LocalStatement(tree: Node, declarations: List[Variable],
+  def LocalStatement(tree: Node, declarations: Seq[Variable],
       statement: Statement) =
     new LocalStatement(declarations, statement).copyAttrs(tree)
 
-  def CallStatement(tree: Node, callable: Expression, args: List[Expression]) =
+  def CallStatement(tree: Node, callable: Expression, args: Seq[Expression]) =
     new CallStatement(callable, args).copyAttrs(tree)
 
   def IfStatement(tree: Node, condition: Expression,
@@ -27,7 +27,7 @@ class TreeCopier {
     new IfStatement(condition, trueStatement, falseStatement).copyAttrs(tree)
 
   def MatchStatement(tree: Node, value: Expression,
-      clauses: List[MatchStatementClause], elseStatement: Statement) =
+      clauses: Seq[MatchStatementClause], elseStatement: Statement) =
     new MatchStatement(value, clauses, elseStatement).copyAttrs(tree)
 
   def NoElseStatement(tree: Node) =
@@ -76,25 +76,25 @@ class TreeCopier {
       expression: Expression) =
     new StatAndExpression(statement, expression).copyAttrs(tree)
 
-  def RawLocalExpression(tree: Node, declarations: List[RawDeclaration],
+  def RawLocalExpression(tree: Node, declarations: Seq[RawDeclaration],
       expression: Expression) =
     new RawLocalExpression(declarations, expression).copyAttrs(tree)
 
-  def LocalExpression(tree: Node, declarations: List[Variable],
+  def LocalExpression(tree: Node, declarations: Seq[Variable],
       expression: Expression) =
     new LocalExpression(declarations, expression).copyAttrs(tree)
 
   // Complex expressions
 
-  def ProcExpression(tree: Node, name: String, args: List[VariableOrRaw],
-      body: Statement, flags: List[String]) =
+  def ProcExpression(tree: Node, name: String, args: Seq[VariableOrRaw],
+      body: Statement, flags: Seq[String]) =
     new ProcExpression(name, args, body, flags).copyAttrs(tree)
 
-  def FunExpression(tree: Node, name: String, args: List[VariableOrRaw],
-      body: Expression, flags: List[String]) =
+  def FunExpression(tree: Node, name: String, args: Seq[VariableOrRaw],
+      body: Expression, flags: Seq[String]) =
     new FunExpression(name, args, body, flags).copyAttrs(tree)
 
-  def CallExpression(tree: Node, callable: Expression, args: List[Expression]) =
+  def CallExpression(tree: Node, callable: Expression, args: Seq[Expression]) =
     new CallExpression(callable, args).copyAttrs(tree)
 
   def IfExpression(tree: Node, condition: Expression,
@@ -102,7 +102,7 @@ class TreeCopier {
     new IfExpression(condition, trueExpression, falseExpression).copyAttrs(tree)
 
   def MatchExpression(tree: Node, value: Expression,
-      clauses: List[MatchExpressionClause], elseExpression: Expression) =
+      clauses: Seq[MatchExpressionClause], elseExpression: Expression) =
     new MatchExpression(value, clauses, elseExpression).copyAttrs(tree)
 
   def NoElseExpression(tree: Node) =
@@ -142,16 +142,16 @@ class TreeCopier {
     new AliasedFeature(feature, alias).copyAttrs(tree)
 
   def FunctorImport(tree: Node, module: VariableOrRaw,
-      aliases: List[AliasedFeature], location: Option[String]) =
+      aliases: Seq[AliasedFeature], location: Option[String]) =
     new FunctorImport(module, aliases, location).copyAttrs(tree)
 
   def FunctorExport(tree: Node, feature: Expression, value: Expression) =
     new FunctorExport(feature, value).copyAttrs(tree)
 
   def FunctorExpression(tree: Node, name: String,
-      require: List[FunctorImport], prepare: Option[LocalStatementOrRaw],
-      imports: List[FunctorImport], define: Option[LocalStatementOrRaw],
-      exports: List[FunctorExport]) = {
+      require: Seq[FunctorImport], prepare: Option[LocalStatementOrRaw],
+      imports: Seq[FunctorImport], define: Option[LocalStatementOrRaw],
+      exports: Seq[FunctorExport]) = {
     new FunctorExpression(name, require, prepare, imports,
         define, exports).copyAttrs(tree)
   }
@@ -194,14 +194,14 @@ class TreeCopier {
   def RecordField(tree: Node, feature: Expression, value: Expression) =
     new RecordField(feature, value).copyAttrs(tree)
 
-  def Record(tree: Node, label: Expression, fields: List[RecordField]) =
+  def Record(tree: Node, label: Expression, fields: Seq[RecordField]) =
     new Record(label, fields).copyAttrs(tree)
 
   def OpenRecordPattern(tree: Node, label: Expression,
-      fields: List[RecordField]) =
+      fields: Seq[RecordField]) =
     new OpenRecordPattern(label, fields).copyAttrs(tree)
 
-  def PatternConjunction(tree: Node, parts: List[Expression]) =
+  def PatternConjunction(tree: Node, parts: Seq[Expression]) =
     new PatternConjunction(parts).copyAttrs(tree)
 
   // Match clauses
@@ -223,7 +223,7 @@ class TreeCopier {
       default: Option[Expression]) =
     new MethodParam(feature, name, default).copyAttrs(tree)
 
-  def MethodHeader(tree: Node, name: Expression, params: List[MethodParam],
+  def MethodHeader(tree: Node, name: Expression, params: Seq[MethodParam],
       open: Boolean) =
     new MethodHeader(name, params, open).copyAttrs(tree)
 
@@ -231,9 +231,9 @@ class TreeCopier {
       messageVar: Option[VariableOrRaw], body: StatOrExpr) =
     new MethodDef(header, messageVar, body).copyAttrs(tree)
 
-  def ClassExpression(tree: Node, name: String, parents: List[Expression],
-      features: List[FeatOrAttr], attributes: List[FeatOrAttr],
-      properties: List[Expression], methods: List[MethodDef]) =
+  def ClassExpression(tree: Node, name: String, parents: Seq[Expression],
+      features: Seq[FeatOrAttr], attributes: Seq[FeatOrAttr],
+      properties: Seq[Expression], methods: Seq[MethodDef]) =
     new ClassExpression(name, parents, features, attributes,
         properties, methods).copyAttrs(tree)
 }

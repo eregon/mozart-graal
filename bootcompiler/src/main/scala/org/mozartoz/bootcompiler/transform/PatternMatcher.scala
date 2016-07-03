@@ -73,7 +73,7 @@ object PatternMatcher extends Transformer with TreeDSL {
           captures, guardsBuffer)
       guardsBuffer ++= guard
 
-      val guards = guardsBuffer.toList
+      val guards = guardsBuffer
       assert(!guards.isEmpty)
 
       val newGuard = guards.tail.foldLeft(guards.head) {
@@ -89,7 +89,7 @@ object PatternMatcher extends Transformer with TreeDSL {
       captures: ListBuffer[Variable],
       guards: ListBuffer[Expression]): Expression = {
 
-    def processRecordFields(fields: List[RecordField]) = {
+    def processRecordFields(fields: Seq[RecordField]) = {
       for (field @ RecordField(feature, value) <- fields) yield {
         val newValue = processVariablesInPatternInner(value, captures, guards)
         treeCopy.RecordField(field, feature, newValue)

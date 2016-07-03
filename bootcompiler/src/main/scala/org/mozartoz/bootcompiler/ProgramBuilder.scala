@@ -83,7 +83,7 @@ object ProgramBuilder extends TreeDSL with TransformUtils {
           for (FunctorImport(RawVariable(name), _, Some(location)) <- reqs)
             yield RecordField(OzAtom(name), bootModulesMap(location))
 
-        Record(OzAtom("import"), fields.toList)
+        Record(OzAtom("import"), fields)
       }
 
       (baseFunctor dot OzAtom("apply")) call (

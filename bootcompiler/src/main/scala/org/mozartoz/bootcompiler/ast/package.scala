@@ -50,18 +50,18 @@ package object ast {
   }
 
   /** Builds an Oz List expression from a list of expressions */
-  def exprListToListExpr(elems: List[Expression]): Expression = {
+  def exprListToListExpr(elems: Seq[Expression]): Expression = {
     elems.foldRight(Constant(OzAtom("nil")): Expression)((e, tail) => cons(e, tail))
   }
 
   /** Builds an Oz Cons pair */
   def cons(head: Expression, tail: Expression) = atPos(head) {
     Record(Constant(OzAtom("|")),
-        List(withAutoFeature(head), withAutoFeature(tail)))
+        Seq(withAutoFeature(head), withAutoFeature(tail)))
   }
 
   /** Builds an Oz #-tuple */
-  def sharp(fields: List[Expression]) = {
+  def sharp(fields: Seq[Expression]) = {
     if (fields.isEmpty) Constant(OzAtom("#"))
     else {
       atPos(fields.head) {

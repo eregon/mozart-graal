@@ -37,7 +37,7 @@ case class StatAndExpression(statement: Statement,
  *  end
  *  }}}
  */
-case class RawLocalExpression(declarations: List[RawDeclaration],
+case class RawLocalExpression(declarations: Seq[RawDeclaration],
     expression: Expression) extends Expression with LocalCommon {
   protected val body = expression
 }
@@ -52,7 +52,7 @@ case class RawLocalExpression(declarations: List[RawDeclaration],
  *  end
  *  }}}
  */
-case class LocalExpression(declarations: List[Variable],
+case class LocalExpression(declarations: Seq[Variable],
     expression: Expression) extends Expression with LocalCommon {
   protected val body = expression
 }
@@ -67,8 +67,8 @@ case class LocalExpression(declarations: List[Variable],
  *  end
  *  }}}
  */
-case class ProcExpression(name: String, args: List[VariableOrRaw],
-    body: Statement, flags: List[String]) extends Expression
+case class ProcExpression(name: String, args: Seq[VariableOrRaw],
+    body: Statement, flags: Seq[String]) extends Expression
     with ProcFunExpression {
   protected val keyword = "proc"
 }
@@ -81,8 +81,8 @@ case class ProcExpression(name: String, args: List[VariableOrRaw],
  *  end
  *  }}}
  */
-case class FunExpression(name: String, args: List[VariableOrRaw],
-    body: Expression, flags: List[String]) extends Expression
+case class FunExpression(name: String, args: Seq[VariableOrRaw],
+    body: Expression, flags: Seq[String]) extends Expression
     with ProcFunExpression {
   protected val keyword = "fun"
 }
@@ -94,7 +94,7 @@ case class FunExpression(name: String, args: List[VariableOrRaw],
  *  }}}
  */
 case class CallExpression(callable: Expression,
-    args: List[Expression]) extends Expression with CallCommon
+    args: Seq[Expression]) extends Expression with CallCommon
 
 /** If expression
  *
@@ -124,7 +124,7 @@ case class IfExpression(condition: Expression,
  *  }}}
  */
 case class MatchExpression(value: Expression,
-    clauses: List[MatchExpressionClause],
+    clauses: Seq[MatchExpressionClause],
     elseExpression: Expression) extends Expression with MatchCommon {
   protected val elsePart = elseExpression
 }
@@ -260,7 +260,7 @@ case class AliasedFeature(feature: Constant,
  *     <module>(<aliases>...) at <location>
  *  }}}
  */
-case class FunctorImport(module: VariableOrRaw, aliases: List[AliasedFeature],
+case class FunctorImport(module: VariableOrRaw, aliases: Seq[AliasedFeature],
     location: Option[String]) extends Node {
   def syntax(indent: String) = {
     val aliasesSyntax = aliases map (_.syntax(indent)) mkString " "
@@ -301,9 +301,9 @@ case class FunctorExport(feature: Expression,
  *  }}}
  */
 case class FunctorExpression(name: String,
-    require: List[FunctorImport], prepare: Option[LocalStatementOrRaw],
-    imports: List[FunctorImport], define: Option[LocalStatementOrRaw],
-    exports: List[FunctorExport]) extends Expression {
+    require: Seq[FunctorImport], prepare: Option[LocalStatementOrRaw],
+    imports: Seq[FunctorImport], define: Option[LocalStatementOrRaw],
+    exports: Seq[FunctorExport]) extends Expression {
 
   def syntax(indent: String) = {
     val subIndent = indent + "   "
@@ -456,10 +456,10 @@ case class RecordField(feature: Expression, value: Expression) extends Node {
 /** Abstract base class for Record and OpenRecord */
 abstract sealed class BaseRecord extends Expression {
   val label: Expression
-  val fields: List[RecordField]
+  val fields: Seq[RecordField]
   val isOpen: Boolean
 
-  def syntax(indent: String) = fields.toList match {
+  def syntax(indent: String) = fields match {
     case Nil => label.syntax() + (if (isOpen) "(...)" else "()")
 
     case firstField :: otherFields => {
@@ -504,7 +504,7 @@ abstract sealed class BaseRecord extends Expression {
  *  }}}
  */
 case class Record(label: Expression,
-    fields: List[RecordField]) extends BaseRecord {
+    fields: Seq[RecordField]) extends BaseRecord {
   val isOpen = false
 
   /** Returns true if this record should be optimized as a tuple */
@@ -538,7 +538,7 @@ case class Record(label: Expression,
  *  }}}
  */
 case class OpenRecordPattern(label: Expression,
-    fields: List[RecordField]) extends BaseRecord {
+    fields: Seq[RecordField]) extends BaseRecord {
   val isOpen = true
 
   /** Returns true if this pattern is a compile-time constant */
@@ -560,8 +560,8 @@ case class OpenRecordPattern(label: Expression,
 }
 
 /** Factory and pattern-matching against Tuple-like records */
-object Tuple extends ((Expression, List[Expression]) => Record) {
-  def apply(label: Expression, fields: List[Expression]) = {
+object Tuple extends ((Expression, Seq[Expression]) => Record) {
+  def apply(label: Expression, fields: Seq[Expression]) = {
     val recordFields =
       for ((value, index) <- fields.zipWithIndex)
         yield RecordField(Constant(OzInt(index+1)), value)
@@ -577,7 +577,7 @@ object Tuple extends ((Expression, List[Expression]) => Record) {
 /** Factory and pattern-matching against Cons-like records */
 object Cons extends ((Expression, Expression) => Record) {
   def apply(head: Expression, tail: Expression) =
-    Tuple(Constant(OzAtom("|")), List(head, tail))
+    Tuple(Constant(OzAtom("|")), Seq(head, tail))
 
   def unapply(record: Record) = {
     if (record.isCons) Some((record.fields(0).value, record.fields(1).value))
@@ -591,7 +591,7 @@ object Cons extends ((Expression, Expression) => Record) {
  *  <left> = <right>
  *  }}}
  */
-case class PatternConjunction(parts: List[Expression]) extends Expression {
+case class PatternConjunction(parts: Seq[Expression]) extends Expression {
   def syntax(indent: String) = {
     parts.tail.foldLeft(parts.head.syntax(indent)) {
       (prev, part) => prev + " = " + part.syntax(indent)
@@ -623,7 +623,7 @@ case class MethodParam(feature: Expression, name: Expression,
   }
 }
 
-case class MethodHeader(name: Expression, params: List[MethodParam],
+case class MethodHeader(name: Expression, params: Seq[MethodParam],
     open: Boolean) extends Node {
   def syntax(indent: String) = {
     name.syntax(indent) + "(" + (
@@ -644,10 +644,10 @@ case class MethodDef(header: MethodHeader, messageVar: Option[VariableOrRaw],
   }
 }
 
-case class ClassExpression(name: String, parents: List[Expression],
-    features: List[FeatOrAttr], attributes: List[FeatOrAttr],
-    properties: List[Expression],
-    methods: List[MethodDef]) extends Expression {
+case class ClassExpression(name: String, parents: Seq[Expression],
+    features: Seq[FeatOrAttr], attributes: Seq[FeatOrAttr],
+    properties: Seq[Expression],
+    methods: Seq[MethodDef]) extends Expression {
 
   def syntax(indent: String) = {
     val subIndent = indent + "   "

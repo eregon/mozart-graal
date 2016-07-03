@@ -113,7 +113,7 @@ object ConstantFolding extends Transformer with TreeDSL {
   }
 
   /** Sort the fields of a record according to their features */
-  private def sortRecordFields(fields: List[RecordField]) = {
+  private def sortRecordFields(fields: Seq[RecordField]) = {
     fields.sortWith { (leftField, rightField) =>
       val Constant(left:OzFeature) = leftField.feature
       val Constant(right:OzFeature) = rightField.feature
@@ -121,8 +121,8 @@ object ConstantFolding extends Transformer with TreeDSL {
     }
   }
 
-  private def processConstAssignments(decls: List[Variable],
-      statement: Statement): Option[(List[Variable], Statement)] = {
+  private def processConstAssignments(decls: Seq[Variable],
+      statement: Statement): Option[(Seq[Variable], Statement)] = {
     var touched: Boolean = false
 
     def inner(statement: Statement): Statement = {
@@ -164,7 +164,7 @@ object ConstantFolding extends Transformer with TreeDSL {
     }
   }
 
-  private def foldCompoundStatements(statement: Statement): List[Statement] = {
+  private def foldCompoundStatements(statement: Statement): Seq[Statement] = {
     statement match {
       case CompoundStatement(stats) =>
         stats flatMap foldCompoundStatements
@@ -173,7 +173,7 @@ object ConstantFolding extends Transformer with TreeDSL {
         Nil
 
       case _ =>
-        List(statement)
+        Seq(statement)
     }
   }
 
@@ -187,7 +187,7 @@ object ConstantFolding extends Transformer with TreeDSL {
 
       def unapply(call: CallExpression): Option[Expression] = {
         call match {
-          case CallExpression(Constant(ozBuiltin), List(operand)) =>
+          case CallExpression(Constant(ozBuiltin), Seq(operand)) =>
             Some(operand)
 
           case _ => None
@@ -204,7 +204,7 @@ object ConstantFolding extends Transformer with TreeDSL {
 
       def unapply(call: CallExpression): Option[(Expression, Expression)] = {
         call match {
-          case CallExpression(Constant(ozBuiltin), List(left, right)) =>
+          case CallExpression(Constant(ozBuiltin), Seq(left, right)) =>
             Some((left, right))
 
           case _ => None

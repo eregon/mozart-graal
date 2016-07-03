@@ -46,7 +46,7 @@ object Desugar extends Transformer with TreeDSL {
 
             (LOCAL (tempY) IN {
               (tempX === TryExpression(body ~> UnitVal(),
-                  tempY, Tuple(OzAtom("ex"), List(tempY))))
+                  tempY, Tuple(OzAtom("ex"), Seq(tempY))))
             }) ~
             finallyBody ~
             (IF (tempX =?= UnitVal()) THEN {
@@ -112,8 +112,8 @@ object Desugar extends Transformer with TreeDSL {
 
             (LOCAL (tempY) IN {
               (tempX === TryExpression(
-                  Tuple(OzAtom("ok"), List(body)),
-                  tempY, Tuple(OzAtom("ex"), List(tempY))))
+                  Tuple(OzAtom("ok"), Seq(body)),
+                  tempY, Tuple(OzAtom("ex"), Seq(tempY))))
             }) ~
             finallyBody ~>
             (IF ((builtins.label callExpr (tempX)) =?= OzAtom("ok")) THEN {
@@ -165,7 +165,7 @@ object Desugar extends Transformer with TreeDSL {
       super.transformExpr(expression)
   }
 
-  private def fillAutoFeatures(fields: List[RecordField]) = {
+  private def fillAutoFeatures(fields: Seq[RecordField]) = {
     if (fields forall (!_.hasAutoFeature)) {
       // Trivial case: all features are non-auto
       fields

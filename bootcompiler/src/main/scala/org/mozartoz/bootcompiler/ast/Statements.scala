@@ -5,7 +5,7 @@ package ast
 sealed abstract class Statement extends StatOrExpr with RawDeclaration
 
 /** Sequential composition of several statements */
-case class CompoundStatement(statements: List[Statement]) extends Statement {
+case class CompoundStatement(statements: Seq[Statement]) extends Statement {
   def syntax(indent: String) = {
     if (statements.isEmpty) "skip"
     else {
@@ -28,7 +28,7 @@ trait LocalStatementOrRaw extends Statement
  *  end
  *  }}}
  */
-case class RawLocalStatement(declarations: List[RawDeclaration],
+case class RawLocalStatement(declarations: Seq[RawDeclaration],
     statement: Statement) extends LocalStatementOrRaw with LocalCommon {
   protected val body = statement
 }
@@ -43,7 +43,7 @@ case class RawLocalStatement(declarations: List[RawDeclaration],
  *  end
  *  }}}
  */
-case class LocalStatement(declarations: List[Variable],
+case class LocalStatement(declarations: Seq[Variable],
     statement: Statement) extends LocalStatementOrRaw with LocalCommon {
   protected val body = statement
 }
@@ -55,7 +55,7 @@ case class LocalStatement(declarations: List[Variable],
  *  }}}
  */
 case class CallStatement(callable: Expression,
-    args: List[Expression]) extends Statement with CallCommon
+    args: Seq[Expression]) extends Statement with CallCommon
 
 /** If statement
  *
@@ -85,7 +85,7 @@ case class IfStatement(condition: Expression,
  *  }}}
  */
 case class MatchStatement(value: Expression,
-    clauses: List[MatchStatementClause],
+    clauses: Seq[MatchStatementClause],
     elseStatement: Statement) extends Statement with MatchCommon {
   protected val elsePart = elseStatement
 }

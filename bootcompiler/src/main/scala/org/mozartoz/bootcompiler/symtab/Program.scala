@@ -1,7 +1,7 @@
 package org.mozartoz.bootcompiler
 package symtab
 
-import scala.collection.mutable.{ Buffer, ListBuffer, ArrayBuffer, HashMap }
+import scala.collection.mutable.{ Buffer, ArrayBuffer, HashMap }
 import ast._
 import util._
 import com.oracle.truffle.api.source.SourceSection

@@ -1,8 +1,6 @@
 package org.mozartoz.bootcompiler
 package transform
 
-import scala.collection.mutable.ListBuffer
-
 import ast._
 import oz._
 import symtab._
@@ -56,7 +54,7 @@ object Simplify extends Transformer with TreeDSL {
     }
   }
 
-  private def putVarInArgs(args: List[Expression], v: Variable) = {
+  private def putVarInArgs(args: Seq[Expression], v: Variable) = {
     var nestingMarkerFound = false
 
     def replaceNestingMarkerIn(expr: Expression): Expression = expr match {
