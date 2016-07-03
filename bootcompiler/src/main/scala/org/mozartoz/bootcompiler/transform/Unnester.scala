@@ -6,7 +6,6 @@ import scala.collection.mutable.ListBuffer
 import ast._
 import oz._
 import symtab._
-import util.FilePosition
 
 object Unnester extends Transformer with TreeDSL {
   override def transformStat(statement: Statement) = statement match {
@@ -54,8 +53,8 @@ object Unnester extends Transformer with TreeDSL {
             atPos(newElseStat) {
               val exception = Tuple(Constant(OzAtom("kernel")), List(
                   Constant(OzAtom("noElse")),
-                  Constant(OzAtom(FilePosition.fileNameOf(matchStat.pos))),
-                  Constant(OzInt(matchStat.pos.line)),
+                  Constant(OzAtom(matchStat.section.getSource.getPath)),
+                  Constant(OzInt(matchStat.section.getStartLine)),
                   v))
 
               builtins.raiseError call (exception)

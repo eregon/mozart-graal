@@ -226,7 +226,7 @@ object CodeGen extends Transformer with TreeDSL {
           program.reportError(
               "Wrong arity for builtin application of " + builtin +
               " (%d expected but %d found)".format(builtin.arity, argCount),
-              statement.pos)
+              statement)
         } else {
           val paramKinds = builtin.paramKinds
           val argsWithKindAndIndex = args.zip(paramKinds).zipWithIndex

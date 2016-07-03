@@ -2,10 +2,9 @@ package org.mozartoz.bootcompiler
 package symtab
 
 import scala.collection.mutable.{ Buffer, ListBuffer, ArrayBuffer, HashMap }
-import scala.util.parsing.input.{ Position, NoPosition, Positional }
-
 import ast._
 import util._
+import com.oracle.truffle.api.source.SourceSection
 
 /** Program to be compiled */
 class Program(
@@ -29,7 +28,7 @@ class Program(
 
   /** Implicit top-level abstraction */
   val topLevelAbstraction =
-    new Abstraction(NoAbstraction, "<TopLevel>", NoPosition)
+    new Abstraction(NoAbstraction, "<TopLevel>", null)
 
   /** The <Base> parameter of the top-level abstraction (only in normal mode)
    *  It contains the base environment
@@ -50,7 +49,7 @@ class Program(
   abstractions += topLevelAbstraction
 
   /** Compile errors */
-  val errors = new ArrayBuffer[(String, Position)]
+  val errors = new ArrayBuffer[(String, SourceSection)]
 
   /** Returns `true` if at least one compile error was reported */
   def hasErrors = !errors.isEmpty
@@ -59,16 +58,16 @@ class Program(
    *  @param message error message
    *  @param pos position of the error
    */
-  def reportError(message: String, pos: Position = NoPosition) {
-    errors += ((message, pos))
+  def reportError(message: String, section: SourceSection = null) {
+    errors += ((message, section))
   }
 
   /** Reports a compile error
    *  @param message error message
    *  @param positional positional that holds the position of the error
    */
-  def reportError(message: String, positional: Positional) {
-    reportError(message, positional.pos)
+  def reportError(message: String, positional: Node) {
+    reportError(message, positional.section)
   }
 
   /** Dumps the program on standard error */

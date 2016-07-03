@@ -9,7 +9,6 @@ import org.mozartoz.bootcompiler.fastparse.Preprocessor.SourceMap
 import org.mozartoz.bootcompiler.fastparse.Tokens._
 import org.mozartoz.bootcompiler.BootCompiler
 import scala.collection.mutable.ListBuffer
-import scala.util.parsing.input.Reader
 
 object Whitespace {
   import fastparse.all._

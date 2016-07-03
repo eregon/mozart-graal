@@ -2,10 +2,9 @@ package org.mozartoz.bootcompiler
 package symtab
 
 import scala.collection.mutable.{ ArrayBuffer, Map }
-import scala.util.parsing.input.{ Position, NoPosition }
-
 import ast._
 import bytecode._
+import com.oracle.truffle.api.source.SourceSection
 
 /** Companion object of [[org.mozartoz.bootcompiler.symtab.Abstraction]] */
 object Abstraction {
@@ -13,7 +12,7 @@ object Abstraction {
 }
 
 /** Abstraction */
-class Abstraction(val owner: Abstraction, val name: String, val pos: Position) {
+class Abstraction(val owner: Abstraction, val name: String, val pos: SourceSection) {
   /** Numeric ID of the abstraction */
   val id = Abstraction.nextID()
 
@@ -55,7 +54,7 @@ class Abstraction(val owner: Abstraction, val name: String, val pos: Position) {
     else owner.fullName + "::" + name
 
   /** Creates a new abstraction that is inner to this abstraction */
-  def newAbstraction(name: String, pos: Position) =
+  def newAbstraction(name: String, pos: SourceSection) =
     new Abstraction(this, name, pos)
 
   /** Maps a free variable to the corresponding global variable
@@ -92,6 +91,6 @@ class Abstraction(val owner: Abstraction, val name: String, val pos: Position) {
 }
 
 /** No abstraction marker */
-object NoAbstraction extends Abstraction(null, "<NoAbstraction>", NoPosition) {
+object NoAbstraction extends Abstraction(null, "<NoAbstraction>", null) {
   override val owner = this
 }

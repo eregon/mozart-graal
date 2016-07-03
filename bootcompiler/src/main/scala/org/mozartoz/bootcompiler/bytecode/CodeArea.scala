@@ -97,12 +97,11 @@ class CodeArea(val abstraction: Abstraction) {
       OzRecordField(pair._1, pair._2)
 
     val pos = abstraction.pos
-    val fileName = FilePosition.fileNameOf(pos, "")
 
     OzRecord(OzAtom("d"), List(
-        OzAtom("column") -> OzInt(pos.column),
-        OzAtom("file") -> OzAtom(fileName),
-        OzAtom("line") -> OzInt(pos.line)
+        OzAtom("column") -> OzInt(pos.getStartColumn),
+        OzAtom("file") -> OzAtom(""),
+        OzAtom("line") -> OzInt(pos.getStartLine)
     ))
   }
 }

@@ -1,7 +1,6 @@
 package org.mozartoz.bootcompiler
 package ast
 
-import scala.util.parsing.input.Positional
 import com.oracle.truffle.api.source.SourceSection
 
 /**
@@ -11,7 +10,7 @@ import com.oracle.truffle.api.source.SourceSection
  *  [[org.mozartz.bootcompiler.ast.Statement]] and
  *  [[org.mozartz.bootcompiler.ast.Expression]], with obvious meanings.
  */
-abstract class Node extends Product with Positional {
+abstract class Node extends Product {
 
   var section: SourceSection = null
 
@@ -32,7 +31,6 @@ abstract class Node extends Product with Positional {
 
   /** Copy the attributes of a node into this `Node`. */
   private[bootcompiler] def copyAttrs(tree: Node): this.type = {
-    pos = tree.pos
     section = tree.section
     this
   }
