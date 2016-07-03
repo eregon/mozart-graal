@@ -459,7 +459,7 @@ abstract sealed class BaseRecord extends Expression {
   val fields: Seq[RecordField]
   val isOpen: Boolean
 
-  def syntax(indent: String) = fields match {
+  def syntax(indent: String) = fields.toList match {
     case Nil => label.syntax() + (if (isOpen) "(...)" else "()")
 
     case firstField :: otherFields => {

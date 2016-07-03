@@ -45,7 +45,7 @@ trait CallCommon extends StatOrExpr {
   protected val callable: Expression
   protected val args: Seq[Expression]
 
-  def syntax(indent: String) = args match {
+  def syntax(indent: String) = args.toList match {
     case Nil => "{" + callable.syntax() + "}"
 
     case firstArg :: otherArgs => {
