@@ -22,19 +22,6 @@ sealed class Symbol(_name: String, formal: Boolean = false,
   /** Name */
   val name = if (_name.isEmpty) "`x$" + id.toString() + "`" else _name
 
-  // Owning abstraction
-
-  /** Abstraction that owns this symbol */
-  private var _owner: Abstraction = NoAbstraction
-
-  /** Abstraction that owns this symbol */
-  def owner = _owner
-
-  /** Sets the owning abstraction */
-  def setOwner(owner: Abstraction) {
-    _owner = owner
-  }
-
   // Properties
 
   /** Returns true unless this symbol is NoSymbol */

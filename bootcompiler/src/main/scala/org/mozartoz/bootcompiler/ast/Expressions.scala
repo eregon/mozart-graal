@@ -674,17 +674,3 @@ case class ClassExpression(name: String, parents: List[Expression],
     untilMethods + "\n\n" + indent + "end"
   }
 }
-
-// Synthetic-only expressions
-
-/** Expressions that creates an abstraction from a code area and globals
- *
- *  This class has no correspondence in actual Oz code. It is internal only.
- */
-case class CreateAbstraction(body: Expression,
-    globals: List[Expression]) extends Expression {
-  def syntax(indent: String) = {
-    "{CreateAbstraction %s [%s]}" format (
-        body.syntax(indent), globals mkString " ")
-  }
-}

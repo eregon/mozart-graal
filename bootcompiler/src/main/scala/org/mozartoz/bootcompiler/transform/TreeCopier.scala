@@ -236,10 +236,4 @@ class TreeCopier {
       properties: List[Expression], methods: List[MethodDef]) =
     new ClassExpression(name, parents, features, attributes,
         properties, methods).copyAttrs(tree)
-
-  // Synthetic-only
-
-  def CreateAbstraction(tree: Node, body: Expression,
-      globals: List[Expression]) =
-    new CreateAbstraction(body, globals).copyAttrs(tree)
 }

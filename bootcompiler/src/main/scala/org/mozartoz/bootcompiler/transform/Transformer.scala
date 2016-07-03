@@ -10,9 +10,6 @@ abstract class Transformer extends (Program => Unit) {
   /** Program that is being transformed */
   var program: Program = _
 
-  /** Abstraction that is being transformed (only if `!program.isRawCode`) */
-  var abstraction: Abstraction = _
-
   /** Builtin manager of the program */
   def builtins = program.builtins
 
@@ -42,23 +39,7 @@ abstract class Transformer extends (Program => Unit) {
 
   /** Applies the transformation phase to the current `program` */
   protected def apply() {
-    if (program.isRawCode)
-      program.rawCode = transformStat(program.rawCode)
-    else {
-      for (abs <- program.abstractions) {
-        abstraction = abs
-        try {
-          applyToAbstraction()
-        } finally {
-          abstraction = null
-        }
-      }
-    }
-  }
-
-  /** Applies the transformation phase to the current `abstraction` */
-  protected def applyToAbstraction() {
-    abstraction.body = transformStat(abstraction.body)
+    program.rawCode = transformStat(program.rawCode)
   }
 
   /** Transforms a Statement */
@@ -254,12 +235,6 @@ abstract class Transformer extends (Program => Unit) {
       treeCopy.ClassExpression(expression, name, parents map transformExpr,
           features map transformFeatOrAttr, attributes map transformFeatOrAttr,
           properties map transformExpr, methods map transformMethodDef)
-
-    // Synthetic-only
-
-    case CreateAbstraction(body, globals) =>
-      treeCopy.CreateAbstraction(expression, transformExpr(body),
-          globals map transformExpr)
   }
 
   /** Transforms a declaration */

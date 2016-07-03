@@ -22,31 +22,20 @@ class Program(
   /** Returns `true` if the program is currently represented as a full AST */
   def isRawCode = rawCode ne null
 
-
   /** Map of base symbols (only in base environment mode) */
   val baseSymbols = new HashMap[String, Symbol]
 
-  /** Implicit top-level abstraction */
-  val topLevelAbstraction =
-    new Abstraction(NoAbstraction, "<TopLevel>", null)
-
-  /** The <Base> parameter of the top-level abstraction (only in normal mode)
+  /**
+   * The <Base> parameter of the top-level abstraction (only in normal mode)
    *  It contains the base environment
    */
   val baseEnvSymbol =
     if (isBaseEnvironment) NoSymbol
     else new Symbol("<Base>", synthetic = true, formal = true)
-  if (!isBaseEnvironment)
-    topLevelAbstraction.acquire(baseEnvSymbol)
 
   /** The <Result> parameter of the top-level abstraction */
   val topLevelResultSymbol =
     new Symbol("<Result>", synthetic = true, formal = true)
-  topLevelAbstraction.acquire(topLevelResultSymbol)
-
-  /** After flattening, list of the abstractions */
-  val abstractions = new ListBuffer[Abstraction]
-  abstractions += topLevelAbstraction
 
   /** Compile errors */
   val errors = new ArrayBuffer[(String, SourceSection)]
@@ -54,7 +43,8 @@ class Program(
   /** Returns `true` if at least one compile error was reported */
   def hasErrors = !errors.isEmpty
 
-  /** Reports a compile error
+  /**
+   * Reports a compile error
    *  @param message error message
    *  @param pos position of the error
    */
@@ -62,7 +52,8 @@ class Program(
     errors += ((message, section))
   }
 
-  /** Reports a compile error
+  /**
+   * Reports a compile error
    *  @param message error message
    *  @param positional positional that holds the position of the error
    */
@@ -72,13 +63,6 @@ class Program(
 
   /** Dumps the program on standard error */
   def dump() {
-    if (isRawCode)
-      println(rawCode)
-    else {
-      for (abstraction <- abstractions) {
-        abstraction.dump()
-        println()
-      }
-    }
+    println(rawCode)
   }
 }

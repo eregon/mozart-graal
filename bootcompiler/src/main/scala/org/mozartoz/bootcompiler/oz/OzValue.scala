@@ -181,11 +181,6 @@ case class OzBuiltin(builtin: symtab.Builtin) extends OzValue {
   def syntax() = builtin.toString()
 }
 
-/** Oz code area */
-case class OzCodeArea(codeArea: bytecode.CodeArea) extends OzValue {
-  def syntax() = codeArea.toString()
-}
-
 /** Special value representing a wildcard in a pattern */
 case class OzPatMatWildcard() extends OzValue {
   def syntax() = "_"
@@ -228,14 +223,4 @@ case class OzPatMatOpenRecord(label: OzLiteral,
 
   /** Sub-patterns in this pattern */
   lazy val values = fields map (_.value)
-}
-
-/** Oz abstraction */
-case class OzAbstraction(codeArea: OzCodeArea,
-    globals: List[OzValue]) extends OzValue {
-
-  def syntax() = {
-    val abstraction = codeArea.codeArea.abstraction
-    "<P/" + abstraction.arity + " " + abstraction.fullName + ">"
-  }
 }
