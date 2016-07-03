@@ -1,19 +1,14 @@
 package org.mozartoz.truffle.translator;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 import org.mozartoz.bootcompiler.ast.BinaryOp;
 import org.mozartoz.bootcompiler.ast.BindCommon;
-import org.mozartoz.bootcompiler.ast.BindStatement;
 import org.mozartoz.bootcompiler.ast.CallCommon;
-import org.mozartoz.bootcompiler.ast.CallStatement;
 import org.mozartoz.bootcompiler.ast.CompoundStatement;
 import org.mozartoz.bootcompiler.ast.Constant;
 import org.mozartoz.bootcompiler.ast.Expression;
@@ -53,10 +48,8 @@ import org.mozartoz.bootcompiler.oz.OzRecordField;
 import org.mozartoz.bootcompiler.oz.OzValue;
 import org.mozartoz.bootcompiler.oz.True;
 import org.mozartoz.bootcompiler.oz.UnitVal;
-import org.mozartoz.bootcompiler.parser.OzPreprocessor.PreprocessorPosition;
 import org.mozartoz.bootcompiler.symtab.Builtin;
 import org.mozartoz.bootcompiler.symtab.Symbol;
-import org.mozartoz.bootcompiler.util.FilePosition;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
@@ -109,15 +102,12 @@ import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.Unit;
 
 import scala.collection.JavaConversions;
-import scala.util.parsing.input.OffsetPosition;
-import scala.util.parsing.input.Position;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class Translator {
@@ -571,61 +561,9 @@ public class Translator {
 	private SourceSection t(Node node) {
 		if (node.section() != null) {
 			return node.section();
-		}
-		Position pos = node.pos();
-		if (pos instanceof FilePosition) {
-			return t(pos);
-		} else {
-			if (node instanceof CallStatement) {
-				CallStatement callStatement = (CallStatement) node;
-				if (!callStatement.args().isEmpty() &&
-						callStatement.args().head().pos() instanceof FilePosition) {
-					Position firstArgPos = callStatement.args().head().pos();
-					return t(firstArgPos);
-				}
-			} else if (node instanceof BindStatement) {
-				BindStatement bindStatement = (BindStatement) node;
-				if (bindStatement.left().pos() instanceof FilePosition) {
-					return t(bindStatement.left().pos());
-				}
-				if (bindStatement.right().pos() instanceof FilePosition) {
-					return t(bindStatement.right().pos());
-				}
-			}
-			return t(pos);
-		}
-	}
-
-	private SourceSection t(Position pos) {
-		if (pos instanceof FilePosition) {
-			FilePosition filePosition = (FilePosition) pos;
-			String canonicalPath;
-			try {
-				canonicalPath = filePosition.file().get().getCanonicalPath();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-			Source source = getSource(canonicalPath);
-
-			PreprocessorPosition preprocessorPosition = (PreprocessorPosition) pos;
-			OffsetPosition offsetPosition = (OffsetPosition) preprocessorPosition.getUnderlying();
-			SourceSection sourceSection = source.createSection("", offsetPosition.offset(), 0);
-			return source.createSection("", sourceSection.getStartLine());
 		} else {
 			return SourceSection.createUnavailable("unavailable", "");
 		}
-	}
-
-	private static final Map<String, Source> SOURCES = new HashMap<>();
-
-	private Source getSource(String path) {
-		return SOURCES.computeIfAbsent(path, file -> {
-			try {
-				return Source.fromFileName(file);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		});
 	}
 
 }
