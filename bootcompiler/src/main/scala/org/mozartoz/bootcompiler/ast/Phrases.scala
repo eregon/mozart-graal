@@ -86,6 +86,8 @@ case class ShortCircuitBinaryOpPhrase(left: Phrase, operator: String, right: Phr
 
 // Records
 
+case class ListPhrase(elements: Seq[Phrase]) extends PhraseNode
+
 case class RecordFieldPhrase(feature: Phrase, value: Phrase) extends PhraseNode {
   def toExpr = RecordField(expr(feature), expr(value))
 }

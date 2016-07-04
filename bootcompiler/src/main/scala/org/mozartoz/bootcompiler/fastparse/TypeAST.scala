@@ -23,6 +23,8 @@ object TypeAST {
       treeCopy.Record(p, expr(label), fields.map(_.toExpr))
     case OpenRecordPatternPhrase(label, fields) =>
       treeCopy.OpenRecordPattern(p, expr(label), fields.map(_.toExpr))
+    case ListPhrase(elements) =>
+      treeCopy.ListExpression(p, elements.map(expr))
     case PatternConjunctionPhrase(parts) =>
       treeCopy.PatternConjunction(p, parts.map(expr))
     case UnaryOpPhrase(operator, operand) =>

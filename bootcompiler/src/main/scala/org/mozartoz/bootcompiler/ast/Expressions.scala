@@ -559,6 +559,23 @@ case class OpenRecordPattern(label: Expression,
   }
 }
 
+case class ListExpression(elements: Seq[Expression]) extends Expression {
+  def syntax(indent: String) = {
+    indent + "[" + elements.map(_.syntax()).mkString(" ") + "]"
+  }
+
+  def isConstant = elements forall (_.isInstanceOf[Constant])
+
+  def getAsConstant: OzValue = {
+    require(isConstant)
+    elements.foldRight(OzAtom("nil"): OzValue) {
+      case (Constant(value), tail) => OzRecord(OzAtom("|"),
+        Seq(OzRecordField(OzInt(1), value),
+          OzRecordField(OzInt(2), tail)))
+    }
+  }
+}
+
 /** Factory and pattern-matching against Tuple-like records */
 object Tuple extends ((Expression, Seq[Expression]) => Record) {
   def apply(label: Expression, fields: Seq[Expression]) = {

@@ -201,6 +201,9 @@ class TreeCopier {
       fields: Seq[RecordField]) =
     new OpenRecordPattern(label, fields).copyAttrs(tree)
 
+  def ListExpression(tree: Node, elements: Seq[Expression]) =
+    new ListExpression(elements).copyAttrs(tree)
+
   def PatternConjunction(tree: Node, parts: Seq[Expression]) =
     new PatternConjunction(parts).copyAttrs(tree)
 

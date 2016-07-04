@@ -55,6 +55,9 @@ object ConstantFolding extends Transformer with TreeDSL {
       case record:OpenRecordPattern =>
         transformOpenRecordPattern(record)
 
+      case list: ListExpression if list.isConstant =>
+        list.getAsConstant
+
       case conj @ PatternConjunction(parts)
       if parts.forall(_.isInstanceOf[Constant]) =>
         val constantParts = parts map { _.asInstanceOf[Constant].value }

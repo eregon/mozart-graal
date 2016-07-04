@@ -417,7 +417,7 @@ object Parser {
 
   // List expressions
 
-  val listExpression = P("[" ~ expression.rep(min = 1) ~ "]") ^^ exprListToListExpr
+  val listExpression = P("[" ~ expression.rep(1) ~ "]") ^^ ListPhrase
 
   // Skip
 

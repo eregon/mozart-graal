@@ -75,6 +75,9 @@ object Simplify extends Transformer with TreeDSL {
         }
         treeCopy.Record(expr, label, newFields)
 
+      case ListExpression(elements) =>
+        treeCopy.ListExpression(expr, elements.map(replaceNestingMarkerIn))
+
       case _ =>
         expr
     }
