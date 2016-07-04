@@ -32,6 +32,7 @@ import org.mozartoz.truffle.nodes.control.SkipNode;
 import org.mozartoz.truffle.nodes.control.TryNode;
 import org.mozartoz.truffle.nodes.literal.BooleanLiteralNode;
 import org.mozartoz.truffle.nodes.literal.ConsLiteralNodeGen;
+import org.mozartoz.truffle.nodes.literal.ListLiteralNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
 import org.mozartoz.truffle.nodes.literal.MakeDynamicRecordNode;
@@ -500,6 +501,7 @@ public class OzSerializer {
 		registerNode(kryo, ReadCapturedVariableNode.class);
 		registerNode(kryo, WriteCapturedVariableNode.class);
 		registerNode(kryo, ProcDeclarationNode.class);
+		registerNode(kryo, ListLiteralNode.class);
 		registerNode(kryo, RecordLiteralNode.class);
 		registerNode(kryo, MakeDynamicRecordNode.class);
 
