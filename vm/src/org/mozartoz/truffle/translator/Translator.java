@@ -14,6 +14,7 @@ import org.mozartoz.bootcompiler.ast.Constant;
 import org.mozartoz.bootcompiler.ast.Expression;
 import org.mozartoz.bootcompiler.ast.FailStatement;
 import org.mozartoz.bootcompiler.ast.IfCommon;
+import org.mozartoz.bootcompiler.ast.ListExpression;
 import org.mozartoz.bootcompiler.ast.LocalCommon;
 import org.mozartoz.bootcompiler.ast.MatchClauseCommon;
 import org.mozartoz.bootcompiler.ast.MatchCommon;
@@ -82,6 +83,7 @@ import org.mozartoz.truffle.nodes.control.TryNode;
 import org.mozartoz.truffle.nodes.literal.BooleanLiteralNode;
 import org.mozartoz.truffle.nodes.literal.ConsLiteralNodeGen;
 import org.mozartoz.truffle.nodes.literal.EnsureOzLiteralNode;
+import org.mozartoz.truffle.nodes.literal.ListLiteralNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
 import org.mozartoz.truffle.nodes.literal.MakeDynamicRecordNode;
@@ -206,6 +208,10 @@ public class Translator {
 					OzNode[] values = map(record.fields(), field -> translate(field.value()));
 					return new MakeDynamicRecordNode(label, features, values);
 				}
+			} else if (node instanceof ListExpression) {
+				ListExpression list = (ListExpression) node;
+				OzNode[] elements = map(list.elements(), this::translate);
+				return new ListLiteralNode(elements);
 			} else if (node instanceof Variable) {
 				Variable variable = (Variable) node;
 				return findVariable(variable.symbol()).createReadNode();

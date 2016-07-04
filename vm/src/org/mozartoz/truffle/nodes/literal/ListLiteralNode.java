@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes.literal;
 
+import org.mozartoz.truffle.nodes.NodeHelpers;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
 
@@ -10,15 +11,11 @@ public class ListLiteralNode extends OzNode {
 	@Children final OzNode[] elements;
 
 	public ListLiteralNode(OzNode... elements) {
-		this.elements = elements;
+		this.elements = NodeHelpers.derefIfBound(elements);
 	}
 
 	public Object execute(VirtualFrame frame) {
-		Object[] elementValues = new Object[elements.length];
-		for (int i = 0; i < elements.length; i++) {
-			elementValues[i] = elements[i].execute(frame);
-		}
-
+		Object[] elementValues = NodeHelpers.executeValues(frame, elements);
 		Object list = "nil";
 
 		for (int i = elementValues.length - 1; i >= 0; i--) {
