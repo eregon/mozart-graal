@@ -13,7 +13,6 @@ import org.mozartoz.bootcompiler.transform.Desugar;
 import org.mozartoz.bootcompiler.transform.DesugarClass;
 import org.mozartoz.bootcompiler.transform.DesugarFunctor;
 import org.mozartoz.bootcompiler.transform.Namer;
-import org.mozartoz.bootcompiler.transform.PatternMatcher;
 import org.mozartoz.bootcompiler.transform.Simplify;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
@@ -251,7 +250,6 @@ public class Loader {
 		DesugarFunctor.apply(program);
 		DesugarClass.apply(program);
 		Desugar.apply(program);
-		PatternMatcher.apply(program);
 
 		ConstantFolding.apply(program);
 		Simplify.apply(program);

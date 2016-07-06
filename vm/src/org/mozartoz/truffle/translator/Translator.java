@@ -92,8 +92,8 @@ import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeArgNode;
+import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
-import org.mozartoz.truffle.nodes.pattern.PatternMatchCaptureNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchDynamicArityNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNodeGen;
@@ -359,7 +359,13 @@ public class Translator {
 			// Nothing to do
 		} else if (matcher instanceof OzPatMatCapture) {
 			FrameSlotAndDepth slot = findVariable(((OzPatMatCapture) matcher).variable());
-			bindings.add(PatternMatchCaptureNodeGen.create(slot.createReadNode(), copy(valueNode)));
+			// Set the slot directly since the variable is born here
+			assert slot.getDepth() == 0;
+			bindings.add(new InitializeTmpNode(slot.getSlot(), copy(valueNode)));
+		} else if (matcher instanceof Variable) {
+			Variable var = (Variable) matcher;
+			OzNode left = findVariable(var.symbol()).createReadNode();
+			checks.add(EqualNodeFactory.create(deref(left), deref(copy(valueNode))));
 		} else if (matcher instanceof OzPatMatConjunction) {
 			for (OzValue part : toJava(((OzPatMatConjunction) matcher).parts())) {
 				translateMatcher(part, valueNode, checks, bindings);

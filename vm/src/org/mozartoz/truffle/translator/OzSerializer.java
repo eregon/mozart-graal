@@ -42,13 +42,13 @@ import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
 import org.mozartoz.truffle.nodes.local.FrameSlotNode;
 import org.mozartoz.truffle.nodes.local.InitializeArgNode;
+import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.local.ReadCapturedVariableNode;
 import org.mozartoz.truffle.nodes.local.ReadFrameSlotNodeGen;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.nodes.local.WriteCapturedVariableNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNodeGen;
-import org.mozartoz.truffle.nodes.pattern.PatternMatchCaptureNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
@@ -491,6 +491,7 @@ public class OzSerializer {
 		registerNode(kryo, SequenceNode.class);
 		registerNode(kryo, InitializeArgNode.class);
 		registerNode(kryo, InitializeVarNode.class);
+		registerNode(kryo, InitializeTmpNode.class);
 		registerNode(kryo, ReadArgumentNode.class);
 
 		registerNode(kryo, WriteFrameSlotNodeGen.class);
@@ -514,7 +515,6 @@ public class OzSerializer {
 		registerNode(kryo, AndNode.class);
 
 		registerNode(kryo, BindNodeGen.class);
-		registerNode(kryo, PatternMatchCaptureNodeGen.class);
 		registerNode(kryo, PatternMatchEqualNodeGen.class);
 		registerNode(kryo, PatternMatchConsNodeGen.class);
 		registerNode(kryo, PatternMatchRecordNodeGen.class);
