@@ -24,6 +24,7 @@ import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzLanguage;
+import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.PropertyRegistry;
 
 import com.oracle.truffle.api.RootCallTarget;
@@ -198,10 +199,13 @@ public class Loader {
 
 	public void runFunctor(Source source, String... args) {
 		Object initFunctor = execute(parseFunctor(createSource(INIT_FUNCTOR)));
+		Object applied = execute(InitFunctor.apply(initFunctor));
+		OzProc main = (OzProc) ((DynamicObject) applied).get("main");
 
 		propertyRegistry.setApplicationURL(source.getPath());
 		propertyRegistry.setApplicationArgs(args);
-		execute(InitFunctor.apply(initFunctor));
+
+		main.rootCall();
 	}
 
 	// Shutdown

@@ -17,6 +17,10 @@ public class OzProc {
 		this.arity = arity;
 	}
 
+	public Object rootCall(Object... arguments) {
+		return callTarget.call(OzArguments.pack(declarationFrame, arguments));
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
