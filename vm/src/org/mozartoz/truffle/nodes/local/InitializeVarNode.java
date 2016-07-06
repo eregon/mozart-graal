@@ -16,7 +16,7 @@ public class InitializeVarNode extends OzNode {
 
 	@Override
 	public Object execute(VirtualFrame frame) {
-		frame.setObject(slot, new OzVar());
+		frame.setObject(slot, new OzVar(getSourceSection()));
 		return unit;
 	}
 

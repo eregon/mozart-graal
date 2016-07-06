@@ -9,7 +9,7 @@ public class UnboundLiteralNode extends OzNode {
 
 	@Override
 	public Object execute(VirtualFrame frame) {
-		return new OzVar();
+		return new OzVar(getSourceSection());
 	}
 
 }

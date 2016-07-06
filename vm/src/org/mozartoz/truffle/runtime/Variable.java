@@ -5,6 +5,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class Variable {
 
@@ -13,6 +14,8 @@ public abstract class Variable {
 
 	/** A circular list of linked Variable */
 	private Variable next = this;
+
+	protected SourceSection declaration;
 
 	public boolean isBound() {
 		return value != null;
