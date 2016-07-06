@@ -189,6 +189,9 @@ prepare
 import
    Boot at 'x-oz://boot/Boot'
 
+export
+   Main
+
 define
 
    %% The mechanism with which builtin modules can be accessed
@@ -340,7 +343,7 @@ define
       {Wait {RM link(url:'x-oz://system/OS.ozf' $)}}
 
       %% Link or apply root functor (i.e. application)
-      local
+      proc {Main}
          AppFunctor = {GetOrFalse 'application.functor'}
       in
          if AppFunctor \= false then
