@@ -30,6 +30,7 @@ import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.runtime.Unit;
+import org.mozartoz.truffle.runtime.Variable;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -684,7 +685,7 @@ public abstract class ValueBuiltins {
 	public static abstract class IsDetNode extends OzNode {
 
 		@Specialization
-		boolean isDet(OzVar var) {
+		boolean isDet(Variable var) {
 			return var.isBound();
 		}
 
