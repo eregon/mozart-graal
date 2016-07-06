@@ -214,9 +214,9 @@ public class Translator {
 				return new ListLiteralNode(elements);
 			} else if (node instanceof Variable) {
 				Variable variable = (Variable) node;
-				return findVariable(variable.symbol()).createReadNode();
+				return t(node, findVariable(variable.symbol()).createReadNode());
 			} else if (node instanceof UnboundExpression) {
-				return new UnboundLiteralNode();
+				return t(node, new UnboundLiteralNode());
 			} else if (node instanceof BinaryOp) {
 				BinaryOp binaryOp = (BinaryOp) node;
 				return translateBinaryOp(binaryOp.operator(),
@@ -261,7 +261,7 @@ public class Translator {
 			LocalCommon local = (LocalCommon) node;
 			OzNode[] decls = map(local.declarations(), variable -> {
 				FrameSlot slot = environment.addLocalVariable(((Variable) variable).symbol());
-				return new InitializeVarNode(slot);
+				return t((Node) variable, new InitializeVarNode(slot));
 			});
 			return SequenceNode.sequence(decls, translate(local.body()));
 		} else if (node instanceof CallCommon) {
