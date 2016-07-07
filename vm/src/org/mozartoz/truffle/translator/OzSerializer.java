@@ -77,6 +77,7 @@ import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.serializers.FieldSerializer;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleRuntime;
@@ -524,6 +525,19 @@ public class OzSerializer {
 		kryo.setRegistrationRequired(true);
 		kryo.setReferences(true);
 		kryo.setInstantiatorStrategy(new DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+		kryo.setDefaultSerializer((k, type) -> {
+			if (Node.class.isAssignableFrom(type)) {
+				@SuppressWarnings("unchecked")
+				Class<? extends Node> nodeClass = (Class<? extends Node>) type;
+				if (type.getName().endsWith("Gen")) {
+					return new DSLNodeSerializer(nodeClass);
+				} else {
+					return new NodeSerializer(nodeClass);
+				}
+			} else {
+				return new FieldSerializer<>(k, type);
+			}
+		});
 
 		// atoms
 		kryo.register(String.class, new StringSerializer());
@@ -538,49 +552,49 @@ public class OzSerializer {
 
 		// nodes
 		kryo.register(OzNode[].class);
-		registerNode(kryo, SequenceNode.class);
-		registerNode(kryo, InitializeArgNode.class);
-		registerNode(kryo, InitializeVarNode.class);
-		registerNode(kryo, InitializeTmpNode.class);
-		registerNode(kryo, ReadArgumentNode.class);
+		kryo.register(SequenceNode.class);
+		kryo.register(InitializeArgNode.class);
+		kryo.register(InitializeVarNode.class);
+		kryo.register(InitializeTmpNode.class);
+		kryo.register(ReadArgumentNode.class);
 
-		registerNode(kryo, WriteFrameSlotNodeGen.class);
-		registerNode(kryo, ReadFrameSlotNodeGen.class);
-		registerNode(kryo, CallProcNodeGen.class);
+		kryo.register(WriteFrameSlotNodeGen.class);
+		kryo.register(ReadFrameSlotNodeGen.class);
+		kryo.register(CallProcNodeGen.class);
 
-		registerNode(kryo, ReadLocalVariableNode.class);
-		registerNode(kryo, ReadCapturedVariableNode.class);
-		registerNode(kryo, WriteCapturedVariableNode.class);
-		registerNode(kryo, ProcDeclarationNode.class);
-		registerNode(kryo, ListLiteralNode.class);
-		registerNode(kryo, RecordLiteralNode.class);
-		registerNode(kryo, MakeDynamicRecordNode.class);
+		kryo.register(ReadLocalVariableNode.class);
+		kryo.register(ReadCapturedVariableNode.class);
+		kryo.register(WriteCapturedVariableNode.class);
+		kryo.register(ProcDeclarationNode.class);
+		kryo.register(ListLiteralNode.class);
+		kryo.register(RecordLiteralNode.class);
+		kryo.register(MakeDynamicRecordNode.class);
 
-		registerNode(kryo, SkipNode.class);
-		registerNode(kryo, UnboundLiteralNode.class);
-		registerNode(kryo, IfNode.class);
-		registerNode(kryo, TryNode.class);
-		registerNode(kryo, FailNodeGen.class);
-		registerNode(kryo, RaiseNodeGen.class);
-		registerNode(kryo, NoElseNode.class);
-		registerNode(kryo, AndNode.class);
+		kryo.register(SkipNode.class);
+		kryo.register(UnboundLiteralNode.class);
+		kryo.register(IfNode.class);
+		kryo.register(TryNode.class);
+		kryo.register(FailNodeGen.class);
+		kryo.register(RaiseNodeGen.class);
+		kryo.register(NoElseNode.class);
+		kryo.register(AndNode.class);
 
-		registerNode(kryo, BindNodeGen.class);
-		registerNode(kryo, PatternMatchEqualNodeGen.class);
-		registerNode(kryo, PatternMatchConsNodeGen.class);
-		registerNode(kryo, PatternMatchRecordNodeGen.class);
-		registerNode(kryo, PatternMatchOpenRecordNodeGen.class);
+		kryo.register(BindNodeGen.class);
+		kryo.register(PatternMatchEqualNodeGen.class);
+		kryo.register(PatternMatchConsNodeGen.class);
+		kryo.register(PatternMatchRecordNodeGen.class);
+		kryo.register(PatternMatchOpenRecordNodeGen.class);
 
-		registerNode(kryo, DerefNodeGen.class);
-		registerNode(kryo, DotNodeGen.class);
-		registerNode(kryo, EqualNodeGen.class);
-		registerNode(kryo, HeadNodeGen.class);
-		registerNode(kryo, TailNodeGen.class);
+		kryo.register(DerefNodeGen.class);
+		kryo.register(DotNodeGen.class);
+		kryo.register(EqualNodeGen.class);
+		kryo.register(HeadNodeGen.class);
+		kryo.register(TailNodeGen.class);
 
-		registerNode(kryo, LiteralNode.class);
-		registerNode(kryo, BooleanLiteralNode.class);
-		registerNode(kryo, LongLiteralNode.class);
-		registerNode(kryo, ConsLiteralNodeGen.class);
+		kryo.register(LiteralNode.class);
+		kryo.register(BooleanLiteralNode.class);
+		kryo.register(LongLiteralNode.class);
+		kryo.register(ConsLiteralNodeGen.class);
 
 		// sources
 		Source fileSource = sourceFromPath(Loader.INIT_FUNCTOR);
@@ -615,14 +629,6 @@ public class OzSerializer {
 		kryo.register(System.in.getClass(), new InputStreamSerializer());
 
 		return kryo;
-	}
-
-	private static void registerNode(Kryo kryo, Class<? extends Node> klass) {
-		if (klass.getName().endsWith("Gen")) {
-			kryo.register(klass, new DSLNodeSerializer(klass));
-		} else {
-			kryo.register(klass, new NodeSerializer(klass));
-		}
 	}
 
 	private static Source sourceFromPath(String path) throws Error {
