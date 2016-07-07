@@ -72,6 +72,9 @@ prepare
       BootSystem(exit) at 'x-oz://boot/System'
       Error(printException)
    define
+      %% eagerly load the imports to allow serialization
+      for M in [Debug Property System BootSystem Error] do {Wait M} end
+
       proc {ExitError}
          {BootSystem.exit 1 'exception'}
       end
@@ -342,8 +345,18 @@ define
       %% Link the real OS module, which should set up a proper BURL.localize and BURL.open
       {Wait {RM link(url:'x-oz://system/OS.ozf' $)}}
 
+      %% Initialize properties from env when unserialized
+      proc {OnLoad}
+         {RealModule.trace.set {OS.getEnv 'OZ_TRACE_MODULE'}\=false}
+         \insert 'Prop.oz'
+      in
+         {SET load Resolve.load}
+         {RM apply(ErrorHandler)}
+      end
+
       %% Link or apply root functor (i.e. application)
       proc {Main}
+         if {Not {PropertyTestGet 'oz.dotoz' _}} then {OnLoad} end
          AppFunctor = {GetOrFalse 'application.functor'}
       in
          if AppFunctor \= false then
