@@ -30,6 +30,7 @@ import org.mozartoz.truffle.runtime.PropertyRegistry;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 
@@ -44,7 +45,7 @@ public class Loader {
 	static final String BASE_FILE_NAME = MAIN_LIB_DIR + "/base/Base.oz";
 	static final String INIT_FUNCTOR = MAIN_LIB_DIR + "/init/Init.oz";
 
-	static final String BASE_IMAGE = PROJECT_ROOT + "/Base.image";
+	static final String MAIN_IMAGE = PROJECT_ROOT + "/Main.image";
 
 	public static final String OZWISH = MOZART2_DIR + "/wish/ozwish";
 
@@ -107,12 +108,6 @@ public class Loader {
 	public DynamicObject loadBase() {
 		if (base == null) {
 			tick("start loading Base");
-			if (new File(BASE_IMAGE).exists()) {
-				base = OzSerializer.deserialize(BASE_IMAGE, DynamicObject.class);
-				tick("deserialized Base");
-				return base;
-			}
-
 			OzRootNode baseRootNode = parseBase();
 			tick("translated Base");
 			Object baseFunctor = execute(baseRootNode);
@@ -122,13 +117,6 @@ public class Loader {
 			assert result instanceof DynamicObject;
 
 			base = (DynamicObject) result;
-
-			OzSerializer.serialize(base, BASE_IMAGE);
-			tick("serialized Base");
-
-			DynamicObject reloaded = OzSerializer.deserialize(BASE_IMAGE, DynamicObject.class);
-			tick("deserialized Base");
-			base = reloaded;
 		}
 		return base;
 	}
@@ -167,13 +155,15 @@ public class Loader {
 		});
 	}
 
+	private boolean eagerLoad = false;
+
 	public OzRootNode parseFunctor(Source source) {
 		DynamicObject base = loadBase();
 
 		String fileName = new File(source.getPath()).getName();
 		System.out.println("Loading " + fileName);
 		tick("start parse");
-		Program program = BootCompiler.buildModuleProgram(source,
+		Program program = BootCompiler.buildProgram(source, false, eagerLoad,
 				BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
 		tick("parse functor " + fileName);
 		Statement ast = compile(program, fileName);
@@ -198,14 +188,35 @@ public class Loader {
 	}
 
 	public void runFunctor(Source source, String... args) {
-		Object initFunctor = execute(parseFunctor(createSource(INIT_FUNCTOR)));
-		Object applied = execute(InitFunctor.apply(initFunctor));
-		OzProc main = (OzProc) ((DynamicObject) applied).get("main");
+		tick("start loading Main");
+		final OzProc main;
+		if (new File(MAIN_IMAGE).exists()) {
+			main = OzSerializer.deserialize("Main.image", OzProc.class);
+			tick("deserialized Main");
+			base = getBaseFromMain(main);
+		} else {
+			eagerLoad = true;
+			try {
+				Object initFunctor = execute(parseFunctor(createSource(INIT_FUNCTOR)));
+				Object applied = execute(InitFunctor.apply(initFunctor));
+				main = (OzProc) ((DynamicObject) applied).get("main");
+				OzSerializer.serialize(main, "Main.image");
+			} finally {
+				eagerLoad = false;
+			}
+		}
 
 		propertyRegistry.setApplicationURL(source.getPath());
 		propertyRegistry.setApplicationArgs(args);
 
 		main.rootCall();
+	}
+
+	private DynamicObject getBaseFromMain(OzProc main) {
+		MaterializedFrame topFrame = OzArguments.getParentFrame(main.declarationFrame);
+		FrameSlot baseSlot = topFrame.getFrameDescriptor().getSlots().get(0);
+		assert baseSlot.getIdentifier().toString().contains("<Base>");
+		return (DynamicObject) topFrame.getValue(baseSlot);
 	}
 
 	// Shutdown
