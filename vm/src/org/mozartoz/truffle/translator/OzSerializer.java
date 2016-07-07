@@ -1,10 +1,13 @@
 package org.mozartoz.truffle.translator;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -17,6 +20,7 @@ import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
+import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.FailNodeFactory.FailNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.RaiseNodeFactory.RaiseNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.HeadNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.TailNodeGen;
@@ -51,12 +55,16 @@ import org.mozartoz.truffle.nodes.local.WriteCapturedVariableNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNodeGen;
+import org.mozartoz.truffle.nodes.pattern.PatternMatchOpenRecordNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.OzCell;
 import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzDict;
 import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzName;
+import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
@@ -442,6 +450,48 @@ public class OzSerializer {
 		}
 	}
 
+	private static class PrintStreamSerializer extends Serializer<PrintStream> {
+		public void write(Kryo kryo, Output output, PrintStream stream) {
+			if (stream == System.out) {
+				output.writeByte(1);
+			} else if (stream == System.err) {
+				output.writeByte(2);
+			} else {
+				throw new Error();
+			}
+		}
+
+		public PrintStream read(Kryo kryo, Input input, Class<PrintStream> type) {
+			switch (input.readByte()) {
+			case 1:
+				return System.out;
+			case 2:
+				return System.err;
+			default:
+				throw new Error();
+			}
+		}
+	}
+
+	private static class InputStreamSerializer extends Serializer<InputStream> {
+		public void write(Kryo kryo, Output output, InputStream stream) {
+			if (stream == System.in) {
+				output.writeByte(0);
+			} else {
+				throw new Error();
+			}
+		}
+
+		public InputStream read(Kryo kryo, Input input, Class<InputStream> type) {
+			switch (input.readByte()) {
+			case 0:
+				return (BufferedInputStream) System.in;
+			default:
+				throw new Error();
+			}
+		}
+	}
+
 	private static class SingletonSerializer extends Serializer<Object> {
 		private final Object singleton;
 
@@ -510,6 +560,7 @@ public class OzSerializer {
 		registerNode(kryo, UnboundLiteralNode.class);
 		registerNode(kryo, IfNode.class);
 		registerNode(kryo, TryNode.class);
+		registerNode(kryo, FailNodeGen.class);
 		registerNode(kryo, RaiseNodeGen.class);
 		registerNode(kryo, NoElseNode.class);
 		registerNode(kryo, AndNode.class);
@@ -518,6 +569,7 @@ public class OzSerializer {
 		registerNode(kryo, PatternMatchEqualNodeGen.class);
 		registerNode(kryo, PatternMatchConsNodeGen.class);
 		registerNode(kryo, PatternMatchRecordNodeGen.class);
+		registerNode(kryo, PatternMatchOpenRecordNodeGen.class);
 
 		registerNode(kryo, DerefNodeGen.class);
 		registerNode(kryo, DotNodeGen.class);
@@ -554,6 +606,13 @@ public class OzSerializer {
 		kryo.register(OzUniqueName.class, new OzUniqueNameSerializer());
 		kryo.register(OzCons.class);
 		kryo.register(OzChunk.class);
+		kryo.register(OzCell.class);
+		kryo.register(OzDict.class);
+		kryo.register(OzObject.class);
+
+		// I/O
+		kryo.register(PrintStream.class, new PrintStreamSerializer());
+		kryo.register(System.in.getClass(), new InputStreamSerializer());
 
 		return kryo;
 	}
