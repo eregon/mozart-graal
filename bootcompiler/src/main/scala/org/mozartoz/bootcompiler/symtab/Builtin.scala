@@ -11,18 +11,11 @@ object Builtin {
   /** Parameter kind */
   type ParamKind = ParamKind.Value
 
-  def create(moduleName: String, name: String, arity: Int) = new Builtin(moduleName, name, Nil, arity, None)
+  def create(moduleName: String, name: String, arity: Int) = new Builtin(moduleName, name, arity)
 }
 
 /** Builtin procedure of the host VM */
-class Builtin(val moduleName: String, val name: String,
-    val paramKinds: List[Builtin.ParamKind],
-    val arity: Int,
-    val inlineAs: Option[Int]) {
-
+class Builtin(val moduleName: String, val name: String, val arity: Int) {
   override def toString() =
     moduleName + "." + (if (name.charAt(0).isLetter) name else "'" + name + "'")
-
-  val inlineable = inlineAs.isDefined
-  def inlineOpCode = inlineAs.get
 }
