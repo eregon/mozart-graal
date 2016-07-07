@@ -65,7 +65,6 @@ public abstract class BuiltinsManager {
 
 	private static final Map<String, OzProc> BUILTINS = new HashMap<>();
 	private static final Map<String, DynamicObject> BOOT_MODULES = new HashMap<>();
-	private static DynamicObject BOOT_MODULES_RECORD;
 
 	public static OzProc getBuiltin(String moduleName, String builtinName) {
 		return getBuiltin(moduleName + "." + builtinName);
@@ -87,7 +86,7 @@ public abstract class BuiltinsManager {
 	}
 
 	public static DynamicObject getBootModulesRecord() {
-		return BOOT_MODULES_RECORD;
+		return OzRecord.buildRecord("bootModules", BOOT_MODULES);
 	}
 
 	public static void defineBuiltins() {
@@ -105,7 +104,6 @@ public abstract class BuiltinsManager {
 			}
 		}
 		BOOT_MODULES.put("Boot_WeakRef", BOOT_MODULES.get("Boot_WeakReference")); // TODO: hack
-		BOOT_MODULES_RECORD = OzRecord.buildRecord("bootModules", BOOT_MODULES);
 	}
 
 	private static void installBuiltins(String module, List<NodeFactory<? extends OzNode>> factories) {
