@@ -137,7 +137,7 @@ object Desugar extends Transformer with TreeDSL {
     case UnaryOp(op, arg) =>
       transformExpr(builtins.unaryOpToBuiltin(op) callExpr (arg))
 
-    case BinaryOp(module @ Variable(sym), ".", rhs) if !program.isBaseEnvironment && sym.isImport =>
+    case BinaryOp(module @ Variable(sym), ".", rhs) if !program.eagerLoad && sym.isImport =>
       transformExpr(
         baseEnvironment("ByNeedDot").copyAttrs(expression) callExpr (module, rhs))
 

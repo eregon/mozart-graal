@@ -10,6 +10,8 @@ import com.oracle.truffle.api.source.SourceSection
 class Program(
     val isBaseEnvironment: Boolean = false,
 
+    val eagerLoad: Boolean = false,
+
     /** Builtin manager */
     val builtins: Builtins = new Builtins,
 

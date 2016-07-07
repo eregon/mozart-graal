@@ -110,7 +110,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
     }
 
     val (utilsDecls, importsDot) = {
-      if (program.isBaseEnvironment) {
+      if (program.eagerLoad) {
         val regularDot = Constant(OzBuiltin(builtins.binaryOpToBuiltin(".")))
         (None, regularDot)
       } else {
@@ -126,7 +126,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
         val statements = new ListBuffer[Statement]
         def exec(statement: Statement) = statements += statement
 
-        if (!program.isBaseEnvironment)
+        if (!program.eagerLoad)
           exec(importsDot === baseEnvironment("ByNeedDot"))
 
         for (FunctorImport(module:Variable, aliases, _) <- imports) {
