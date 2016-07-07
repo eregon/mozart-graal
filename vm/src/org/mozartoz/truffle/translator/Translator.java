@@ -22,6 +22,7 @@ import org.mozartoz.bootcompiler.ast.NoElseCommon;
 import org.mozartoz.bootcompiler.ast.Node;
 import org.mozartoz.bootcompiler.ast.ProcExpression;
 import org.mozartoz.bootcompiler.ast.RaiseCommon;
+import org.mozartoz.bootcompiler.ast.RawDeclarationOrVar;
 import org.mozartoz.bootcompiler.ast.Record;
 import org.mozartoz.bootcompiler.ast.RecordField;
 import org.mozartoz.bootcompiler.ast.SkipStatement;
@@ -259,11 +260,16 @@ public class Translator {
 			return SequenceNode.sequence(translate(statAndExpr.statement()), translate(statAndExpr.expression()));
 		} else if (node instanceof LocalCommon) {
 			LocalCommon local = (LocalCommon) node;
-			OzNode[] decls = map(local.declarations(), variable -> {
-				FrameSlot slot = environment.addLocalVariable(((Variable) variable).symbol());
-				return t((Node) variable, new InitializeVarNode(slot));
-			});
-			return SequenceNode.sequence(decls, translate(local.body()));
+			List<OzNode> decls = new ArrayList<>(local.declarations().size());
+			for (RawDeclarationOrVar variable : toJava(local.declarations())) {
+				Symbol symbol = ((Variable) variable).symbol();
+				FrameSlot slot = environment.addLocalVariable(symbol);
+				// No need to initialize captures, the slot will be set directly
+				if (!symbol.isCapture()) {
+					decls.add(t(variable, new InitializeVarNode(slot)));
+				}
+			}
+			return SequenceNode.sequence(decls.toArray(new OzNode[decls.size()]), translate(local.body()));
 		} else if (node instanceof CallCommon) {
 			return translateCall((CallCommon) node);
 		} else if (node instanceof SkipStatement) {
@@ -566,7 +572,7 @@ public class Translator {
 		return ozNode;
 	}
 
-	private OzNode t(StatOrExpr node, OzNode ozNode) {
+	private OzNode t(Object node, OzNode ozNode) {
 		return t((Node) node, ozNode);
 	}
 
