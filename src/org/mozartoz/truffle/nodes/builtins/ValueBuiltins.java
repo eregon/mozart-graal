@@ -29,6 +29,7 @@ import org.mozartoz.truffle.runtime.OzReadOnly;
 import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzUniqueName;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.runtime.RecordFactory;
 import org.mozartoz.truffle.runtime.Unit;
 import org.mozartoz.truffle.runtime.Variable;
 
@@ -41,7 +42,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 
@@ -701,12 +701,12 @@ public abstract class ValueBuiltins {
 	@NodeChild("value")
 	public static abstract class StatusNode extends OzNode {
 
-		static final DynamicObjectFactory DET_FACTORY = Arity.build("det", 1L).createFactory();
+		static final RecordFactory DET_FACTORY = Arity.build("det", 1L).createFactory();
 
 		@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" })
 		Object status(Object value,
 				@Cached("create()") TypeNode typeNode) {
-			return DET_FACTORY.newInstance("det", typeNode.executeType(value));
+			return DET_FACTORY.newRecord(typeNode.executeType(value));
 		}
 
 		@Specialization(guards = "!isBound(var)")

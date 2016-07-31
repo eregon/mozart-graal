@@ -14,8 +14,7 @@ public abstract class OzRecord {
 	public static DynamicObject buildRecord(Arity arity, Object... values) {
 		assert values.length != 0;
 		assert !arity.isConsArity();
-		Object[] initialValues = ArrayUtils.unshift(arity.getLabel(), values);
-		return arity.createFactory().newInstance(initialValues);
+		return arity.createFactory().newRecord(values);
 	}
 
 	public static DynamicObject buildRecord(Object label, Map<?, ?> map) {
