@@ -20,6 +20,7 @@ import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.runtime.RecordFactory;
 import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -29,7 +30,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.source.Source;
 
 public abstract class OSBuiltins {
@@ -202,7 +202,7 @@ public abstract class OSBuiltins {
 			return ToAtomNodeFactory.create(value);
 		}
 
-		static final DynamicObjectFactory ERROR_FACTORY = Arity.build("os", 1L, 2L, 3L, 4L).createFactory();
+		static final RecordFactory ERROR_FACTORY = Arity.build("os", 1L, 2L, 3L, 4L).createFactory();
 
 		@Specialization
 		Object fopen(String fileName, String mode) {
@@ -213,11 +213,11 @@ public abstract class OSBuiltins {
 				case "wb":
 					return new FileOutputStream(new File(fileName));
 				default:
-					DynamicObject error = ERROR_FACTORY.newInstance("os", "os", "fopen", 1, "Opening mode not implemented");
+					DynamicObject error = ERROR_FACTORY.newRecord("os", "fopen", 1, "Opening mode not implemented");
 					throw new OzException(this, error);
 				}
 			} catch (FileNotFoundException e) {
-				DynamicObject error = ERROR_FACTORY.newInstance("os", "os", "fopen", 2, "No such file or directory");
+				DynamicObject error = ERROR_FACTORY.newRecord("os", "fopen", 2, "No such file or directory");
 				throw new OzException(this, OzException.newSystemError(error));
 			}
 		}
@@ -488,7 +488,7 @@ public abstract class OSBuiltins {
 	@NodeChildren({ @NodeChild("connection"), @NodeChild("count"), @NodeChild("tail") })
 	public static abstract class PipeConnectionReadNode extends OzNode {
 
-		static final DynamicObjectFactory READ_RESULT_FACTORY = Arity.build("succeeded", 1L, 2L).createFactory();
+		static final RecordFactory READ_RESULT_FACTORY = Arity.build("succeeded", 1L, 2L).createFactory();
 
 		@Specialization
 		Object pipeConnectionRead(OzCons connection, long count, Object tail) {
@@ -500,7 +500,7 @@ public abstract class OSBuiltins {
 				byte[] buffer = new byte[(int) count];
 				int bytesRead = inputStream.read(buffer);
 				Object list = byteArrayToOzList(buffer, bytesRead, tail);
-				return READ_RESULT_FACTORY.newInstance("succeeded", (long) bytesRead, list);
+				return READ_RESULT_FACTORY.newRecord((long) bytesRead, list);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}

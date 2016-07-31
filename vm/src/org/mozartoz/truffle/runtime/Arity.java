@@ -9,7 +9,6 @@ import java.util.List;
 import org.mozartoz.truffle.nodes.OzGuards;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.HiddenKey;
 import com.oracle.truffle.api.object.Layout;
 import com.oracle.truffle.api.object.Location;
@@ -90,8 +89,8 @@ public class Arity {
 		return false;
 	}
 
-	public DynamicObjectFactory createFactory() {
-		return shape.createFactory();
+	public RecordFactory createFactory() {
+		return new RecordFactory(label, shape.createFactory());
 	}
 
 	public Object asOzList() {

@@ -13,13 +13,13 @@ import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzDict;
 import org.mozartoz.truffle.runtime.OzException;
+import org.mozartoz.truffle.runtime.RecordFactory;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 
 public abstract class DictionaryBuiltins {
 
@@ -213,14 +213,14 @@ public abstract class DictionaryBuiltins {
 	@NodeChild("dict")
 	public static abstract class EntriesNode extends OzNode {
 
-		static final DynamicObjectFactory PAIR_FACTORY = Arity.build("#", 1L, 2L).createFactory();
+		static final RecordFactory PAIR_FACTORY = Arity.build("#", 1L, 2L).createFactory();
 
 		@TruffleBoundary
 		@Specialization
 		Object entries(OzDict dict) {
 			Object entries = "nil";
 			for (Entry<Object, Object> entry : dict.entrySet()) {
-				Object pair = PAIR_FACTORY.newInstance("#", entry.getKey(), entry.getValue());
+				Object pair = PAIR_FACTORY.newRecord(entry.getKey(), entry.getValue());
 				entries = new OzCons(pair, entries);
 			}
 			return entries;

@@ -10,6 +10,7 @@ import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzUniqueName;
+import org.mozartoz.truffle.runtime.RecordFactory;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
@@ -22,7 +23,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 
 @NodeChildren({ @NodeChild("function") })
 public abstract class CallProcNode extends OzNode {
@@ -55,7 +55,7 @@ public abstract class CallProcNode extends OzNode {
 		return callNode.call(frame, function.callTarget, OzArguments.pack(function.declarationFrame, arguments));
 	}
 
-	static final DynamicObjectFactory OTHERWISE_MESSAGE_FACTORY = Arity.build("otherwise", 1L).createFactory();
+	static final RecordFactory OTHERWISE_MESSAGE_FACTORY = Arity.build("otherwise", 1L).createFactory();
 
 	@Specialization
 	protected Object callObject(VirtualFrame frame, OzObject self,
@@ -72,7 +72,7 @@ public abstract class CallProcNode extends OzNode {
 		OzProc method = getMethod(self, name);
 		if (method == null) { // redirect to otherwise
 			method = getMethod(self, "otherwise");
-			message = OTHERWISE_MESSAGE_FACTORY.newInstance("otherwise", message);
+			message = OTHERWISE_MESSAGE_FACTORY.newRecord(message);
 		}
 
 		Object[] arguments = new Object[] { self, message };
