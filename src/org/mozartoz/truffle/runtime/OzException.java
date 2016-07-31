@@ -6,20 +6,20 @@ import com.oracle.truffle.api.object.DynamicObject;
 @SuppressWarnings("serial")
 public class OzException extends RuntimeException {
 
-	static final Arity ERROR_ARITY = Arity.build("error", 1L, "debug");
-	static final Arity SYSTEM_ARITY = Arity.build("system", 1L, "debug");
-	static final Arity FAILURE_ARITY = Arity.build("failure", "debug");
+	static final RecordFactory ERROR_ARITY = Arity.build("error", 1L, "debug").createFactory();
+	static final RecordFactory SYSTEM_ARITY = Arity.build("system", 1L, "debug").createFactory();
+	static final RecordFactory FAILURE_ARITY = Arity.build("failure", "debug").createFactory();
 
 	public static DynamicObject newError(Object error) {
-		return OzRecord.buildRecord(ERROR_ARITY, error, Unit.INSTANCE);
+		return ERROR_ARITY.newRecord(error, Unit.INSTANCE);
 	}
 
 	public static DynamicObject newSystemError(Object error) {
-		return OzRecord.buildRecord(SYSTEM_ARITY, error, Unit.INSTANCE);
+		return SYSTEM_ARITY.newRecord(error, Unit.INSTANCE);
 	}
 
 	public static DynamicObject newFailure() {
-		return OzRecord.buildRecord(FAILURE_ARITY, Unit.INSTANCE);
+		return FAILURE_ARITY.newRecord(Unit.INSTANCE);
 	}
 
 	private final Object data;
