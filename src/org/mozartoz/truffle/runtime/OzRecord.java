@@ -17,6 +17,7 @@ public abstract class OzRecord {
 		return arity.createFactory().newRecord(values);
 	}
 
+	@TruffleBoundary
 	public static DynamicObject buildRecord(Object label, Map<?, ?> map) {
 		Object[] features = map.keySet().toArray();
 		Arity.sortFeaturesInPlace(features);
