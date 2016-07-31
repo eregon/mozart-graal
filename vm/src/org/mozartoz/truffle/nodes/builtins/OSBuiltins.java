@@ -204,6 +204,7 @@ public abstract class OSBuiltins {
 
 		static final RecordFactory ERROR_FACTORY = Arity.build("os", 1L, 2L, 3L, 4L).createFactory();
 
+		@TruffleBoundary
 		@Specialization
 		Object fopen(String fileName, String mode) {
 			try {
@@ -214,7 +215,7 @@ public abstract class OSBuiltins {
 					return new FileOutputStream(new File(fileName));
 				default:
 					DynamicObject error = ERROR_FACTORY.newRecord("os", "fopen", 1, "Opening mode not implemented");
-					throw new OzException(this, error);
+					throw new OzException(this, OzException.newSystemError(error));
 				}
 			} catch (FileNotFoundException e) {
 				DynamicObject error = ERROR_FACTORY.newRecord("os", "fopen", 2, "No such file or directory");
