@@ -16,7 +16,7 @@ BOOTCOMPILER_ECLIPSE = BOOTCOMPILER / ".project"
 MX = Pathname("../mx/mx").expand_path
 
 JVMCI = Pathname("../jvmci")
-GRAAL = Pathname("../graal-coro")
+GRAAL = Pathname("../graal-core")
 GRAAL_JAR = GRAAL / "mxbuild/dists/graal-truffle.jar"
 
 TRUFFLE = Pathname("../truffle").expand_path
