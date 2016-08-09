@@ -11,6 +11,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,7 +74,6 @@ import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Kryo.DefaultInstantiatorStrategy;
-import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -88,9 +88,7 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.NodeClass;
-import com.oracle.truffle.api.nodes.NodeFieldAccessor;
-import com.oracle.truffle.api.nodes.NodeFieldAccessor.NodeFieldKind;
+import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -388,31 +386,36 @@ public class OzSerializer {
 
 
 	private static class DSLNodeSerializer extends Serializer<Node> {
-		private final NodeFieldAccessor[] fields;
+		private final Field[] fields;
 		private final Method constructor;
 		private final boolean removeDeref;
 
 		public DSLNodeSerializer(Class<? extends Node> genClass) {
 			Class<?> baseClass = genClass.getAnnotation(GeneratedBy.class).value();
-			NodeClass nodeClass = NodeClass.get(genClass);
-			List<NodeFieldAccessor> toSave = new ArrayList<>();
+			List<Field> toSave = new ArrayList<>();
 
-			for (NodeFieldAccessor field : nodeClass.getFields()) {
-				String name = field.getName();
-				if (!name.equals("specialization_")
-						&& !name.equals("sourceSection")
-						&& !name.startsWith("seenUnsupported")
-						&& !name.startsWith("exclude")) {
-					if (!(field.getDeclaringClass() == baseClass && field.getKind() == NodeFieldKind.CHILD)) {
+			for (Field field : baseClass.getDeclaredFields()) {
+				if (!Modifier.isStatic(field.getModifiers())) {
+					if (!field.isAnnotationPresent(Child.class)) { // most likely a helper node
 						toSave.add(field);
 					}
 				}
 			}
 
-			fields = toSave.toArray(new NodeFieldAccessor[toSave.size()]);
+			for (Field field : genClass.getDeclaredFields()) {
+				String name = field.getName();
+				if (!name.equals("specialization_")
+						&& !name.startsWith("seenUnsupported")
+						&& !name.startsWith("exclude")) {
+					toSave.add(field);
+				}
+			}
+
+			fields = toSave.toArray(new Field[toSave.size()]);
 			Class<?>[] parameterTypes = new Class[fields.length];
 
 			for (int i = 0; i < fields.length; i++) {
+				fields[i].setAccessible(true);
 				parameterTypes[i] = fields[i].getType();
 			}
 
@@ -429,12 +432,16 @@ public class OzSerializer {
 		}
 
 		public void write(Kryo kryo, Output output, Node node) {
-			for (NodeFieldAccessor field : fields) {
-				Object value = field.loadValue(node);
-				if (removeDeref) {
-					value = underef(value);
+			try {
+				for (Field field : fields) {
+					Object value = field.get(node);
+					if (removeDeref) {
+						value = underef(value);
+					}
+					kryo.writeClassAndObject(output, value);
 				}
-				kryo.writeClassAndObject(output, value);
+			} catch (ReflectiveOperationException e) {
+				throw new Error(e);
 			}
 		}
 
@@ -644,7 +651,7 @@ public class OzSerializer {
 			KRYO.writeClassAndObject(output, object);
 		} catch (FileNotFoundException e) {
 			throw new Error(e);
-		} catch (KryoException e) {
+		} catch (Throwable e) {
 			new File(path).delete();
 			throw e;
 		}
