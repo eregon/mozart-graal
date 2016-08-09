@@ -83,10 +83,10 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleRuntime;
 import com.oracle.truffle.api.dsl.GeneratedBy;
 import com.oracle.truffle.api.dsl.NodeFactory;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.nodes.NodeUtil;
@@ -279,6 +279,63 @@ public class OzSerializer {
 		}
 	}
 
+	private static class FrameSerializer extends Serializer<Frame> {
+
+		static final Object[] FAKE_ARGUMENTS = new Object[0];
+		Field argumentsField;
+		Field wrappedField;
+
+		public FrameSerializer() {
+			try {
+				argumentsField = MATERIALIZED_FRAME.getDeclaredField("arguments");
+				argumentsField.setAccessible(true);
+			} catch (NoSuchFieldException nsfe) {
+				try {
+					wrappedField = MATERIALIZED_FRAME.getDeclaredField("wrapped");
+					wrappedField.setAccessible(true);
+					argumentsField = wrappedField.get(FRAME).getClass().getDeclaredField("arguments");
+					argumentsField.setAccessible(true);
+				} catch (ReflectiveOperationException e) {
+					throw new Error(e);
+				}
+			}
+		}
+
+		public void write(Kryo kryo, Output output, Frame frame) {
+			FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
+			kryo.writeObject(output, frameDescriptor);
+			kryo.writeObject(output, frame.getArguments());
+			for (FrameSlot slot : frameDescriptor.getSlots()) {
+				Object value = frame.getValue(slot);
+				kryo.writeClassAndObject(output, value);
+			}
+		}
+
+		public Frame read(Kryo kryo, Input input, Class<Frame> type) {
+			FrameDescriptor frameDescriptor = kryo.readObject(input, FrameDescriptor.class);
+			Frame frame = TRUFFLE.createMaterializedFrame(FAKE_ARGUMENTS, frameDescriptor);
+			kryo.reference(frame);
+			setFrameArguments(frame, kryo.readObject(input, Object[].class));
+			for (FrameSlot slot : frameDescriptor.getSlots()) {
+				Object value = kryo.readClassAndObject(input);
+				frame.setObject(slot, value);
+			}
+			return frame;
+		}
+
+		private void setFrameArguments(Frame frame, Object[] arguments) {
+			try {
+				if (wrappedField == null) {
+					argumentsField.set(frame, arguments);
+				} else {
+					argumentsField.set(wrappedField.get(frame), arguments);
+				}
+			} catch (ReflectiveOperationException e) {
+				throw new Error(e);
+			}
+		}
+	}
+
 	private static class OzVarSerializer extends Serializer<OzVar> {
 		public void write(Kryo kryo, Output output, OzVar var) {
 			assert var.isBound();
@@ -426,7 +483,7 @@ public class OzSerializer {
 
 			try {
 				constructor = factoryClass.getMethod("create", parameterTypes);
-			} catch (NoSuchMethodException | SecurityException e) {
+			} catch (NoSuchMethodException e) {
 				throw new Error(e);
 			}
 		}
@@ -516,10 +573,8 @@ public class OzSerializer {
 	}
 
 	private static final TruffleRuntime TRUFFLE = Truffle.getRuntime();
-	private static final Class<? extends VirtualFrame> VIRTUAL_FRAME =
-			TRUFFLE.createVirtualFrame(new Object[0], new FrameDescriptor()).getClass();
-	private static final Class<? extends MaterializedFrame> MATERIALIZED_FRAME =
-			TRUFFLE.createMaterializedFrame(new Object[0]).getClass();
+	private static final MaterializedFrame FRAME = TRUFFLE.createMaterializedFrame(new Object[0]);
+	private static final Class<? extends MaterializedFrame> MATERIALIZED_FRAME = FRAME.getClass();
 	private static final Class<? extends RootCallTarget> ROOT_CALL_TARGET =
 			TRUFFLE.createCallTarget(RootNode.createConstantNode(null)).getClass();
 	private static final Class<? extends Shape> SHAPE = Arity.EMPTY.getClass();
@@ -612,8 +667,7 @@ public class OzSerializer {
 		// frames
 		kryo.register(FrameSlot.class, new FrameSlotSerializer());
 		kryo.register(FrameDescriptor.class, new FrameDescriptorSerializer());
-		kryo.register(VIRTUAL_FRAME);
-		kryo.register(MATERIALIZED_FRAME);
+		kryo.register(MATERIALIZED_FRAME, new FrameSerializer());
 		kryo.register(Object[].class);
 		kryo.register(long[].class);
 		kryo.register(byte[].class);
