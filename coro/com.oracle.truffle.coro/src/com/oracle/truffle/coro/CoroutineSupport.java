@@ -31,7 +31,13 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public abstract class CoroutineSupport {
 
+    private static final String NATIVE_ENABLED = System.getProperty("com.oracle.truffle.coro.native");
+
     private static boolean hasNativeCoroutines() {
+        if (NATIVE_ENABLED != null && NATIVE_ENABLED.equals("false")) {
+            return false;
+        }
+
         boolean isGraal = Truffle.getRuntime().getClass().getName().contains(".graal.");
         return isGraal;
     }
