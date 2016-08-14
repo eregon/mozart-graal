@@ -121,8 +121,8 @@ class ThreadCoroutineSupport extends CoroutineSupport {
     }
 
     @Override
-    protected Coroutine createInitialThreadCoroutine(CoroutineSupport support) {
-        return new Coroutine(support, ALIVE);
+    protected long getInitialCoroutineData() {
+        return ALIVE;
     }
 
     @Override

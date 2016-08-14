@@ -116,6 +116,11 @@ public class AsymCoroutine<InT, OutT> extends CoroutineBase implements Iterable<
         threadSupport.addCoroutine(this, stacksize);
     }
 
+    public AsymCoroutine(CoroutineSupport support) {
+        super(support, 0);
+        target = null;
+    }
+
     @SuppressWarnings("hiding")
     public final OutT call(final InT input) {
         this.input = input;

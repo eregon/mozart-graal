@@ -94,9 +94,9 @@ public class Coroutine extends CoroutineBase {
         threadSupport.addCoroutine(this, stacksize);
     }
 
-    // creates the initial coroutine for a new thread
-    Coroutine(CoroutineSupport threadSupport, long data) {
-        super(threadSupport, data);
+    /** To create the initial coroutine for a new thread */
+    public Coroutine(CoroutineSupport threadSupport) {
+        super(threadSupport, 0);
         this.target = null;
     }
 

@@ -41,8 +41,8 @@ class NativeCoroutineSupport extends CoroutineSupport {
     }
 
     @Override
-    protected Coroutine createInitialThreadCoroutine(CoroutineSupport support) {
-        return new Coroutine(this, getThreadCoroutine());
+    protected long getInitialCoroutineData() {
+        return getThreadCoroutine();
     }
 
     @Override

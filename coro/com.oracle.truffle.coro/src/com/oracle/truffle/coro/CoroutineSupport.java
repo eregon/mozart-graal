@@ -52,6 +52,28 @@ public abstract class CoroutineSupport {
         }
     }
 
+    public interface CoroutineFactory {
+        CoroutineBase createCoroutine(CoroutineSupport support);
+    }
+
+    static final CoroutineFactory DEFAULT_COROUTINE_FACTORY = new CoroutineFactory() {
+        @Override
+        public CoroutineBase createCoroutine(CoroutineSupport support) {
+            return new Coroutine(support);
+        }
+    };
+
+    static final ThreadLocal<CoroutineFactory> COROUTINE_FACTORY = new ThreadLocal<CoroutineFactory>() {
+        @Override
+        protected CoroutineFactory initialValue() {
+            return DEFAULT_COROUTINE_FACTORY;
+        }
+    };
+
+    public static void setCoroutineFactory(CoroutineFactory factory) {
+        COROUTINE_FACTORY.set(factory);
+    }
+
     static final ThreadLocal<CoroutineSupport> COROUTINE_SUPPORT = new ThreadLocal<CoroutineSupport>() {
         @Override
         protected CoroutineSupport initialValue() {
@@ -75,7 +97,7 @@ public abstract class CoroutineSupport {
     // There's only one CoroutineSupport per Thread
     private final Thread thread;
     // The initial coroutine of the Thread
-    protected final Coroutine threadCoroutine;
+    protected final CoroutineBase threadCoroutine;
 
     // The currently executing, symmetric or asymmetric coroutine
     CoroutineBase currentCoroutine;
@@ -84,27 +106,35 @@ public abstract class CoroutineSupport {
 
     CoroutineSupport(Thread thread) {
         this.thread = thread;
-        threadCoroutine = createInitialThreadCoroutine(this);
-        threadCoroutine.next = threadCoroutine;
-        threadCoroutine.last = threadCoroutine;
+        threadCoroutine = COROUTINE_FACTORY.get().createCoroutine(this);
+        threadCoroutine.data = getInitialCoroutineData();
         currentCoroutine = threadCoroutine;
-        scheduledCoroutines = threadCoroutine;
+        if (threadCoroutine instanceof Coroutine) {
+            addInitialCoroutine((Coroutine) threadCoroutine);
+        }
+    }
+
+    private void addInitialCoroutine(Coroutine coroutine) {
+        coroutine.next = coroutine;
+        coroutine.last = coroutine;
+        scheduledCoroutines = coroutine;
     }
 
     void addCoroutine(Coroutine coroutine, long stacksize) {
-        assert scheduledCoroutines != null;
-        assert currentCoroutine != null;
-
         initializeCoroutine(coroutine, stacksize);
         if (DEBUG) {
             System.out.println("add Coroutine " + coroutine + ", data" + coroutine.data);
         }
 
         // add the coroutine into the doubly linked ring
-        coroutine.next = scheduledCoroutines.next;
-        coroutine.last = scheduledCoroutines;
-        scheduledCoroutines.next = coroutine;
-        coroutine.next.last = coroutine;
+        if (scheduledCoroutines == null) {
+            addInitialCoroutine(coroutine);
+        } else {
+            coroutine.next = scheduledCoroutines.next;
+            coroutine.last = scheduledCoroutines;
+            scheduledCoroutines.next = coroutine;
+            coroutine.next.last = coroutine;
+        }
     }
 
     void addCoroutine(AsymCoroutine<?, ?> coroutine, long stacksize) {
@@ -324,7 +354,7 @@ public abstract class CoroutineSupport {
     // Interface
     protected abstract boolean verifyThread();
 
-    protected abstract Coroutine createInitialThreadCoroutine(CoroutineSupport support);
+    protected abstract long getInitialCoroutineData();
 
     protected abstract void initializeCoroutine(CoroutineBase coroutine, long stacksize);
 

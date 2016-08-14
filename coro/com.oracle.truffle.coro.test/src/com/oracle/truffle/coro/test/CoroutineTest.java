@@ -38,13 +38,17 @@ import static org.junit.Assert.assertTrue;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.oracle.truffle.coro.AsymCoroutine;
+import com.oracle.truffle.coro.AsymRunnable;
 import com.oracle.truffle.coro.Coroutine;
+import com.oracle.truffle.coro.CoroutineBase;
 import com.oracle.truffle.coro.CoroutineSupport;
+import com.oracle.truffle.coro.CoroutineSupport.CoroutineFactory;
 
 @SuppressWarnings("unused")
 public class CoroutineTest {
@@ -358,5 +362,56 @@ public class CoroutineTest {
             };
         }
         Coroutine.yield();
+    }
+
+    @Test
+    public void threadCoroutineIsAsym() throws InterruptedException {
+        final Error[] error = new Error[1];
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    CoroutineSupport.setCoroutineFactory(new CoroutineFactory() {
+                        @Override
+                        public CoroutineBase createCoroutine(CoroutineSupport support) {
+                            return new AsymCoroutine<Integer, Integer>(support);
+                        }
+                    });
+
+                    Assert.assertEquals(CoroutineBase.current().getClass(), AsymCoroutine.class);
+
+                    AsymCoroutine<Integer, Integer> asym = new AsymCoroutine<>(new AsymRunnable<Integer, Integer>() {
+                        public Integer run(AsymCoroutine<? extends Integer, ? super Integer> coro, Integer value) {
+                            int a = value;
+                            int b = coro.ret(0);
+                            return a + b;
+                        }
+                    });
+                    asym.call(14);
+                    int sum = asym.call(21);
+                    Assert.assertEquals(35, sum);
+
+                    // Cannot call a sym coro from an asym coro
+                    Coroutine coro = new Coroutine(new Runnable() {
+                        @Override
+                        public void run() {
+                            throw new Error();
+                        }
+                    });
+                    try {
+                        Coroutine.yieldTo(coro);
+                        Assert.fail();
+                    } catch (IllegalThreadStateException e) {
+                    }
+                } catch (Error e) {
+                    error[0] = e;
+                }
+            }
+        };
+        t.start();
+        t.join();
+        if (error[0] != null) {
+            throw error[0];
+        }
     }
 }
