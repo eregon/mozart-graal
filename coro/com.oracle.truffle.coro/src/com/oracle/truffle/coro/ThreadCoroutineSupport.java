@@ -107,7 +107,7 @@ class ThreadCoroutineSupport extends CoroutineSupport {
 
     }
 
-    final ExecutorService THREAD_POOL = Executors.newCachedThreadPool(new CoroutineThreadFactory());
+    static final ExecutorService THREAD_POOL = Executors.newCachedThreadPool(new CoroutineThreadFactory());
 
     @SuppressWarnings("unused")
     ThreadCoroutineSupport(Thread thread) {
