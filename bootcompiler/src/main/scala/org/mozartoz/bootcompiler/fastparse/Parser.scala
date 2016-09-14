@@ -218,7 +218,7 @@ object Lexer {
 
   val integerLiteral: P[Long] = P(
     integerLiteralBase
-      | "~" ~ integerLiteralBase ^^ (x => -x)) ~ !"."
+      | "~" ~ integerLiteralBase ^^ (x => -x)) ~ !("." ~ (!"." ~ AnyChar)) // Disallow int.X but allow int..int (for I in 1..10 do)
 
   def integerLiteralBase: P[Long] = P(
     "0" ~ CharIn("xX") ~ hexDigit.rep(1).! ^^ {

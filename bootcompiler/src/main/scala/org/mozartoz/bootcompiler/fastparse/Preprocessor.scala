@@ -15,7 +15,7 @@ object Preprocessor {
 
   def preprocess(source: Source): (String, Seq[SourceMap]) = {
     val input = source.getCode
-    val Parsed.Success(tokens, _) = Parser.tokens(input)
+    val tokens = Parser.t(Parser.tokens(input), source.getPath)
 
     var defines: Set[String] = Set()
     var skipDepth = 0
