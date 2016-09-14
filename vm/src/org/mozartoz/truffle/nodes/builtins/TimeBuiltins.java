@@ -54,8 +54,8 @@ public abstract class TimeBuiltins {
 	public static abstract class GetMonotonicTimeNode extends OzNode {
 
 		@Specialization
-		Object getMonotonicTime() {
-			return unimplemented();
+		long getMonotonicTime() {
+			return System.nanoTime();
 		}
 
 	}
