@@ -120,6 +120,7 @@ public abstract class OSBuiltins {
 	@NodeChild("var")
 	public static abstract class GetEnvNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		Object getEnv(String var) {
 			String value = System.getenv(var);
@@ -158,6 +159,7 @@ public abstract class OSBuiltins {
 	@GenerateNodeFactory
 	public static abstract class GetCWDNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		String getCWD() {
 			return System.getProperty("user.dir").intern();
@@ -240,6 +242,7 @@ public abstract class OSBuiltins {
 	@NodeChildren({ @NodeChild("fileNode"), @NodeChild("data") })
 	public static abstract class FwriteNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		long fwrite(FileOutputStream file, byte[] data) {
 			try {
@@ -268,6 +271,7 @@ public abstract class OSBuiltins {
 	@NodeChild("file")
 	public static abstract class FcloseNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		Object fclose(FileInputStream file) {
 			try {
@@ -278,6 +282,7 @@ public abstract class OSBuiltins {
 			return unit;
 		}
 
+		@TruffleBoundary
 		@Specialization
 		Object fclose(FileOutputStream file) {
 			try {
@@ -457,6 +462,7 @@ public abstract class OSBuiltins {
 			return ToAtomNodeFactory.create(value);
 		}
 
+		@TruffleBoundary
 		@Specialization
 		Object pipe(String executable, OzCons argv, OzVar outPid) {
 			if (executable.endsWith("/ozwish")) {
@@ -491,6 +497,7 @@ public abstract class OSBuiltins {
 
 		static final RecordFactory READ_RESULT_FACTORY = Arity.build("succeeded", 1L, 2L).createFactory();
 
+		@TruffleBoundary
 		@Specialization
 		Object pipeConnectionRead(OzCons connection, long count, Object tail) {
 			InputStream inputStream = (InputStream) connection.getHead();
@@ -522,6 +529,7 @@ public abstract class OSBuiltins {
 	@NodeChildren({ @NodeChild("connection"), @NodeChild("data") })
 	public static abstract class PipeConnectionWriteNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		long pipeConnectionWrite(OzCons connection, byte[] data) {
 			if (data.length == 0) {
