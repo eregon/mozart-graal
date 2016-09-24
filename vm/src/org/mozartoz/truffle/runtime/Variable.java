@@ -95,7 +95,7 @@ public abstract class Variable {
 	public Object waitValueQuiet(OzNode currentNode) {
 		assert !isBound();
 		while (!isBound()) {
-			OzThread.getCurrent().yield();
+			OzThread.getCurrent().suspend();
 		}
 		return getBoundValue(currentNode);
 	}

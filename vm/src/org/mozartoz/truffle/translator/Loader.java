@@ -25,6 +25,7 @@ import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzProc;
+import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.PropertyRegistry;
 
 import com.oracle.truffle.api.RootCallTarget;
@@ -210,6 +211,14 @@ public class Loader {
 		propertyRegistry.setApplicationArgs(args);
 
 		main.rootCall();
+
+		waitThreads();
+	}
+
+	private void waitThreads() {
+		while (OzThread.getNumberOfThreadsRunnable() > 1) {
+			OzThread.getCurrent().yield();
+		}
 	}
 
 	private DynamicObject getBaseFromMain(OzProc main) {

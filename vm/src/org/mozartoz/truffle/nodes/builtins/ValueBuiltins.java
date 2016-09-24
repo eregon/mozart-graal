@@ -604,7 +604,7 @@ public abstract class ValueBuiltins {
 		@Specialization(guards = "!isBound(var)")
 		Object waitNeeded(OzVar var) {
 			while (!var.isNeeded()) {
-				OzThread.getCurrent().yield();
+				OzThread.getCurrent().suspend();
 			}
 			return unit;
 		}
