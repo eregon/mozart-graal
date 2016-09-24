@@ -18,6 +18,7 @@ import java.util.List;
 import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
+import org.mozartoz.truffle.nodes.ExecuteValuesNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
@@ -27,6 +28,8 @@ import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.HeadNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.TailNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.DotNodeFactory.DotNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory.EqualNodeGen;
+import org.mozartoz.truffle.nodes.call.CallMethodNodeGen;
+import org.mozartoz.truffle.nodes.call.CallNodeGen;
 import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.control.AndNode;
@@ -622,7 +625,10 @@ public class OzSerializer {
 
 		kryo.register(WriteFrameSlotNodeGen.class);
 		kryo.register(ReadFrameSlotNodeGen.class);
+		kryo.register(ExecuteValuesNode.class);
+		kryo.register(CallNodeGen.class);
 		kryo.register(CallProcNodeGen.class);
+		kryo.register(CallMethodNodeGen.class);
 
 		kryo.register(ReadLocalVariableNode.class);
 		kryo.register(ReadCapturedVariableNode.class);

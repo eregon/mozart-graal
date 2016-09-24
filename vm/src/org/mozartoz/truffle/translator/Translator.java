@@ -53,6 +53,7 @@ import org.mozartoz.bootcompiler.oz.UnitVal;
 import org.mozartoz.bootcompiler.symtab.Builtin;
 import org.mozartoz.bootcompiler.symtab.Symbol;
 import org.mozartoz.truffle.nodes.DerefNode;
+import org.mozartoz.truffle.nodes.ExecuteValuesNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.TopLevelHandlerNode;
@@ -74,7 +75,7 @@ import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.GreaterThanNodeF
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanOrEqualNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.NotEqualNodeFactory;
-import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
+import org.mozartoz.truffle.nodes.call.CallNodeGen;
 import org.mozartoz.truffle.nodes.control.AndNode;
 import org.mozartoz.truffle.nodes.control.IfNode;
 import org.mozartoz.truffle.nodes.control.NoElseNode;
@@ -311,7 +312,7 @@ public class Translator {
 		for (int i = 0; i < args.size(); i++) {
 			argsNodes[i] = translate(args.get(i));
 		}
-		return t(call, CallProcNodeGen.create(argsNodes, translate(callable)));
+		return t(call, CallNodeGen.create(translate(callable), new ExecuteValuesNode(argsNodes)));
 	}
 
 	private OzNode translateMatch(MatchCommon match) {

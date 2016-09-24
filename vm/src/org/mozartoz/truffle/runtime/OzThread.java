@@ -3,7 +3,7 @@ package org.mozartoz.truffle.runtime;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.TopLevelHandlerNode;
-import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
+import org.mozartoz.truffle.nodes.call.CallNodeGen;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 
 import com.oracle.truffle.api.CallTarget;
@@ -89,7 +89,7 @@ public class OzThread implements Runnable {
 	}
 
 	private static CallTarget wrap(OzProc proc) {
-		OzNode callNode = CallProcNodeGen.create(new OzNode[] {}, new LiteralNode(proc));
+		OzNode callNode = CallNodeGen.create(new LiteralNode(proc), new LiteralNode(new Object[0]));
 		SourceSection sourceSection = SourceSection.createUnavailable("main", "Thread.create");
 		FrameDescriptor frameDescriptor = new FrameDescriptor();
 		TopLevelHandlerNode topLevelHandler = new TopLevelHandlerNode(callNode);
