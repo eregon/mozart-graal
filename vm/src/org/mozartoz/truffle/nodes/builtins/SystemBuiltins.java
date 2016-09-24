@@ -10,6 +10,7 @@ import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNo
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.translator.Loader;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -23,6 +24,7 @@ public abstract class SystemBuiltins {
 	@NodeChild("value")
 	public static abstract class ShowNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		protected Object show(Object value) {
 			System.out.println(value);
@@ -38,6 +40,7 @@ public abstract class SystemBuiltins {
 
 		@Child GetReprNode getReprNode = GetReprNodeFactory.create(null, null, null);
 
+		@TruffleBoundary
 		@Specialization(guards = "!isVariable(value)")
 		Object printRepr(Object value, boolean toStdErr, boolean newLine) {
 			String repr = getReprNode.executeGetRepr(value, 10, 1000);
@@ -53,6 +56,7 @@ public abstract class SystemBuiltins {
 			return unit;
 		}
 
+		@TruffleBoundary
 		@Specialization(guards = "!isBound(var)")
 		Object printRepr(OzVar var, boolean toStdErr, boolean newLine) {
 			return printRepr(var.toString(), toStdErr, newLine);
@@ -67,11 +71,13 @@ public abstract class SystemBuiltins {
 
 		public abstract String executeGetRepr(Object value, long depth, long width);
 
+		@TruffleBoundary
 		@Specialization(guards = "!isVariable(value)")
 		String getRepr(Object value, long depth, long width) {
 			return value.toString().intern();
 		}
 
+		@TruffleBoundary
 		@Specialization(guards = "!isBound(var)")
 		String getRepr(OzVar var, long depth, long width) {
 			return var.toString().intern();
@@ -101,6 +107,7 @@ public abstract class SystemBuiltins {
 			return ToAtomNodeFactory.create(value);
 		}
 
+		@TruffleBoundary
 		@Specialization
 		Object printVS(String value, boolean toStdErr, boolean newLine) {
 			@SuppressWarnings("resource")
@@ -120,6 +127,7 @@ public abstract class SystemBuiltins {
 	@GenerateNodeFactory
 	public static abstract class GcDoNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		Object gcDo() {
 			System.gc();
@@ -155,6 +163,7 @@ public abstract class SystemBuiltins {
 	@NodeChild("exitCode")
 	public static abstract class ExitNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization(guards = "isInt(exitCode)")
 		Object exit(long exitCode) {
 			Loader.getInstance().shutdown((int) exitCode);
