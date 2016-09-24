@@ -82,6 +82,12 @@ public class OzThread implements Runnable {
 		status = "runnable";
 	}
 
+	public void suspend() {
+		threadsRunnable--;
+		yield();
+		threadsRunnable++;
+	}
+
 	private static CallTarget wrap(OzProc proc) {
 		OzNode callNode = CallProcNodeGen.create(new OzNode[] {}, new LiteralNode(proc));
 		SourceSection sourceSection = SourceSection.createUnavailable("main", "Thread.create");
