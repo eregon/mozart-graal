@@ -4,6 +4,8 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
 import java.math.BigInteger;
 
+import org.mozartoz.truffle.nodes.DerefIfBoundNode;
+import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ArrayBuiltins.ArrayGetNode;
 import org.mozartoz.truffle.nodes.builtins.ArrayBuiltins.ArrayPutNode;
@@ -56,7 +58,14 @@ public abstract class ValueBuiltins {
 			return EqualNodeFactory.create(null, null);
 		}
 
+		@Child DerefIfBoundNode derefIfBoundNode = DerefIfBoundNodeGen.create();
+
 		public abstract boolean executeEqual(Object a, Object b);
+
+		@TruffleBoundary
+		private boolean equalRec(Object a, Object b) {
+			return executeEqual(deref(a), deref(b));
+		}
 
 		@Specialization(guards = { "!isBound(a)", "!isBound(b)" })
 		protected boolean equal(OzVar a, OzVar b) {
@@ -72,12 +81,12 @@ public abstract class ValueBuiltins {
 
 		@Specialization(guards = { "!isBound(a)", "!isVariable(b)" })
 		protected Object equal(OzVar a, Object b) {
-			return executeEqual(a.waitValue(this), b);
+			return equalRec(a.waitValue(this), b);
 		}
 
 		@Specialization(guards = { "!isVariable(a)", "!isBound(b)" })
 		protected Object equal(Object a, OzVar b) {
-			return executeEqual(a, b.waitValue(this));
+			return equalRec(a, b.waitValue(this));
 		}
 
 		@Specialization
@@ -158,7 +167,7 @@ public abstract class ValueBuiltins {
 		@TruffleBoundary
 		@Specialization
 		protected boolean equal(OzCons a, OzCons b) {
-			return executeEqual(a.getHead(), b.getHead()) && executeEqual(a.getTail(), b.getTail());
+			return equalRec(a.getHead(), b.getHead()) && equalRec(a.getTail(), b.getTail());
 		}
 
 		@TruffleBoundary
@@ -170,7 +179,7 @@ public abstract class ValueBuiltins {
 			for (Property property : a.getShape().getProperties()) {
 				Object aValue = property.get(a, a.getShape());
 				Object bValue = property.get(b, b.getShape());
-				if (!executeEqual(aValue, bValue)) {
+				if (!equalRec(aValue, bValue)) {
 					return false;
 				}
 			}
@@ -189,8 +198,12 @@ public abstract class ValueBuiltins {
 
 		@Specialization(guards = { "a.getClass() != b.getClass()",
 				"!isVariable(a)", "!isLong(a)", "!isBigInteger(a)", "!isAtom(a)", "!isCons(a)", "!isRecord(a)" })
-		protected boolean equal(Object a, Object b) {
+		protected boolean equalRest(Object a, Object b) {
 			return false;
+		}
+
+		private Object deref(Object value) {
+			return derefIfBoundNode.executeDerefIfBound(value);
 		}
 
 	}
