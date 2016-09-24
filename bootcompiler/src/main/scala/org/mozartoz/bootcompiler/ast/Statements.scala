@@ -56,6 +56,10 @@ case class LocalStatement(declarations: Seq[Variable],
  */
 case class CallStatement(callable: Expression,
     args: Seq[Expression]) extends Statement with CallCommon
+    
+case class TailMarkerStatement(call: CallStatement) extends Statement {
+  override def syntax(indent: String) = call.syntax(indent)
+}
 
 /** If statement
  *

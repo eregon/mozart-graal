@@ -22,7 +22,7 @@ object Desugar extends Transformer with TreeDSL {
 
     case thread @ ThreadStatement(body) =>
       atPos(thread) {
-        val proc = PROC("", Nil) {
+        val proc = PROC(None, Nil) {
           transformStat(body)
         }
 
@@ -31,7 +31,7 @@ object Desugar extends Transformer with TreeDSL {
 
     case lockStat @ LockStatement(lock, body) =>
       atPos(lockStat) {
-        val proc = PROC("", Nil) {
+        val proc = PROC(None, Nil) {
           transformStat(body)
         }
 

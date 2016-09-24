@@ -67,7 +67,7 @@ case class LocalExpression(declarations: Seq[Variable],
  *  end
  *  }}}
  */
-case class ProcExpression(name: String, args: Seq[VariableOrRaw],
+case class ProcExpression(name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
     body: Statement, flags: Seq[String]) extends Expression
     with ProcFunExpression {
   protected val keyword = "proc"
@@ -81,7 +81,7 @@ case class ProcExpression(name: String, args: Seq[VariableOrRaw],
  *  end
  *  }}}
  */
-case class FunExpression(name: String, args: Seq[VariableOrRaw],
+case class FunExpression(name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
     body: Expression, flags: Seq[String]) extends Expression
     with ProcFunExpression {
   protected val keyword = "fun"

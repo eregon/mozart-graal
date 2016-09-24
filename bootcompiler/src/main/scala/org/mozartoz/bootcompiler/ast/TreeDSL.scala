@@ -124,7 +124,7 @@ trait TreeDSL {
    *  }
    *  }}}
    */
-  def PROC(name: String, args: Seq[VariableOrRaw],
+  def PROC(name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
       flags: Seq[String] = Nil)(body: Statement) = {
     treeCopy.ProcExpression(body, name, args, body, flags)
   }
@@ -138,7 +138,7 @@ trait TreeDSL {
    *  }
    *  }}}
    */
-  def FUN(name: String, args: Seq[VariableOrRaw],
+  def FUN(name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
       flags: Seq[String] = Nil)(body: Expression) = {
     treeCopy.FunExpression(body, name, args, body, flags)
   }

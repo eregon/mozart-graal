@@ -121,7 +121,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
 
     val allDecls = importedDecls ++ definedDecls ++ utilsDecls
 
-    FUN("<Apply>", Seq(importsParam)) {
+    FUN(None, Seq(importsParam)) {
       LOCAL (allDecls:_*) IN {
         val statements = new ListBuffer[Statement]
         def exec(statement: Statement) = statements += statement

@@ -341,6 +341,13 @@ object Parser {
     case RawVariable(name) => name
     case _                 => ""
   }
+  
+  /** Extracts the name of an optional raw variable  */
+  private def nameOf(expression: Option[Phrase]): Option[VariableOrRaw] = expression match {
+    case Some(v @ RawVariable(_)) => Some(v)
+    case _ => None
+  }
+  
   private val generatedIdentCounter = new org.mozartoz.bootcompiler.util.Counter
   private def generateExcIdent() = "<exc$" + generatedIdentCounter.next() + ">"
   private def generateParamIdent() = "<arg$" + generatedIdentCounter.next() + ">"
@@ -515,7 +522,7 @@ object Parser {
     P(`proc` ~/ procFlags ~ "{" ~ dollarOrExpr ~/ formalArgs ~ "}" ~/ inPhrase ~ `end`).map {
       case (flags, name, args0, body0) =>
         val (args, body) = postProcessArgsAndBody(args0, body0)
-        val proc = ProcPhrase("", args, body, flags)
+        val proc = ProcPhrase(nameOf(name), args, body, flags)
         name match {
           case Some(expr) => BindPhrase(expr, proc)
           case None       => proc
@@ -527,7 +534,7 @@ object Parser {
     P(`fun` ~/ procFlags ~ "{" ~ dollarOrExpr ~/ formalArgs ~ "}" ~/ inPhrase ~ `end`).map {
       case (flags, name, args0, body0) =>
         val (args, body) = postProcessArgsAndBody(args0, body0)
-        val fun = FunPhrase("", args, body, flags)
+        val fun = FunPhrase(nameOf(name), args, body, flags)
         name match {
           case Some(expr) => BindPhrase(expr, fun)
           case None       => fun
@@ -656,7 +663,7 @@ object Parser {
     P(`for` ~/ formalArg ~ `in` ~/ forListGenerator ~ `do` ~/ inPhrase ~ `end`) ^^ {
       case (arg0, listExpr, body0) =>
         val (args, body) = postProcessArgsAndBody(Seq(arg0), body0)
-        val forProc = ProcPhrase("ForProc", args, body, Nil)
+        val forProc = ProcPhrase(None, args, body, Nil)
         CallPhrase(RawVariable("ForAll"), Seq(listExpr, forProc))
     }
   }

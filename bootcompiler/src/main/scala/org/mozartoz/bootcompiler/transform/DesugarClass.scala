@@ -299,7 +299,7 @@ object DesugarClass extends Transformer with TreeDSL {
     }
 
     atPos(method) {
-      PROC (name, Seq(selfParam, msgParam)) {
+      PROC (None, Seq(selfParam, msgParam)) {
         LOCAL (paramVars:_*) IN {
           withSelf(selfParam) {
             transformStat {

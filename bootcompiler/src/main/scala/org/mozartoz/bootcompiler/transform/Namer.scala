@@ -223,7 +223,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
 
       withEnvironmentFromDecls(namedFormals) {
         treeCopy.ProcExpression(proc,
-            name,
+            resolveVariable(name),
             namedFormals,
             transformStat(body),
             flags)
@@ -241,7 +241,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
 
       withEnvironmentFromDecls(namedFormals) {
         treeCopy.FunExpression(fun,
-            name,
+            resolveVariable(name),
             namedFormals,
             transformExpr(body),
             flags)
@@ -601,6 +601,15 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
       case _ =>
         pattern
     }
+  }
+
+  /** Resolves an optional raw variable into an optional variable */
+  def resolveVariable(rawVar: Option[VariableOrRaw]): Option[VariableOrRaw] = {
+    rawVar.flatMap(_ match {
+      case RawVariable(name) =>
+        env.get(name).map(sym => Variable(sym))
+      case _ => None
+    })
   }
 
   /** Names a list of raw variables */

@@ -19,9 +19,9 @@ case class RawLocalPhrase(declarations: Phrase, body: Phrase) extends PhraseNode
   posFrom(declarations, body)
 }
 
-case class ProcPhrase(name: String, args: Seq[VariableOrRaw], body: Phrase, flags: Seq[String]) extends PhraseNode
+case class ProcPhrase(name: Option[VariableOrRaw], args: Seq[VariableOrRaw], body: Phrase, flags: Seq[String]) extends PhraseNode
 
-case class FunPhrase(name: String, args: Seq[VariableOrRaw], body: Phrase, flags: Seq[String]) extends PhraseNode
+case class FunPhrase(name: Option[VariableOrRaw], args: Seq[VariableOrRaw], body: Phrase, flags: Seq[String]) extends PhraseNode
 
 case class CallPhrase(callable: Phrase, args: Seq[Phrase]) extends PhraseNode
 

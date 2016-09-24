@@ -21,6 +21,9 @@ class TreeCopier {
 
   def CallStatement(tree: Node, callable: Expression, args: Seq[Expression]) =
     new CallStatement(callable, args).copyAttrs(tree)
+    
+  def TailMarkerStatement(tree: Node, call: CallStatement) =
+    new TailMarkerStatement(call).copyAttrs(tree)
 
   def IfStatement(tree: Node, condition: Expression,
       trueStatement: Statement, falseStatement: Statement) =
@@ -86,11 +89,11 @@ class TreeCopier {
 
   // Complex expressions
 
-  def ProcExpression(tree: Node, name: String, args: Seq[VariableOrRaw],
+  def ProcExpression(tree: Node, name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
       body: Statement, flags: Seq[String]) =
     new ProcExpression(name, args, body, flags).copyAttrs(tree)
 
-  def FunExpression(tree: Node, name: String, args: Seq[VariableOrRaw],
+  def FunExpression(tree: Node, name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
       body: Expression, flags: Seq[String]) =
     new FunExpression(name, args, body, flags).copyAttrs(tree)
 
