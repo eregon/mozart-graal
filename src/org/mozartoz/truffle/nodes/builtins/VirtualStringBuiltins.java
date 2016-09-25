@@ -185,7 +185,6 @@ public abstract class VirtualStringBuiltins {
 		@Specialization
 		String toAtom(String atom) {
 			assert OzGuards.isAtom(atom);
-			assert atom != "nil";
 			return atom;
 		}
 
