@@ -11,7 +11,7 @@ public class ExecuteValuesNode extends OzNode {
 	}
 
 	@Override
-	public Object execute(VirtualFrame frame) {
+	public Object[] execute(VirtualFrame frame) {
 		return NodeHelpers.executeValues(frame, valuesNodes);
 	}
 
