@@ -310,25 +310,15 @@ public class Translator {
 	}
 
 	private OzNode translateCall(CallCommon call) {
-		Expression callable = call.callable();
-		List<Expression> args = new ArrayList<>(toJava(call.args()));
-
-		OzNode[] argsNodes = new OzNode[args.size()];
-		for (int i = 0; i < args.size(); i++) {
-			argsNodes[i] = translate(args.get(i));
-		}
-		return t(call, CallNode.create(translate(callable), new ExecuteValuesNode(argsNodes)));
+		OzNode receiver = translate(call.callable());
+		OzNode[] argsNodes = map(call.args(), this::translate);
+		return t(call, CallNode.create(receiver, new ExecuteValuesNode(argsNodes)));
 	}
 
 	private OzNode translateTailCall(CallStatement call) {
-		Expression callable = call.callable();
-		List<Expression> args = new ArrayList<>(toJava(call.args()));
-
-		OzNode[] argsNodes = new OzNode[args.size()];
-		for (int i = 0; i < args.size(); i++) {
-			argsNodes[i] = translate(args.get(i));
-		}
-		return t(call, new TailCallThrowerNode(translate(callable), new ExecuteValuesNode(argsNodes)));
+		OzNode receiver = translate(call.callable());
+		OzNode[] argsNodes = map(call.args(), this::translate);
+		return t(call, new TailCallThrowerNode(receiver, new ExecuteValuesNode(argsNodes)));
 	}
 
 	private OzNode translateMatch(MatchCommon match) {
