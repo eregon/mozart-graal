@@ -9,8 +9,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class TailCallThrowerNode extends OzNode {
 
-	private @Child OzNode receiver;
-	private @Child ExecuteValuesNode arguments;
+	@Child OzNode receiver;
+	@Child ExecuteValuesNode arguments;
 
 	public TailCallThrowerNode(OzNode receiver, ExecuteValuesNode arguments) {
 		this.receiver = DerefNode.create(receiver);
