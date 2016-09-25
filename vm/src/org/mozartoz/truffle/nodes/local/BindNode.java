@@ -10,7 +10,6 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 public abstract class BindNode extends OzNode {
@@ -27,51 +26,53 @@ public abstract class BindNode extends OzNode {
 		return DerefIfBoundNode.create(var);
 	}
 
+	public abstract Object executeBind(Object a, Object b);
+
 	@Specialization(guards = { "!left.isBound()", "!right.isBound()" })
-	Object unboundUnbound(VirtualFrame frame, Variable left, Variable right) {
+	Object unboundUnbound(Variable left, Variable right) {
 		left.link(right);
 		return left;
 	}
 
 	@Specialization(guards = { "!left.isBound()", "right.isBound()" })
-	Object bindLeft(VirtualFrame frame, OzVar left, OzVar right) {
+	Object bindLeft(OzVar left, OzVar right) {
 		Object value = right.getBoundValue(this);
 		left.bind(value);
 		return value;
 	}
 
 	@Specialization(guards = { "!left.isBound()", "!isVariable(right)" })
-	Object bindLeftValue(VirtualFrame frame, OzVar left, Object right) {
+	Object bindLeftValue(OzVar left, Object right) {
 		left.bind(right);
 		// TODO: Also write the value directly to the frame slot if writeLeft not null?
 		return right;
 	}
 
 	@Specialization(guards = { "left.isBound()", "!right.isBound()" })
-	Object bindRight(VirtualFrame frame, OzVar left, OzVar right) {
+	Object bindRight(OzVar left, OzVar right) {
 		Object value = left.getBoundValue(this);
 		right.bind(value);
 		return value;
 	}
 
 	@Specialization(guards = { "!isVariable(left)", "!right.isBound()" })
-	Object bindRightValue(VirtualFrame frame, Object left, OzVar right) {
+	Object bindRightValue(Object left, OzVar right) {
 		right.bind(left);
 		return left;
 	}
 
 	@Specialization(guards = { "!isVariable(left)", "!isVariable(right)" })
-	Object unifyValues(VirtualFrame frame, Object left, Object right) {
+	Object bindValues(Object left, Object right) {
 		return unifyValues(left, right);
 	}
 
 	@Specialization(guards = { "isBound(left)", "!isVariable(right)" })
-	Object unifyVarValue(VirtualFrame frame, OzVar left, Object right) {
+	Object bindVarValue(OzVar left, Object right) {
 		return unifyValues(left.getBoundValue(this), right);
 	}
 
 	@Specialization(guards = { "!isVariable(left)", "isBound(right)" })
-	Object unifyValueVar(VirtualFrame frame, Object left, OzVar right) {
+	Object bindValueVar(Object left, OzVar right) {
 		return unifyValues(left, right.getBoundValue(this));
 	}
 
