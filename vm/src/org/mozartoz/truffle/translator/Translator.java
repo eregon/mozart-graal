@@ -9,6 +9,7 @@ import java.util.function.Function;
 import org.mozartoz.bootcompiler.ast.BinaryOp;
 import org.mozartoz.bootcompiler.ast.BindCommon;
 import org.mozartoz.bootcompiler.ast.CallCommon;
+import org.mozartoz.bootcompiler.ast.CallStatement;
 import org.mozartoz.bootcompiler.ast.CompoundStatement;
 import org.mozartoz.bootcompiler.ast.Constant;
 import org.mozartoz.bootcompiler.ast.Expression;
@@ -29,6 +30,7 @@ import org.mozartoz.bootcompiler.ast.SkipStatement;
 import org.mozartoz.bootcompiler.ast.StatAndExpression;
 import org.mozartoz.bootcompiler.ast.StatOrExpr;
 import org.mozartoz.bootcompiler.ast.Statement;
+import org.mozartoz.bootcompiler.ast.TailMarkerStatement;
 import org.mozartoz.bootcompiler.ast.TryCommon;
 import org.mozartoz.bootcompiler.ast.UnboundExpression;
 import org.mozartoz.bootcompiler.ast.Variable;
@@ -75,7 +77,8 @@ import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.GreaterThanNodeF
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanOrEqualNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.NotEqualNodeFactory;
-import org.mozartoz.truffle.nodes.call.CallNodeGen;
+import org.mozartoz.truffle.nodes.call.CallNode;
+import org.mozartoz.truffle.nodes.call.TailCallThrowerNode;
 import org.mozartoz.truffle.nodes.control.AndNode;
 import org.mozartoz.truffle.nodes.control.IfNode;
 import org.mozartoz.truffle.nodes.control.NoElseNode;
@@ -273,6 +276,8 @@ public class Translator {
 			return SequenceNode.sequence(decls.toArray(new OzNode[decls.size()]), translate(local.body()));
 		} else if (node instanceof CallCommon) {
 			return translateCall((CallCommon) node);
+		} else if (node instanceof TailMarkerStatement) {
+			return translateTailCall(((TailMarkerStatement) node).call());
 		} else if (node instanceof SkipStatement) {
 			return new SkipNode();
 		} else if (node instanceof BindCommon) {
@@ -312,7 +317,18 @@ public class Translator {
 		for (int i = 0; i < args.size(); i++) {
 			argsNodes[i] = translate(args.get(i));
 		}
-		return t(call, CallNodeGen.create(translate(callable), new ExecuteValuesNode(argsNodes)));
+		return t(call, CallNode.create(translate(callable), new ExecuteValuesNode(argsNodes)));
+	}
+
+	private OzNode translateTailCall(CallStatement call) {
+		Expression callable = call.callable();
+		List<Expression> args = new ArrayList<>(toJava(call.args()));
+
+		OzNode[] argsNodes = new OzNode[args.size()];
+		for (int i = 0; i < args.size(); i++) {
+			argsNodes[i] = translate(args.get(i));
+		}
+		return t(call, new TailCallThrowerNode(translate(callable), new ExecuteValuesNode(argsNodes)));
 	}
 
 	private OzNode translateMatch(MatchCommon match) {
@@ -567,13 +583,13 @@ public class Translator {
 		return new RuntimeException("Unknown " + type + " " + description.getClass() + ": " + description);
 	}
 
-	private OzNode t(Node node, OzNode ozNode) {
+	private <T extends OzNode> T t(Node node, T ozNode) {
 		SourceSection sourceSection = t(node);
 		ozNode.setSourceSection(sourceSection);
 		return ozNode;
 	}
 
-	private OzNode t(Object node, OzNode ozNode) {
+	private <T extends OzNode> T t(Object node, T ozNode) {
 		return t((Node) node, ozNode);
 	}
 

@@ -13,7 +13,7 @@ public class TryNode extends OzNode {
 	@Child OzNode body;
 	@Child OzNode catchBody;
 
-	BranchProfile exceptionProfile = BranchProfile.create();
+	private final BranchProfile exceptionProfile = BranchProfile.create();
 
 	public TryNode(WriteNode writeExceptionVarNode, OzNode body, OzNode catchBody) {
 		this.body = body;

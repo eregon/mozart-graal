@@ -32,6 +32,8 @@ import org.mozartoz.truffle.nodes.call.CallMethodNodeGen;
 import org.mozartoz.truffle.nodes.call.CallNodeGen;
 import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
+import org.mozartoz.truffle.nodes.call.TailCallCatcherNode;
+import org.mozartoz.truffle.nodes.call.TailCallThrowerNode;
 import org.mozartoz.truffle.nodes.control.AndNode;
 import org.mozartoz.truffle.nodes.control.IfNode;
 import org.mozartoz.truffle.nodes.control.NoElseNode;
@@ -629,6 +631,8 @@ public class OzSerializer {
 		kryo.register(CallNodeGen.class);
 		kryo.register(CallProcNodeGen.class);
 		kryo.register(CallMethodNodeGen.class);
+		kryo.register(TailCallCatcherNode.class);
+		kryo.register(TailCallThrowerNode.class);
 
 		kryo.register(ReadLocalVariableNode.class);
 		kryo.register(ReadCapturedVariableNode.class);
