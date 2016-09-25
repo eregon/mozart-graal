@@ -10,11 +10,11 @@ public class TailCallCatcherNode extends OzNode {
 
 	@Child CallNode callNode;
 
+	private final BranchProfile tailCallProfile = BranchProfile.create();
+
 	public TailCallCatcherNode(CallNode callNode) {
 		this.callNode = callNode;
 	}
-
-	private final BranchProfile tailCallProfile = BranchProfile.create();
 
 	public Object execute(VirtualFrame frame) {
 		try {

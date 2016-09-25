@@ -21,6 +21,8 @@ public abstract class CallNode extends OzNode {
 	}
 
 	public static OzNode create(OzNode receiver, OzNode arguments) {
+		// Always create a TailCallCatcherNode to ensure a TailCallException
+		// Never goes back further than the current call.
 		return new TailCallCatcherNode(CallNodeGen.create(receiver, arguments));
 	}
 
