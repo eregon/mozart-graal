@@ -20,6 +20,10 @@ public abstract class CallNode extends OzNode {
 		return DerefNode.create(var);
 	}
 
+	public static OzNode create(OzNode receiver, OzNode arguments) {
+		return new TailCallCatcherNode(CallNodeGen.create(receiver, arguments));
+	}
+
 	public abstract Object executeCall(VirtualFrame frame, Object receiver, Object[] arguments);
 
 	@Specialization

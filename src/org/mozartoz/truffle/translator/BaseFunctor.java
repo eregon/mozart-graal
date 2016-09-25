@@ -6,7 +6,7 @@ import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.TopLevelHandlerNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.DotNodeFactory;
-import org.mozartoz.truffle.nodes.call.CallNodeGen;
+import org.mozartoz.truffle.nodes.call.CallNode;
 import org.mozartoz.truffle.nodes.control.SequenceNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.runtime.OzVar;
@@ -20,7 +20,7 @@ public abstract class BaseFunctor {
 		Object imports = BuiltinsManager.getBootModulesRecord();
 
 		OzVar result = new OzVar();
-		OzNode apply = CallNodeGen.create(
+		OzNode apply = CallNode.create(
 				DotNodeFactory.create(new LiteralNode(baseFunctor), new LiteralNode("apply")),
 				new LiteralNode(new Object[] { imports, result }));
 
