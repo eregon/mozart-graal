@@ -3,6 +3,7 @@
 require 'pathname'
 
 dir = File.expand_path('..', __FILE__)
+rel = Dir.pwd == dir ? "" : "#{dir}/"
 
 BOOTCOMPILER = File.expand_path('../mozart2/bootcompiler', dir)
 BOOTCOMPILER_JAR = "#{BOOTCOMPILER}/target/scala-2.11/bootcompiler-assembly-2.0-SNAPSHOT.jar"
@@ -10,8 +11,8 @@ BOOTCOMPILER_JAR = "#{BOOTCOMPILER}/target/scala-2.11/bootcompiler-assembly-2.0-
 TRUFFLE_API_JAR = File.expand_path("../truffle/mxbuild/dists/truffle-api.jar", dir)
 
 BOOTCLASSPATH = [TRUFFLE_API_JAR]
-maven_classpath = File.read(".classpath").scan(%r{kind="lib" path="([^"]+/\.m2/repository/[^"]+)"}).map(&:first)
-CLASSPATH = [BOOTCOMPILER_JAR, "bin"] + maven_classpath
+maven_classpath = File.read("#{rel}.classpath").scan(%r{kind="lib" path="([^"]+/\.m2/repository/[^"]+)"}).map(&:first)
+CLASSPATH = [BOOTCOMPILER_JAR, "#{rel}bin"] + maven_classpath
 
 java_opts = %w[-ea -esa]
 java = if ARGV.delete('--graal')
