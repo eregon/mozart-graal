@@ -193,7 +193,7 @@ public class Loader {
 		tick("start loading Main");
 		final OzProc main;
 		if (new File(MAIN_IMAGE).exists()) {
-			main = OzSerializer.deserialize("Main.image", OzProc.class);
+			main = OzSerializer.deserialize(MAIN_IMAGE, OzProc.class);
 			tick("deserialized Main");
 			base = getBaseFromMain(main);
 		} else {
@@ -202,7 +202,7 @@ public class Loader {
 				Object initFunctor = execute(parseFunctor(createSource(INIT_FUNCTOR)));
 				Object applied = execute(InitFunctor.apply(initFunctor));
 				main = (OzProc) ((DynamicObject) applied).get("main");
-				OzSerializer.serialize(main, "Main.image");
+				OzSerializer.serialize(main, MAIN_IMAGE);
 			} finally {
 				eagerLoad = false;
 			}
