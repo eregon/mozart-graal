@@ -71,24 +71,26 @@ object Desugar extends Transformer with TreeDSL {
         if (isLazy) flags filterNot "lazy".==
         else flags
 
-      val proc = atPos(fun) {
+      val newBody = transformExpr(body)
+
+      atPos(fun) {
         PROC(name, args :+ result, newFlags) {
           if (isLazy) {
             val result2 = Variable.newSynthetic("<Result2>").copyAttrs(fun)
-            LOCAL (result2) IN {
-              THREAD {
-                (builtins.waitNeeded call (result2)) ~
-                exprToBindStatement(result2, body)
-              } ~
-              (builtins.unaryOpToBuiltin("!!") call (result2, result))
+            transformStat {
+              LOCAL (result2) IN {
+                THREAD {
+                  (builtins.waitNeeded call (result2)) ~
+                  exprToBindStatement(result2, newBody)
+                } ~
+                (builtins.unaryOpToBuiltin("!!") call (result2, result))
+              }
             }
           } else {
-            exprToBindStatement(result, body)
+            exprToBindStatement(result, newBody)
           }
         }
       }
-
-      transformExpr(proc)
 
     case thread @ ThreadExpression(body) =>
       expressionWithTemp { temp =>
