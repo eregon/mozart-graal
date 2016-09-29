@@ -211,7 +211,7 @@ public class Loader {
 		propertyRegistry.setApplicationURL(source.getPath());
 		propertyRegistry.setApplicationArgs(args);
 
-		main.rootCall();
+		main.rootCall("main");
 
 		waitThreads();
 	}
