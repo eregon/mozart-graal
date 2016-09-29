@@ -1,15 +1,5 @@
 package org.mozartoz.truffle.runtime;
 
-import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.OzRootNode;
-import org.mozartoz.truffle.nodes.TopLevelHandlerNode;
-import org.mozartoz.truffle.nodes.call.CallNode;
-import org.mozartoz.truffle.nodes.literal.LiteralNode;
-
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.coro.Coroutine;
 import com.oracle.truffle.coro.CoroutineLocal;
 
@@ -35,18 +25,18 @@ public class OzThread implements Runnable {
 	}
 
 	private final Coroutine coroutine;
-	private final CallTarget target;
+	private final OzProc proc;
 
 	private String status = "runnable";
 
 	private OzThread() {
 		coroutine = (Coroutine) Coroutine.current();
-		target = null;
+		proc = null;
 		setInitialOzThread();
 	}
 
 	public OzThread(OzProc proc) {
-		this.target = wrap(proc);
+		this.proc = proc;
 		this.coroutine = new Coroutine(this, 1024 * 1024); // 256 seems OK if we parse outside the coro
 		threadsCreated++;
 	}
@@ -66,10 +56,9 @@ public class OzThread implements Runnable {
 	@Override
 	public void run() {
 		setInitialOzThread();
-		Object[] arguments = OzArguments.pack(null, new Object[0]);
 		threadsRunnable++;
 		try {
-			target.call(arguments);
+			proc.rootCall("Thread.create");
 		} finally {
 			threadsRunnable--;
 			status = "terminated";
@@ -86,15 +75,6 @@ public class OzThread implements Runnable {
 		threadsRunnable--;
 		yield();
 		threadsRunnable++;
-	}
-
-	private static CallTarget wrap(OzProc proc) {
-		OzNode callNode = CallNode.create(new LiteralNode(proc), new LiteralNode(new Object[0]));
-		SourceSection sourceSection = SourceSection.createUnavailable("main", "Thread.create");
-		FrameDescriptor frameDescriptor = new FrameDescriptor();
-		TopLevelHandlerNode topLevelHandler = new TopLevelHandlerNode(callNode);
-		OzRootNode rootNode = new OzRootNode(sourceSection, frameDescriptor, topLevelHandler, 0);
-		return Truffle.getRuntime().createCallTarget(rootNode);
 	}
 
 }
