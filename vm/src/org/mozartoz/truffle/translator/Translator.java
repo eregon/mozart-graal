@@ -119,6 +119,8 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class Translator {
 
+	private static final String SHOW_PROC_AST = System.getProperty("oz.show.ast");
+
 	static class Environment {
 		private final Environment parent;
 		private final FrameDescriptor frameDescriptor;
@@ -290,7 +292,11 @@ public class Translator {
 
 	public OzNode translateProc(ProcExpression procExpression) {
 		SourceSection sourceSection = t(procExpression);
-		pushEnvironment(new FrameDescriptor(), sourceSection.getIdentifier());
+		String identifier = sourceSection.getIdentifier();
+		pushEnvironment(new FrameDescriptor(), identifier);
+		if (SHOW_PROC_AST != null && identifier.endsWith(SHOW_PROC_AST)) {
+			System.out.println(procExpression);
+		}
 		try {
 			int arity = procExpression.args().size();
 			OzNode[] nodes = new OzNode[arity + 1];
