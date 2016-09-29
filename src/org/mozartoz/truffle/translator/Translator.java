@@ -293,10 +293,10 @@ public class Translator {
 	public OzNode translateProc(ProcExpression procExpression) {
 		SourceSection sourceSection = t(procExpression);
 		String identifier = sourceSection.getIdentifier();
-		pushEnvironment(new FrameDescriptor(), identifier);
 		if (SHOW_PROC_AST != null && identifier.endsWith(SHOW_PROC_AST)) {
 			System.out.println(procExpression);
 		}
+		pushEnvironment(new FrameDescriptor(), identifier);
 		try {
 			int arity = procExpression.args().size();
 			OzNode[] nodes = new OzNode[arity + 1];
