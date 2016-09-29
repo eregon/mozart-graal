@@ -224,15 +224,20 @@ object DesugarClass extends Transformer with TreeDSL {
     for {
       method @ MethodDef(MethodHeader(name, _, _), _, _) <- methods
     } yield {
-      val procName = "%s,%s" format (className, name.toString())
+      val procName = "%s,%s" format (className, nameOf(name))
       val symbol = new Symbol(procName)
-      val proc = makeProcForMethod(procName, method)
+      val proc = makeProcForMethod(symbol, method)
 
       MethodInfo(symbol, name, proc)
     }
   }
 
-  def makeProcForMethod(name: String, method: MethodDef): Expression = {
+  def nameOf(expr: Expression) = expr match {
+    case Variable(sym) => sym.name
+    case _             => expr.toString()
+  }
+
+  def makeProcForMethod(name: Symbol, method: MethodDef): Expression = {
     val MethodDef(MethodHeader(_, params, open), messageVar, body) = method
 
     val selfParam = new Symbol("self", formal = true)
@@ -299,7 +304,7 @@ object DesugarClass extends Transformer with TreeDSL {
     }
 
     atPos(method) {
-      PROC (None, Seq(selfParam, msgParam)) {
+      PROC (Some(Variable(name)), Seq(selfParam, msgParam)) {
         LOCAL (paramVars:_*) IN {
           withSelf(selfParam) {
             transformStat {
