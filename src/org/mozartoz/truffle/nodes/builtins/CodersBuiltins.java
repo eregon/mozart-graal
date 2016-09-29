@@ -7,6 +7,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -46,6 +47,8 @@ public abstract class CodersBuiltins {
 	@NodeChildren({ @NodeChild("value"), @NodeChild("encoding"), @NodeChild("variant") })
 	public static abstract class DecodeNode extends OzNode {
 
+		@Child DerefNode derefNode = DerefNode.create();
+
 		@TruffleBoundary
 		@Specialization
 		String decode(byte[] value, String encoding, String variant) {
@@ -58,7 +61,7 @@ public abstract class CodersBuiltins {
 		@Specialization
 		String decode(OzCons cons, String encoding, String variant) {
 			List<Byte> list = new ArrayList<Byte>();
-			cons.forEach(e -> list.add((byte) (long) e));
+			cons.forEach(derefNode, e -> list.add((byte) (long) e));
 			byte[] array = new byte[list.size()];
 			for (int i = 0; i < array.length; i++) {
 				array[i] = list.get(i);
