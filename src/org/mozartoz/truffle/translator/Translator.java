@@ -230,30 +230,7 @@ public class Translator {
 						translate(binaryOp.left()),
 						translate(binaryOp.right()));
 			} else if (node instanceof ProcExpression) { // proc/fun literal
-				ProcExpression procExpression = (ProcExpression) node;
-				SourceSection sourceSection = t(procExpression);
-				pushEnvironment(new FrameDescriptor(), sourceSection.getIdentifier());
-
-				int arity = procExpression.args().size();
-				OzNode[] nodes = new OzNode[arity + 1];
-				int i = 0;
-				for (VariableOrRaw variable : toJava(procExpression.args())) {
-					if (variable instanceof Variable) {
-						FrameSlot argSlot = environment.addLocalVariable(((Variable) variable).symbol());
-						nodes[i] = new InitializeArgNode(argSlot, i);
-						i++;
-					} else {
-						throw unknown("variable", variable);
-					}
-				}
-
-				nodes[i] = translate(procExpression.body());
-
-				OzNode procBody = SequenceNode.sequence(nodes);
-				OzRootNode rootNode = new OzRootNode(sourceSection, environment.frameDescriptor, procBody, arity);
-				RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-				popEnvironment();
-				return new ProcDeclarationNode(callTarget);
+				return translateProc((ProcExpression) node);
 			}
 		}
 
@@ -309,6 +286,34 @@ public class Translator {
 		}
 
 		throw unknown("expression or statement", node);
+	}
+
+	public OzNode translateProc(ProcExpression procExpression) {
+		SourceSection sourceSection = t(procExpression);
+		pushEnvironment(new FrameDescriptor(), sourceSection.getIdentifier());
+		try {
+			int arity = procExpression.args().size();
+			OzNode[] nodes = new OzNode[arity + 1];
+			int i = 0;
+			for (VariableOrRaw variable : toJava(procExpression.args())) {
+				if (variable instanceof Variable) {
+					FrameSlot argSlot = environment.addLocalVariable(((Variable) variable).symbol());
+					nodes[i] = new InitializeArgNode(argSlot, i);
+					i++;
+				} else {
+					throw unknown("variable", variable);
+				}
+			}
+
+			nodes[i] = translate(procExpression.body());
+
+			OzNode procBody = SequenceNode.sequence(nodes);
+			OzRootNode rootNode = new OzRootNode(sourceSection, environment.frameDescriptor, procBody, arity);
+			RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+			return new ProcDeclarationNode(callTarget);
+		} finally {
+			popEnvironment();
+		}
 	}
 
 	private OzNode translateCall(CallCommon call) {
