@@ -2,6 +2,7 @@ package org.mozartoz.truffle.nodes.builtins;
 
 import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -21,6 +22,8 @@ public abstract class VirtualByteStringBuiltins {
 	@NodeChild("value")
 	public static abstract class IsVirtualByteStringNode extends OzNode {
 
+		@Child DerefNode derefNode = DerefNode.create();
+
 		public abstract boolean executeIsVirtualByteString(Object value);
 
 		@Specialization
@@ -32,9 +35,10 @@ public abstract class VirtualByteStringBuiltins {
 		boolean isVirtualByteString(OzCons cons) {
 			Object list = cons;
 			while (list instanceof OzCons) {
-				Object head = ((OzCons) list).getHead();
+				OzCons xs = (OzCons) list;
+				Object head = deref(xs.getHead());
 				assert head instanceof Long;
-				list = ((OzCons) list).getTail();
+				list = deref(xs.getTail());
 			}
 			assert list == "nil";
 			return true;
@@ -46,7 +50,7 @@ public abstract class VirtualByteStringBuiltins {
 			Arity arity = OzRecord.getArity(tuple);
 			if (arity.isTupleArity() && arity.getLabel() == "#") {
 				for (long i = 1L; i <= arity.getWidth(); i++) {
-					Object value = tuple.get(i);
+					Object value = deref(tuple.get(i));
 					if (!executeIsVirtualByteString(value)) {
 						return false;
 					}
@@ -54,6 +58,10 @@ public abstract class VirtualByteStringBuiltins {
 				return true;
 			}
 			return false;
+		}
+
+		private Object deref(Object value) {
+			return derefNode.executeDeref(value);
 		}
 
 	}

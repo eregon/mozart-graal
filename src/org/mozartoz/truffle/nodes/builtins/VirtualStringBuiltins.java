@@ -28,6 +28,8 @@ public abstract class VirtualStringBuiltins {
 	@NodeChild("value")
 	public static abstract class IsVirtualStringNode extends OzNode {
 
+		@Child DerefNode derefNode = DerefNode.create();
+
 		public abstract boolean executeIsVirtualString(Object value);
 
 		@Specialization
@@ -49,9 +51,10 @@ public abstract class VirtualStringBuiltins {
 		boolean isVirtualString(OzCons cons) {
 			Object list = cons;
 			while (list instanceof OzCons) {
-				Object head = ((OzCons) list).getHead();
+				OzCons xs = (OzCons) list;
+				Object head = deref(xs.getHead());
 				assert head instanceof Long;
-				list = ((OzCons) list).getTail();
+				list = deref(xs.getTail());
 			}
 			assert list == "nil";
 			return true;
@@ -63,7 +66,7 @@ public abstract class VirtualStringBuiltins {
 			Arity arity = OzRecord.getArity(tuple);
 			if (arity.isTupleArity() && arity.getLabel() == "#") {
 				for (long i = 1L; i <= arity.getWidth(); i++) {
-					Object value = tuple.get(i);
+					Object value = deref(tuple.get(i));
 					if (!executeIsVirtualString(value)) {
 						return false;
 					}
@@ -76,6 +79,10 @@ public abstract class VirtualStringBuiltins {
 		@Specialization
 		boolean isVirtualString(OzObject object) {
 			return false;
+		}
+
+		private Object deref(Object value) {
+			return derefNode.executeDeref(value);
 		}
 
 	}
@@ -130,7 +137,7 @@ public abstract class VirtualStringBuiltins {
 		@TruffleBoundary
 		@Specialization
 		Object toCharList(OzCons cons, Object tail) {
-			Object head = cons.getHead();
+			Object head = deref(cons.getHead());
 			assert head instanceof Long;
 			Object consTail = deref(cons.getTail());
 			if (consTail == "nil") {
@@ -196,7 +203,7 @@ public abstract class VirtualStringBuiltins {
 		@TruffleBoundary
 		@Specialization
 		String toAtom(OzCons cons) {
-			Object head = cons.getHead();
+			Object head = deref(cons.getHead());
 			long longHead = (long) head;
 			char c = (char) longHead;
 			Object tail = deref(cons.getTail());
@@ -249,7 +256,7 @@ public abstract class VirtualStringBuiltins {
 		@TruffleBoundary
 		@Specialization
 		long length(OzCons cons) {
-			Object head = cons.getHead();
+			Object head = deref(cons.getHead());
 			assert head instanceof Long;
 			Object consTail = deref(cons.getTail());
 			if (consTail == "nil") {
