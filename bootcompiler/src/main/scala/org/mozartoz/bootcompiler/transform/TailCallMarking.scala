@@ -7,7 +7,7 @@ import symtab._
 
 object TailCallMarking extends Transformer {
   def markTailCalls(name: Symbol, statement: Statement): Statement = statement match {
-    case call @ CallStatement(callable @ Variable(sym), args) =>
+    case call @ CallStatement(callable, args) =>
       treeCopy.TailMarkerStatement(statement, call)
 
     case CompoundStatement(stats) =>
