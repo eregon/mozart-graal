@@ -187,7 +187,29 @@ object Desugar extends Transformer with TreeDSL {
       treeCopy.MatchStatement(expr, value,
           clauses map(c => matchExpressionClauseToBindStatement(result, c)),
           exprToBindStatement(result, elseExpression))
-    
+
+    case Record(label, fields) =>
+      var tailExpression: Option[(Variable, Expression)] = None
+      def defer(expr: Expression) = {
+        val newVar = Variable.newSynthetic()
+        tailExpression = Some((newVar, expr))
+        newVar
+      }
+
+      val newFields = fields.reverse.map { field =>
+        if (!tailExpression.isDefined && hasSideEffects(field))
+          treeCopy.RecordField(field, field.feature, defer(field.value))
+        else
+          field
+      }.reverse
+      
+      if (tailExpression.isEmpty)
+        return result === expr
+      val (newVar, value) = tailExpression.get
+      LOCAL (newVar) IN treeCopy.CompoundStatement(expr, Seq(
+          result === Record(label, newFields),
+          exprToBindStatement(newVar, value)))
+      
     case _ =>
       treeCopy.BindStatement(expr, result, expr)
   }
@@ -196,6 +218,14 @@ object Desugar extends Transformer with TreeDSL {
       ): MatchStatementClause = clause match {
     case MatchExpressionClause(pattern, guard, body) =>
       treeCopy.MatchStatementClause(clause, pattern, guard, exprToBindStatement(result, body))
+  }
+
+  def hasSideEffects(node: Node): Boolean = node match {
+    case Variable(sym)               => false
+    case Constant(value)             => false
+    case RecordField(feature, value) => hasSideEffects(feature) || hasSideEffects(value)
+    case Record(label, fields)       => hasSideEffects(label) || fields.exists(hasSideEffects(_))
+    case _                           => true
   }
 
   private def fillAutoFeatures(fields: Seq[RecordField]) = {
