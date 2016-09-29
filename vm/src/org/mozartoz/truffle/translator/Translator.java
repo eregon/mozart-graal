@@ -122,10 +122,12 @@ public class Translator {
 	static class Environment {
 		private final Environment parent;
 		private final FrameDescriptor frameDescriptor;
+		private final String identifier;
 
-		public Environment(Environment parent, FrameDescriptor frameDescriptor) {
+		public Environment(Environment parent, FrameDescriptor frameDescriptor, String identifier) {
 			this.parent = parent;
 			this.frameDescriptor = frameDescriptor;
+			this.identifier = identifier;
 		}
 
 		private String symbol2identifier(Symbol symbol) {
@@ -141,7 +143,7 @@ public class Translator {
 		}
 	}
 
-	private Environment environment = new Environment(null, new FrameDescriptor());
+	private Environment environment = new Environment(null, new FrameDescriptor(), "<toplevel>");
 	private final Environment rootEnvironment = environment;
 
 	public Translator() {
@@ -151,8 +153,8 @@ public class Translator {
 		return rootEnvironment.addLocalVariable(symbol);
 	}
 
-	private void pushEnvironment(FrameDescriptor frameDescriptor) {
-		environment = new Environment(environment, frameDescriptor);
+	private void pushEnvironment(FrameDescriptor frameDescriptor, String identifier) {
+		environment = new Environment(environment, frameDescriptor, identifier);
 	}
 
 	private void popEnvironment() {
@@ -229,7 +231,8 @@ public class Translator {
 						translate(binaryOp.right()));
 			} else if (node instanceof ProcExpression) { // proc/fun literal
 				ProcExpression procExpression = (ProcExpression) node;
-				pushEnvironment(new FrameDescriptor());
+				SourceSection sourceSection = t(procExpression);
+				pushEnvironment(new FrameDescriptor(), sourceSection.getIdentifier());
 
 				int arity = procExpression.args().size();
 				OzNode[] nodes = new OzNode[arity + 1];
@@ -247,7 +250,6 @@ public class Translator {
 				nodes[i] = translate(procExpression.body());
 
 				OzNode procBody = SequenceNode.sequence(nodes);
-				SourceSection sourceSection = t(procExpression);
 				OzRootNode rootNode = new OzRootNode(sourceSection, environment.frameDescriptor, procBody, arity);
 				RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 				popEnvironment();
@@ -585,10 +587,31 @@ public class Translator {
 
 	private SourceSection t(Node node) {
 		if (node.section() != null) {
-			return node.section();
+			return sectionWithIdentifier(node.section(), environment.identifier);
 		} else {
 			return SourceSection.createUnavailable("unavailable", "");
 		}
+	}
+
+	private SourceSection t(ProcExpression node) {
+		if (node.section() != null) {
+			if (node.name().isDefined()) {
+				String identifier = ((Variable) node.name().get()).symbol().name();
+				return sectionWithIdentifier(node.section(), identifier);
+			} else {
+				return node.section();
+			}
+		} else {
+			return SourceSection.createUnavailable("unavailable", "");
+		}
+	}
+
+	private SourceSection sectionWithIdentifier(SourceSection section, String identifier) {
+		if (section.getSource() == null) {
+			return section;
+		}
+		return section.getSource().createSection(identifier,
+				section.getStartLine(), section.getStartColumn(), section.getCharIndex(), section.getCharLength());
 	}
 
 }
