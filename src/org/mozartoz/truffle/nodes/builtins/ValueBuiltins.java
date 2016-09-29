@@ -846,6 +846,11 @@ public abstract class ValueBuiltins {
 		}
 
 		@Specialization
+		Object condSelect(String atom, Object feature, Object def) {
+			return def;
+		}
+
+		@Specialization
 		Object condSelect(DynamicObject record, Object feature, Object def) {
 			return record.get(feature, def);
 		}
