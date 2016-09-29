@@ -5,6 +5,7 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -55,11 +56,13 @@ public abstract class ProcedureBuiltins {
 	@NodeChildren({ @NodeChild("procedure"), @NodeChild("args") })
 	public static abstract class ApplyNode extends OzNode {
 
+		@Child DerefNode derefNode = DerefNode.create();
+
 		@Specialization
 		Object apply(VirtualFrame frame, OzProc proc, OzCons args,
 				@Cached("create()") IndirectCallNode callNode) {
 			List<Object> list = new ArrayList<>();
-			args.forEach(e -> list.add(e));
+			args.forEach(derefNode, e -> list.add(e));
 			Object[] arguments = list.toArray(new Object[list.size()]);
 			callNode.call(frame, proc.callTarget, OzArguments.pack(proc.declarationFrame, arguments));
 			return unit;

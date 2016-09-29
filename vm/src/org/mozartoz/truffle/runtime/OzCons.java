@@ -1,10 +1,10 @@
 package org.mozartoz.truffle.runtime;
 
-import java.util.Iterator;
+import java.util.function.Consumer;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.mozartoz.truffle.nodes.DerefNode;
 
-public class OzCons implements Iterable<Object> {
+public class OzCons {
 
 	final Object head;
 	final Object tail;
@@ -22,35 +22,15 @@ public class OzCons implements Iterable<Object> {
 		return tail;
 	}
 
-	@TruffleBoundary
-	@Override
-	public Iterator<Object> iterator() {
-		return new ConsIterator(this);
-	}
-
-	private static class ConsIterator implements Iterator<Object> {
-
-		private OzCons current;
-
-		public ConsIterator(OzCons cons) {
-			current = cons;
+	public void forEach(DerefNode deref, Consumer<Object> block) {
+		Object list = this;
+		while (list instanceof OzCons) {
+			OzCons cons = (OzCons) list;
+			Object head = deref.executeDeref(cons.getHead());
+			block.accept(head);
+			list = deref.executeDeref(cons.getTail());
 		}
-
-		@Override
-		public boolean hasNext() {
-			return current != null;
-		}
-
-		@Override
-		public Object next() {
-			Object element = current.getHead();
-			if (current.getTail() == "nil") {
-				current = null;
-			} else {
-				current = (OzCons) current.getTail();
-			}
-			return element;
-		}
+		assert list == "nil";
 	}
 
 	@Override

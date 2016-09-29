@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltins.ToAtomNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
@@ -456,6 +457,7 @@ public abstract class OSBuiltins {
 	public static abstract class PipeNode extends OzNode {
 
 		@Child ToAtomNode toAtomNode = ToAtomNode.create();
+		@Child DerefNode derefNode = DerefNode.create();
 
 		@CreateCast("executable")
 		protected OzNode castExecutable(OzNode value) {
@@ -472,7 +474,7 @@ public abstract class OSBuiltins {
 
 			List<String> command = new ArrayList<>();
 			command.add(executable);
-			argv.forEach(e -> {
+			argv.forEach(derefNode, e -> {
 				command.add(toAtomNode.executeToAtom(e));
 			});
 			ProcessBuilder builder = new ProcessBuilder(command).redirectErrorStream(true);
