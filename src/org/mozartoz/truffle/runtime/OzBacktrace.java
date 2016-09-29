@@ -19,28 +19,33 @@ public class OzBacktrace {
 	public void showUserBacktrace() {
 		CompilerAsserts.neverPartOfCompilation();
 		for (SourceSection sourceSection : backtrace) {
-			final String desc;
-			if (sourceSection == null) {
-				desc = "<unknown>";
-			} else {
-				desc = sourceSection.getShortDescription();
-			}
-			System.err.println("from " + desc);
+			System.out.println(formatSection(sourceSection));
 
 		}
+	}
+
+	public String formatSection(SourceSection section) {
+		final String desc;
+		if (section == null) {
+			desc = "<unknown>";
+		} else if (section.getSource() == null) {
+			desc = section.getShortDescription();
+		} else {
+			if (!section.getIdentifier().isEmpty()) {
+				desc = String.format("%s in %s:%d", section.getIdentifier(), section.getSource().getShortName(), section.getStartLine());
+			} else {
+				desc = String.format("%s:%d", section.getSource().getShortName(), section.getStartLine());
+			}
+		}
+		return "from " + desc;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		for (SourceSection sourceSection : backtrace) {
-			final String desc;
-			if (sourceSection == null) {
-				desc = "<unknown>";
-			} else {
-				desc = sourceSection.getShortDescription();
-			}
-			builder.append("from " + desc).append('\n');
+			builder.append(formatSection(sourceSection));
+			builder.append('\n');
 		}
 		return builder.toString();
 	}
