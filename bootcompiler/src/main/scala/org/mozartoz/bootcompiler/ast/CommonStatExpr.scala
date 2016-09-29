@@ -23,6 +23,7 @@ trait LocalCommon extends StatOrExpr {
 trait ProcFunExpression extends StatOrExpr {
   protected val keyword: String
 
+  protected val name: Option[VariableOrRaw]
   protected val args: Seq[VariableOrRaw]
   protected val body: StatOrExpr
   protected val flags: Seq[String]
@@ -31,7 +32,7 @@ trait ProcFunExpression extends StatOrExpr {
     val flagsSyntax = flags.foldLeft("") { _ + " " + _ }
     val argsSyntax = args.foldLeft("") { _ + " " + _.syntax(indent) }
 
-    val header0 = keyword + flagsSyntax + " {$"
+    val header0 = keyword + flagsSyntax + " {" + name.getOrElse("$")
     val header = header0 + argsSyntax + "}"
 
     val bodyIndent = indent + "   "
