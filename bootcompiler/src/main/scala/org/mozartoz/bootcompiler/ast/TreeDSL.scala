@@ -183,10 +183,12 @@ trait TreeDSL {
    */
   def LOCAL(decls: Variable*) = new {
     def IN(body: Statement) =
-      treeCopy.LocalStatement(body, decls, body)
+      if (decls.isEmpty) body else
+        treeCopy.LocalStatement(body, decls, body)
 
     def IN(body: Expression) =
-      treeCopy.LocalExpression(body, decls, body)
+      if (decls.isEmpty) body else
+        treeCopy.LocalExpression(body, decls, body)
   }
 
   /** Declare a synthetic temporary variable in a statement
