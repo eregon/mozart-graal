@@ -78,12 +78,12 @@ object Desugar extends Transformer with TreeDSL {
             LOCAL (result2) IN {
               THREAD {
                 (builtins.waitNeeded call (result2)) ~
-                (result2 === body)
+                exprToBindStatement(result2, body)
               } ~
               (builtins.unaryOpToBuiltin("!!") call (result2, result))
             }
           } else {
-            result === body
+            exprToBindStatement(result, body)
           }
         }
       }
@@ -163,6 +163,37 @@ object Desugar extends Transformer with TreeDSL {
 
     case _ =>
       super.transformExpr(expression)
+  }
+  
+  def exprToBindStatement(result: Variable, expr: Expression): Statement = expr match {
+    case StatAndExpression(statement, expression) =>
+      treeCopy.CompoundStatement(expr, Seq(statement, exprToBindStatement(result, expression)))
+      
+    case LocalExpression(declarations, expression) =>
+      treeCopy.LocalStatement(expr, declarations, exprToBindStatement(result, expression))
+      
+    case IfExpression(condition, trueExpression, falseExpression) =>
+      treeCopy.IfStatement(expr, condition, exprToBindStatement(result, trueExpression), exprToBindStatement(result, falseExpression))
+      
+    case NoElseExpression() =>
+      treeCopy.NoElseStatement(expr)
+      
+    case CallExpression(callable, args) =>
+      treeCopy.CallStatement(expr, callable, Simplify.putVarInArgs(args, result))
+      
+    case MatchExpression(value, clauses, elseExpression) =>
+      treeCopy.MatchStatement(expr, value,
+          clauses map(c => matchExpressionClauseToBindStatement(result, c)),
+          exprToBindStatement(result, elseExpression))
+    
+    case _ =>
+      treeCopy.BindStatement(expr, result, expr)
+  }
+  
+  def matchExpressionClauseToBindStatement(result: Variable, clause: MatchExpressionClause
+      ): MatchStatementClause = clause match {
+    case MatchExpressionClause(pattern, guard, body) =>
+      treeCopy.MatchStatementClause(clause, pattern, guard, exprToBindStatement(result, body))
   }
 
   private def fillAutoFeatures(fields: Seq[RecordField]) = {

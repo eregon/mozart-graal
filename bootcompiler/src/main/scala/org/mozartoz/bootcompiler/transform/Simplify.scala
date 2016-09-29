@@ -54,7 +54,7 @@ object Simplify extends Transformer with TreeDSL {
     }
   }
 
-  private def putVarInArgs(args: Seq[Expression], v: Variable) = {
+  private[transform] def putVarInArgs(args: Seq[Expression], v: Variable) = {
     var nestingMarkerFound = false
 
     def replaceNestingMarkerIn(expr: Expression): Expression = expr match {
