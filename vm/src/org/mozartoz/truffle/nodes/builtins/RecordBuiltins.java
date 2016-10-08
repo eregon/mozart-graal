@@ -184,7 +184,7 @@ public abstract class RecordBuiltins {
 					}
 				}
 
-				OzThread.getCurrent().yield();
+				OzThread.getCurrent().yield(this);
 			}
 		}
 

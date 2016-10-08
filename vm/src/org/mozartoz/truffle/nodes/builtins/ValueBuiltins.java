@@ -70,7 +70,7 @@ public abstract class ValueBuiltins {
 		@Specialization(guards = { "!isBound(a)", "!isBound(b)" })
 		protected boolean equal(OzVar a, OzVar b) {
 			while (!a.isLinkedTo(b) && !a.isBound() && !b.isBound()) {
-				OzThread.getCurrent().yield();
+				OzThread.getCurrent().yield(this);
 			}
 			if (a.isLinkedTo(b)) {
 				return true;
@@ -617,7 +617,7 @@ public abstract class ValueBuiltins {
 		@Specialization(guards = "!isBound(var)")
 		Object waitNeeded(OzVar var) {
 			while (!var.isNeeded()) {
-				OzThread.getCurrent().suspend();
+				OzThread.getCurrent().suspend(this);
 			}
 			return unit;
 		}

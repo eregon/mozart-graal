@@ -21,7 +21,7 @@ public abstract class TimeBuiltins {
 			long end = now() + delay;
 			while (now() < end) {
 				sleep();
-				OzThread.getCurrent().yield();
+				OzThread.getCurrent().yield(this);
 			}
 			return unit;
 		}
