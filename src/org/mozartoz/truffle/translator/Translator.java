@@ -54,6 +54,7 @@ import org.mozartoz.bootcompiler.oz.True;
 import org.mozartoz.bootcompiler.oz.UnitVal;
 import org.mozartoz.bootcompiler.symtab.Builtin;
 import org.mozartoz.bootcompiler.symtab.Symbol;
+import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.ExecuteValuesNode;
 import org.mozartoz.truffle.nodes.OzNode;
@@ -118,8 +119,6 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class Translator {
-
-	private static final String SHOW_PROC_AST = System.getProperty("oz.show.ast");
 
 	static class Environment {
 		private final Environment parent;
@@ -293,7 +292,7 @@ public class Translator {
 	public OzNode translateProc(ProcExpression procExpression) {
 		SourceSection sourceSection = t(procExpression);
 		String identifier = sourceSection.getIdentifier();
-		if (SHOW_PROC_AST != null && identifier.endsWith(SHOW_PROC_AST)) {
+		if (Options.SHOW_PROC_AST != null && identifier.endsWith(Options.SHOW_PROC_AST)) {
 			System.out.println(procExpression);
 		}
 		pushEnvironment(new FrameDescriptor(), identifier);

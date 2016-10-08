@@ -15,6 +15,7 @@ import org.mozartoz.bootcompiler.transform.DesugarFunctor;
 import org.mozartoz.bootcompiler.transform.Namer;
 import org.mozartoz.bootcompiler.transform.Simplify;
 import org.mozartoz.bootcompiler.transform.TailCallMarking;
+import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
@@ -68,12 +69,10 @@ public class Loader {
 
 	// public static final PolyglotEngine ENGINE = PolyglotEngine.newBuilder().build();
 
-	private static final boolean MEASURE_STARTUP = System.getProperty("oz.measure.startup") != null;
-
 	private static long last = System.currentTimeMillis();
 
 	private static void tick(String desc) {
-		if (MEASURE_STARTUP) {
+		if (Options.MEASURE_STARTUP) {
 			long now = System.currentTimeMillis();
 			long duration = now - last;
 			if (duration > 5) {
