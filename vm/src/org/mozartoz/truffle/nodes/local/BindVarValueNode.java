@@ -23,14 +23,14 @@ public abstract class BindVarValueNode extends OzNode {
 		return value;
 	}
 
-	@Specialization(guards = "var.getNext().getNext() == var")
+	@Specialization(guards = { "var.getNext() != var", "var.getNext().getNext() == var" })
 	Object bind2(Variable var, Object value) {
 		var.setInternalValue(value, var);
 		var.getNext().setInternalValue(value, var);
 		return value;
 	}
 
-	@Specialization(guards = "var.getNext().getNext().getNext() == var")
+	@Specialization(guards = { "var.getNext() != var", "var.getNext().getNext().getNext() == var" })
 	Object bind3(Variable var, Object value) {
 		var.setInternalValue(value, var);
 		Variable next = var.getNext();
