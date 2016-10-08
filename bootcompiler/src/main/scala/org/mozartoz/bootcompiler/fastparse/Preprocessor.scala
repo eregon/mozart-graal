@@ -9,8 +9,14 @@ import fastparse.core.Parsed
 import scala.collection.mutable.ArrayBuffer
 
 object Preprocessor {
-  case class SourceMap(fromOffset: Int, sourceOffset: Int, source: Source) {
-    override def toString = fromOffset + " " + sourceOffset + " @ " + source.getName
+  case class SourceMap(fromOffset: Int, sourceOffset: Int, source: Source, toOffset: Int = 0) {
+    override def toString = fromOffset + "-" + toOffset + " " + sourceOffset + " @ " + source.getName
+
+    def in(pos: Int) = {
+      fromOffset <= pos && pos < toOffset
+    }
+
+    def length = toOffset - fromOffset
   }
 
   def preprocess(source: Source): (String, Seq[SourceMap]) = {
@@ -97,7 +103,7 @@ object Preprocessor {
 
               val (out, map) = preprocess(Source.fromFileName(insertedFile.getPath))
               sourceMap ++= map.map {
-                case SourceMap(fromOffset, sourceOffset, source) =>
+                case SourceMap(fromOffset, sourceOffset, source, toOffset) =>
                   SourceMap(buffer.length + fromOffset, sourceOffset, source)
               }
               buffer ++= out
@@ -107,6 +113,11 @@ object Preprocessor {
       }
     }
     capture(input.length)
+
+    for (i <- 0 until sourceMap.size - 1) {
+      sourceMap(i) = sourceMap(i).copy(toOffset = sourceMap(i + 1).fromOffset)
+    }
+    sourceMap(sourceMap.size - 1) = sourceMap.last.copy(toOffset = Int.MaxValue)
     (buffer.toString, sourceMap)
   }
 

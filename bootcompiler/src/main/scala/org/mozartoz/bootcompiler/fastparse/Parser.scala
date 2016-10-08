@@ -293,29 +293,39 @@ object Parser {
   var map: Seq[SourceMap] = null
   var i = 0
 
-  def adjust(pos: Int) = {
-    while (map(i).fromOffset > pos) {
+  def getSourceMap(pos: Int) = {
+    while (pos < map(i).fromOffset) {
       i -= 1
     }
-    while (i + 1 < map.size && pos >= map(i + 1).fromOffset) {
+    while (pos >= map(i).toOffset) {
       i += 1
     }
-    val SourceMap(fromOffset, sourceOffset, _) = map(i)
-    (pos - fromOffset) + sourceOffset
+    map(i)
   }
 
   def createSection(pB: Int, pE: Int) = {
-    val start = adjust(pB)
-    val source = map(i).source
-    var end = adjust(pE)
-    if (source != map(i).source) {
-      while (map(i).source != source) {
+    val startMap = getSourceMap(pB)
+    val start = (pB - startMap.fromOffset) + startMap.sourceOffset
+    val source = startMap.source
+
+    var len = 0
+    if (pE <= map(i).toOffset) {
+      len = pE - pB
+    } else {
+      len = map(i).toOffset - pB
+      i += 1
+      while (!map(i).in(pE)) {
+        val m = map(i)
+        if (m.source eq source) {
+          len += m.length
+        }
         i += 1
       }
-      end = map(i).sourceOffset
+      if (map(i).source eq source) {
+        len += (pE - map(i).fromOffset)
+      }
     }
-    //    assert(source == map(i).source)
-    source.createSection("", start, end - start)
+    source.createSection("", start, len)
   }
 
   def positioned[T <: Node](p: P[T]) = P(Index ~~ p ~~ Index).map {
