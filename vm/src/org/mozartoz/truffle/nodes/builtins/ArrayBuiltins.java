@@ -48,24 +48,26 @@ public abstract class ArrayBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("array")
 	public static abstract class LowNode extends OzNode {
 
 		@Specialization
-		Object low(Object array) {
-			return unimplemented();
+		long low(OzArray array) {
+			return array.getLow();
 		}
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("array")
 	public static abstract class HighNode extends OzNode {
 
 		@Specialization
-		Object high(Object array) {
-			return unimplemented();
+		long high(OzArray array) {
+			return array.getHigh();
 		}
 
 	}

@@ -4,6 +4,7 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzCons;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -21,6 +22,11 @@ public abstract class AtomBuiltins {
 		boolean isAtom(String value) {
 			assert OzGuards.isInterned(value);
 			return true;
+		}
+
+		@Specialization
+		boolean isAtom(OzCons cons) {
+			return false;
 		}
 
 		@Specialization

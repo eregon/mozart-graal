@@ -179,14 +179,15 @@ public abstract class DictionaryBuiltins {
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("dict")
 	public static abstract class RemoveAllNode extends OzNode {
 
 		@Specialization
-		Object removeAll(Object dict) {
-			return unimplemented();
+		Object removeAll(OzDict dict) {
+			dict.clear();
+			return unit;
 		}
 
 	}
