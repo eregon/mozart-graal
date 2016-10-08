@@ -328,6 +328,9 @@ public class Translator {
 	}
 
 	private OzNode translateTailCall(CallStatement call) {
+		if (!Options.TAIL_CALLS) {
+			return translateCall(call);
+		}
 		OzNode receiver = translate(call.callable());
 		OzNode[] argsNodes = map(call.args(), this::translate);
 		return t(call, new TailCallThrowerNode(receiver, new ExecuteValuesNode(argsNodes)));
