@@ -446,7 +446,6 @@ public class OzSerializer {
 		}
 	}
 
-
 	private static class DSLNodeSerializer extends Serializer<Node> {
 		private final Field[] fields;
 		private final Method constructor;
