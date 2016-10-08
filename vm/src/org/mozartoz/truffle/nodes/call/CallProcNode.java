@@ -22,7 +22,14 @@ public abstract class CallProcNode extends OzNode {
 
 	public abstract Object executeCall(VirtualFrame frame, OzProc proc, Object[] arguments);
 
-	@Specialization(guards = "proc.callTarget == cachedCallTarget")
+	@Specialization(guards = "proc == cachedProc")
+	protected Object callProcIdentity(VirtualFrame frame, OzProc proc, Object[] arguments,
+			@Cached("proc") OzProc cachedProc,
+			@Cached("create(cachedProc.callTarget)") DirectCallNode callNode) {
+		return callNode.call(frame, OzArguments.pack(cachedProc.declarationFrame, arguments));
+	}
+
+	@Specialization(guards = "proc.callTarget == cachedCallTarget", contains = "callProcIdentity")
 	protected Object callDirect(VirtualFrame frame, OzProc proc, Object[] arguments,
 			@Cached("proc.callTarget") RootCallTarget cachedCallTarget,
 			@Cached("create(cachedCallTarget)") DirectCallNode callNode) {
