@@ -42,8 +42,9 @@ public class Loader {
 	public static final String MOZART2_DIR = new File(PROJECT_ROOT).getParent() + "/mozart2";
 	public static final String LOCAL_LIB_DIR = PROJECT_ROOT + "/lib";
 
-	static final String MAIN_LIB_DIR = MOZART2_DIR + "/lib/main";
-	static final String TOOLS_DIR = MOZART2_DIR + "/lib/tools";
+	static final String LIB_DIR = MOZART2_DIR + "/lib";
+	static final String MAIN_LIB_DIR = LIB_DIR + "/main";
+	static final String TOOLS_DIR = LIB_DIR + "/tools";
 	static final String BASE_FILE_NAME = MAIN_LIB_DIR + "/base/Base.oz";
 	static final String INIT_FUNCTOR = MAIN_LIB_DIR + "/init/Init.oz";
 
@@ -51,28 +52,18 @@ public class Loader {
 
 	public static final String OZWISH = MOZART2_DIR + "/wish/ozwish";
 
-	public static final String[] SYSTEM_FUNCTORS = new String[] {
-			MAIN_LIB_DIR + "/sys/Property.oz",
-			MAIN_LIB_DIR + "/sys/Space.oz",
-			MAIN_LIB_DIR + "/sys/Pickle.oz",
-			MAIN_LIB_DIR + "/support/CompilerSupport.oz",
-			MAIN_LIB_DIR + "/support/ErrorListener.oz",
-			MAIN_LIB_DIR + "/support/Listener.oz",
-			MAIN_LIB_DIR + "/support/Narrator.oz",
-			MAIN_LIB_DIR + "/support/ObjectSupport.oz",
-			MAIN_LIB_DIR + "/support/Type.oz",
-			MAIN_LIB_DIR + "/sp/Error.oz",
-			MAIN_LIB_DIR + "/sp/ErrorFormatters.oz",
-			MAIN_LIB_DIR + "/op/Open.oz",
-			MAIN_LIB_DIR + "/cp/Combinator.oz",
-			MAIN_LIB_DIR + "/cp/RecordC.oz",
-			MAIN_LIB_DIR + "/ap/Application.oz",
-			MOZART2_DIR + "/vm/boostenv/lib/OS.oz",
-			MAIN_LIB_DIR + "/wp/Tk.oz",
-			MAIN_LIB_DIR + "/wp/TkBoot.oz",
-			MAIN_LIB_DIR + "/wp/TkTools.oz",
-			TOOLS_DIR + "/panel/Panel.oz",
-			TOOLS_DIR + "/browser/Browser.oz",
+	public static final String[] SYSTEM_LOAD_PATH = new String[] {
+			MAIN_LIB_DIR + "/sys",
+			MAIN_LIB_DIR + "/support",
+			MOZART2_DIR + "/vm/boostenv/lib/",
+			MAIN_LIB_DIR + "/sp",
+			MAIN_LIB_DIR + "/op",
+			MAIN_LIB_DIR + "/cp",
+			MAIN_LIB_DIR + "/ap",
+			MAIN_LIB_DIR + "/wp",
+			TOOLS_DIR + "/panel",
+			TOOLS_DIR + "/browser",
+			LIB_DIR + "/compiler",
 	};
 
 	// public static final PolyglotEngine ENGINE = PolyglotEngine.newBuilder().build();

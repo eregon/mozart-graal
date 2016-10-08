@@ -73,9 +73,10 @@ public abstract class OSBuiltins {
 		}
 
 		private String findSystemFunctor(String url, String name) {
-			for (String systemFunctor : Loader.SYSTEM_FUNCTORS) {
-				if (new File(systemFunctor).getName().equals(name)) {
-					return systemFunctor;
+			for (String loadPath : Loader.SYSTEM_LOAD_PATH) {
+				File file = new File(loadPath, name);
+				if (file.exists()) {
+					return file.toString();
 				}
 			}
 			throw new RuntimeException("Could not find system functor " + url);
