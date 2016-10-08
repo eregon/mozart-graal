@@ -5,6 +5,8 @@ import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.RecordFactory;
 import org.mozartoz.truffle.runtime.Unit;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -16,10 +18,11 @@ import com.oracle.truffle.api.source.SourceSection;
 @ImportStatic(OzGuards.class)
 public abstract class OzNode extends Node {
 
-	private SourceSection sourceSection;
+	private @CompilationFinal SourceSection sourceSection;
 
 	public void setSourceSection(SourceSection sourceSection) {
 		assert this.sourceSection == null;
+		CompilerDirectives.transferToInterpreterAndInvalidate();
 		this.sourceSection = sourceSection;
 	}
 
