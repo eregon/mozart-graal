@@ -10,7 +10,7 @@ public class InitializeArgNode extends OzNode implements FrameSlotNode {
 
 	@Child WriteFrameSlotNode writeFrameSlotNode;
 
-	private int index;
+	private final int index;
 
 	public InitializeArgNode(FrameSlot slot, int index) {
 		this.writeFrameSlotNode = WriteFrameSlotNodeGen.create(slot);

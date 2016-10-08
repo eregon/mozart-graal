@@ -7,7 +7,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ReadArgumentNode extends OzNode {
 
-	private int index;
+	private final int index;
 
 	public ReadArgumentNode(int index) {
 		this.index = index;
