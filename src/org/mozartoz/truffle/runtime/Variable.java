@@ -66,6 +66,7 @@ public abstract class Variable {
 
 		Variable var = next;
 		while (var != this) {
+			assert !(var instanceof OzFuture) || this instanceof OzFuture;
 			var.setValue(value, this);
 			var = var.next;
 		}
