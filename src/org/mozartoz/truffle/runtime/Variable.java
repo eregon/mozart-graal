@@ -55,19 +55,19 @@ public abstract class Variable {
 		return next;
 	}
 
-	protected void setValue(Object value, Variable from) {
+	protected void setValue(Object value) {
 		assert !isBound();
 		assert !(value instanceof Variable);
 		this.value = value;
 	}
 
 	public void bind(Object value) {
-		setValue(value, this);
+		setValue(value);
 
 		Variable var = next;
 		while (var != this) {
 			assert !(var instanceof OzFuture) || this instanceof OzFuture;
-			var.setValue(value, this);
+			var.setValue(value);
 			var = var.next;
 		}
 	}
