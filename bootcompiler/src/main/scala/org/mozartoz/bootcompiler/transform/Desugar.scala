@@ -191,13 +191,13 @@ object Desugar extends Transformer with TreeDSL {
     case Record(label, fields) =>
       var tailExpression: Option[(Variable, Expression)] = None
       def defer(expr: Expression) = {
-        val newVar = Variable.newSynthetic()
+        val newVar = Variable.newSynthetic("RecordTailCall")
         tailExpression = Some((newVar, expr))
         newVar
       }
 
       val newFields = fields.reverse.map { field =>
-        if (!tailExpression.isDefined && hasSideEffects(field))
+        if (tailExpression.isEmpty && hasSideEffects(field))
           treeCopy.RecordField(field, field.feature, defer(field.value))
         else
           field
