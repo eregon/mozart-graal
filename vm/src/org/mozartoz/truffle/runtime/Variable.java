@@ -87,12 +87,12 @@ public abstract class Variable {
 		this.needed = true;
 	}
 
-	@TruffleBoundary
 	public Object waitValue(OzNode currentNode) {
 		makeNeeded();
 		return waitValueQuiet(currentNode);
 	}
 
+	@TruffleBoundary
 	public Object waitValueQuiet(OzNode currentNode) {
 		assert !isBound();
 		while (!isBound()) {
