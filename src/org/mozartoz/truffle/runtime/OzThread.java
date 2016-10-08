@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.coro.Coroutine;
 import com.oracle.truffle.coro.CoroutineLocal;
 
@@ -65,15 +66,15 @@ public class OzThread implements Runnable {
 		}
 	}
 
-	public void yield() {
+	public void yield(Node currentNode) {
 		status = "blocked";
 		Coroutine.yield();
 		status = "runnable";
 	}
 
-	public void suspend() {
+	public void suspend(Node currentNode) {
 		threadsRunnable--;
-		yield();
+		yield(currentNode);
 		threadsRunnable++;
 	}
 

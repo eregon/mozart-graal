@@ -209,7 +209,7 @@ public class Loader {
 
 	private void waitThreads() {
 		while (OzThread.getNumberOfThreadsRunnable() > 1) {
-			OzThread.getCurrent().yield();
+			OzThread.getCurrent().yield(null);
 		}
 	}
 

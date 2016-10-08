@@ -506,7 +506,7 @@ public abstract class OSBuiltins {
 			InputStream inputStream = (InputStream) connection.getHead();
 			try {
 				while (inputStream.available() == 0) {
-					OzThread.getCurrent().yield();
+					OzThread.getCurrent().yield(this);
 				}
 				byte[] buffer = new byte[(int) count];
 				int bytesRead = inputStream.read(buffer);
