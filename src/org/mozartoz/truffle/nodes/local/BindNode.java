@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class BindNode extends OzNode {
 
 	@Child UnifyNode unifyNode;
+	@Child BindVarValueNode bindVarValueNode;
 
 	@CreateCast("left")
 	protected OzNode derefLeft(OzNode var) {
@@ -37,28 +38,24 @@ public abstract class BindNode extends OzNode {
 	@Specialization(guards = { "!left.isBound()", "right.isBound()" })
 	Object bindLeft(OzVar left, OzVar right) {
 		Object value = right.getBoundValue(this);
-		left.bind(value);
-		return value;
+		return bindVarValue(left, value);
 	}
 
 	@Specialization(guards = { "!left.isBound()", "!isVariable(right)" })
 	Object bindLeftValue(OzVar left, Object right) {
-		left.bind(right);
 		// TODO: Also write the value directly to the frame slot if writeLeft not null?
-		return right;
+		return bindVarValue(left, right);
 	}
 
 	@Specialization(guards = { "left.isBound()", "!right.isBound()" })
 	Object bindRight(OzVar left, OzVar right) {
 		Object value = left.getBoundValue(this);
-		right.bind(value);
-		return value;
+		return bindVarValue(right, value);
 	}
 
 	@Specialization(guards = { "!isVariable(left)", "!right.isBound()" })
 	Object bindRightValue(Object left, OzVar right) {
-		right.bind(left);
-		return left;
+		return bindVarValue(right, left);
 	}
 
 	@Specialization(guards = { "!isVariable(left)", "!isVariable(right)" })
@@ -67,7 +64,7 @@ public abstract class BindNode extends OzNode {
 	}
 
 	@Specialization(guards = { "isBound(left)", "!isVariable(right)" })
-	Object bindVarValue(OzVar left, Object right) {
+	Object bindVarValue1(OzVar left, Object right) {
 		return unifyValues(left.getBoundValue(this), right);
 	}
 
@@ -78,6 +75,14 @@ public abstract class BindNode extends OzNode {
 
 	private Object unifyValues(Object left, Object right) {
 		return unify(left, right);
+	}
+
+	private Object bindVarValue(OzVar var, Object value) {
+		if (bindVarValueNode == null) {
+			CompilerDirectives.transferToInterpreter();
+			bindVarValueNode = insert(BindVarValueNode.create());
+		}
+		return bindVarValueNode.executeBindVarValue(var, value);
 	}
 
 	private Object unify(Object a, Object b) {
