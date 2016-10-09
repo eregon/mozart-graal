@@ -98,10 +98,11 @@ object Preprocessor {
               ignore(token)
 
             case PreprocessorDirectiveWithArg("insert", fileName) =>
-              val insertedFile = resolve(new File(source.getPath), fileName)
+              val file = resolve(new File(source.getPath), fileName)
               capture(token.pB)
 
-              val (out, map) = preprocess(Source.fromFileName(insertedFile.getPath))
+              val subSource = Source.newBuilder(file).name(file.getName).mimeType("application/x-oz").build
+              val (out, map) = preprocess(subSource)
               sourceMap ++= map.map {
                 case SourceMap(fromOffset, sourceOffset, source, toOffset) =>
                   SourceMap(buffer.length + fromOffset, sourceOffset, source)
