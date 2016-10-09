@@ -358,11 +358,11 @@ public class OzSerializer {
 
 	private static class FileSourceSerializer extends Serializer<Source> {
 		public void write(Kryo kryo, Output output, Source source) {
-			output.writeString(source.getName());
+			output.writeString(source.getPath());
 		}
 
 		public Source read(Kryo kryo, Input input, Class<Source> type) {
-			return sourceFromPath(input.readString());
+			return Loader.createSource(input.readString());
 		}
 	}
 
@@ -668,7 +668,7 @@ public class OzSerializer {
 		kryo.register(ConsLiteralNodeGen.class);
 
 		// sources
-		Source fileSource = sourceFromPath(Loader.INIT_FUNCTOR);
+		Source fileSource = Loader.createSource(Loader.INIT_FUNCTOR);
 		kryo.register(fileSource.getClass(), new FileSourceSerializer());
 		kryo.register(SourceSection.class);
 		kryo.register(String[].class);
@@ -699,14 +699,6 @@ public class OzSerializer {
 		kryo.register(System.in.getClass(), new InputStreamSerializer());
 
 		return kryo;
-	}
-
-	private static Source sourceFromPath(String path) throws Error {
-		try {
-			return Source.fromFileName(path);
-		} catch (IOException e) {
-			throw new Error(e);
-		}
 	}
 
 	public static void serialize(Object object, String path) {
