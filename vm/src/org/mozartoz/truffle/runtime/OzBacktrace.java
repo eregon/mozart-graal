@@ -32,9 +32,9 @@ public class OzBacktrace {
 			desc = section.getShortDescription();
 		} else {
 			if (!section.getIdentifier().isEmpty()) {
-				desc = String.format("%s in %s:%d", section.getIdentifier(), section.getSource().getShortName(), section.getStartLine());
+				desc = String.format("%s in %s:%d", section.getIdentifier(), section.getSource().getName(), section.getStartLine());
 			} else {
-				desc = String.format("%s:%d", section.getSource().getShortName(), section.getStartLine());
+				desc = String.format("%s:%d", section.getSource().getName(), section.getStartLine());
 			}
 		}
 		return "from " + desc;

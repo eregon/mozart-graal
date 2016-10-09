@@ -237,13 +237,12 @@ public class Loader {
 	// Helpers
 
 	public static Source createSource(String path) {
-		Source source;
+		File file = new File(path);
 		try {
-			source = Source.fromFileName(path);
+			return Source.newBuilder(file).name(file.getName()).mimeType(OzLanguage.MIME_TYPE).build();
 		} catch (IOException e) {
 			throw new Error(e);
 		}
-		return source.withMimeType(OzLanguage.MIME_TYPE);
 	}
 
 	public Object execute(OzRootNode rootNode) {
