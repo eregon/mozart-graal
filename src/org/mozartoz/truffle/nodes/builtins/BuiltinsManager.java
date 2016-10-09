@@ -10,6 +10,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
+import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.translator.BuiltinsRegistry;
@@ -21,6 +22,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class BuiltinsManager {
@@ -65,6 +67,8 @@ public abstract class BuiltinsManager {
 
 	private static final Map<String, OzProc> BUILTINS = new HashMap<>();
 	private static final Map<String, DynamicObject> BOOT_MODULES = new HashMap<>();
+
+	private static final Source BUILTINS_SOURCE = Source.newBuilder("").name("builtin").mimeType(OzLanguage.MIME_TYPE).internal().build();
 
 	public static OzProc getBuiltin(String moduleName, String builtinName) {
 		return getBuiltin(moduleName + "." + builtinName);
@@ -124,7 +128,7 @@ public abstract class BuiltinsManager {
 				builtinName = Character.toLowerCase(nodeName.charAt(0)) + nodeName.substring(1, nodeName.lastIndexOf("Node"));
 			}
 			String name = module + "." + builtinName;
-			SourceSection sourceSection = SourceSection.createUnavailable("builtin", name);
+			SourceSection sourceSection = BUILTINS_SOURCE.createUnavailableSection();
 
 			int arity = factory.getNodeSignatures().get(0).size();
 			Object[] readArguments = new OzNode[arity];

@@ -190,10 +190,10 @@ public class OzSerializer {
 		public void write(Kryo kryo, Output output, OzProc proc) {
 			RootNode rootNode = proc.callTarget.getRootNode();
 			SourceSection section = rootNode.getSourceSection();
-			boolean isBuiltin = section.getShortDescription().startsWith("builtin:");
+			boolean isBuiltin = section.getSource().isInternal();
 			output.writeBoolean(isBuiltin);
 			if (isBuiltin) {
-				output.writeString(section.getIdentifier());
+				output.writeString(rootNode.getName());
 			} else {
 				output.writeInt(proc.arity);
 				kryo.writeObject(output, proc.callTarget);
@@ -360,11 +360,17 @@ public class OzSerializer {
 
 	private static class FileSourceSerializer extends Serializer<Source> {
 		public void write(Kryo kryo, Output output, Source source) {
+			assert source.getPath() != null || source == Loader.MAIN_SOURCE;
 			output.writeString(source.getPath());
 		}
 
 		public Source read(Kryo kryo, Input input, Class<Source> type) {
-			return Loader.createSource(input.readString());
+			String path = input.readString();
+			if (path == null) {
+				return Loader.MAIN_SOURCE;
+			} else {
+				return Loader.createSource(path);
+			}
 		}
 	}
 

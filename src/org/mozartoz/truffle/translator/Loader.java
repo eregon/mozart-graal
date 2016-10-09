@@ -67,6 +67,8 @@ public class Loader {
 			LIB_DIR + "/compiler",
 	};
 
+	public static final Source MAIN_SOURCE = Source.newBuilder("").name("main").mimeType(OzLanguage.MIME_TYPE).internal().build();
+
 	// public static final PolyglotEngine ENGINE = PolyglotEngine.newBuilder().build();
 
 	private static long last = System.currentTimeMillis();
@@ -249,7 +251,7 @@ public class Loader {
 		RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 		Object[] arguments = OzArguments.pack(null, new Object[0]);
 		Object value = callTarget.call(arguments);
-		tick("executed " + rootNode.getSourceSection().getIdentifier());
+		tick("executed " + rootNode.getName());
 		return value;
 	}
 

@@ -10,61 +10,63 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class OzBacktrace {
 
-	private SourceSection[] backtrace;
+	private Node[] backtrace;
 
-	public OzBacktrace(SourceSection[] backtrace) {
+	private OzBacktrace(Node[] backtrace) {
 		this.backtrace = backtrace;
 	}
 
 	public void showUserBacktrace() {
 		CompilerAsserts.neverPartOfCompilation();
-		for (SourceSection sourceSection : backtrace) {
-			System.out.println(formatSection(sourceSection));
+		for (Node node : backtrace) {
+			System.out.println(formatFrom(node));
 
 		}
 	}
 
-	public String formatSection(SourceSection section) {
-		final String desc;
+	private static String formatFrom(Node node) {
+		return "from " + formatNode(node);
+	}
+
+	public static String formatNode(Node node) {
+		SourceSection section = node.getEncapsulatingSourceSection();
+		String identifier = node.getRootNode().getName();
 		if (section == null) {
-			desc = "<unknown>";
-		} else if (section.getSource() == null) {
-			desc = section.getShortDescription();
+			return "<unknown>";
+		} else if (!section.isAvailable()) {
+			return identifier;
 		} else {
-			if (!section.getIdentifier().isEmpty()) {
-				desc = String.format("%s in %s:%d", section.getIdentifier(), section.getSource().getName(), section.getStartLine());
+			if (!identifier.isEmpty()) {
+				return String.format("%s in %s:%d", identifier, section.getSource().getName(), section.getStartLine());
 			} else {
-				desc = String.format("%s:%d", section.getSource().getName(), section.getStartLine());
+				return String.format("%s:%d", section.getSource().getName(), section.getStartLine());
 			}
 		}
-		return "from " + desc;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		for (SourceSection sourceSection : backtrace) {
-			builder.append(formatSection(sourceSection));
+		for (Node node : backtrace) {
+			builder.append(formatFrom(node));
 			builder.append('\n');
 		}
 		return builder.toString();
 	}
 
 	public static OzBacktrace capture(Node currentNode) {
-		List<SourceSection> backtrace = new ArrayList<>();
+		List<Node> backtrace = new ArrayList<>();
 		if (currentNode != null) {
-			SourceSection sourceSection = currentNode.getEncapsulatingSourceSection();
-			backtrace.add(sourceSection);
+			backtrace.add(currentNode);
 		}
 		Truffle.getRuntime().iterateFrames(frame -> {
 			if (frame.getCallNode() != null) {
-				SourceSection sourceSection = frame.getCallNode().getEncapsulatingSourceSection();
-				backtrace.add(sourceSection);
+				backtrace.add(frame.getCallNode());
 			}
 			return null;
 		});
 
-		return new OzBacktrace(backtrace.toArray(new SourceSection[backtrace.size()]));
+		return new OzBacktrace(backtrace.toArray(new Node[backtrace.size()]));
 	}
 
 }
