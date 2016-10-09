@@ -123,12 +123,10 @@ public class Translator {
 	static class Environment {
 		private final Environment parent;
 		private final FrameDescriptor frameDescriptor;
-		private final String identifier;
 
-		public Environment(Environment parent, FrameDescriptor frameDescriptor, String identifier) {
+		public Environment(Environment parent, FrameDescriptor frameDescriptor) {
 			this.parent = parent;
 			this.frameDescriptor = frameDescriptor;
-			this.identifier = identifier;
 		}
 
 		private String symbol2identifier(Symbol symbol) {
@@ -144,7 +142,7 @@ public class Translator {
 		}
 	}
 
-	private Environment environment = new Environment(null, new FrameDescriptor(), "<toplevel>");
+	private Environment environment = new Environment(null, new FrameDescriptor());
 	private final Environment rootEnvironment = environment;
 
 	public Translator() {
@@ -155,7 +153,7 @@ public class Translator {
 	}
 
 	private void pushEnvironment(FrameDescriptor frameDescriptor, String identifier) {
-		environment = new Environment(environment, frameDescriptor, identifier);
+		environment = new Environment(environment, frameDescriptor);
 	}
 
 	private void popEnvironment() {
@@ -183,7 +181,7 @@ public class Translator {
 		OzNode wrapped = wrap.apply(translated);
 		OzNode handler = new TopLevelHandlerNode(wrapped);
 
-		SourceSection sourceSection = SourceSection.createUnavailable("top-level", description);
+		SourceSection sourceSection = Loader.MAIN_SOURCE.createUnavailableSection();
 		return new OzRootNode(sourceSection, description, environment.frameDescriptor, handler, 0);
 	}
 
@@ -291,7 +289,10 @@ public class Translator {
 
 	public OzNode translateProc(ProcExpression procExpression) {
 		SourceSection sourceSection = t(procExpression);
-		String identifier = sourceSection.getIdentifier();
+		String identifier = "";
+		if (procExpression.name().isDefined()) {
+			identifier = ((Variable) procExpression.name().get()).symbol().name();
+		}
 		if (Options.SHOW_PROC_AST != null && identifier.endsWith(Options.SHOW_PROC_AST)) {
 			System.out.println(procExpression);
 		}
@@ -600,31 +601,10 @@ public class Translator {
 
 	private SourceSection t(Node node) {
 		if (node.section() != null) {
-			return sectionWithIdentifier(node.section(), environment.identifier);
+			return node.section();
 		} else {
-			return SourceSection.createUnavailable("unavailable", "");
+			return Loader.MAIN_SOURCE.createUnavailableSection();
 		}
-	}
-
-	private SourceSection t(ProcExpression node) {
-		if (node.section() != null) {
-			if (node.name().isDefined()) {
-				String identifier = ((Variable) node.name().get()).symbol().name();
-				return sectionWithIdentifier(node.section(), identifier);
-			} else {
-				return node.section();
-			}
-		} else {
-			return SourceSection.createUnavailable("unavailable", "");
-		}
-	}
-
-	private SourceSection sectionWithIdentifier(SourceSection section, String identifier) {
-		if (section.getSource() == null) {
-			return section;
-		}
-		return section.getSource().createSection(identifier,
-				section.getStartLine(), section.getStartColumn(), section.getCharIndex(), section.getCharLength());
 	}
 
 }

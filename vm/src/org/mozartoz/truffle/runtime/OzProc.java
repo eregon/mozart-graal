@@ -5,6 +5,7 @@ import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.TopLevelHandlerNode;
 import org.mozartoz.truffle.nodes.call.CallNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
+import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -44,14 +45,13 @@ public class OzProc {
 
 	@Override
 	public String toString() {
-		SourceSection sourceSection = callTarget.getRootNode().getSourceSection();
-		return "<Proc@" + sourceSection.getShortDescription() + ">";
+		return "<Proc " + OzBacktrace.formatNode(callTarget.getRootNode()) + ">";
 	}
 
 	/** Wraps itself in a CallNode so it works well with TailCallException */
 	private CallTarget wrap(String identifier) {
 		OzNode callNode = CallNode.create(new LiteralNode(this), new LiteralNode(new Object[0]));
-		SourceSection sourceSection = SourceSection.createUnavailable("main", identifier);
+		SourceSection sourceSection = Loader.MAIN_SOURCE.createUnavailableSection();
 		FrameDescriptor frameDescriptor = new FrameDescriptor();
 		TopLevelHandlerNode topLevelHandler = new TopLevelHandlerNode(callNode);
 		OzRootNode rootNode = new OzRootNode(sourceSection, identifier, frameDescriptor, topLevelHandler, 0);
