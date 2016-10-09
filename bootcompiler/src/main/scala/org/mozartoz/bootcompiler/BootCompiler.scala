@@ -53,7 +53,7 @@ object BootCompiler {
       for ((message, pos) <- prog.errors) {
         Console.err.println(
           "Error at %s\n".format(pos.toString) +
-            message + "\n" + pos.getShortDescription)
+            message + "\n" + pos.getSource().getPath() + ":" + pos.getStartLine())
       }
 
       sys.exit(2)

@@ -325,7 +325,7 @@ object Parser {
         len += (pE - map(i).fromOffset)
       }
     }
-    source.createSection("", start, len)
+    source.createSection(start, len)
   }
 
   def positioned[T <: Node](p: P[T]) = P(Index ~~ p ~~ Index).map {

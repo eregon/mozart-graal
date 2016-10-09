@@ -24,7 +24,7 @@ abstract class Node extends Product {
     val rightSection = right.section
     if (leftSection != null && rightSection != null && leftSection.getSource == rightSection.getSource) {
       val len = rightSection.getCharEndIndex - leftSection.getCharIndex
-      section = leftSection.getSource.createSection("", leftSection.getCharIndex, len)
+      section = leftSection.getSource.createSection(leftSection.getCharIndex, len)
     }
     this
   }
