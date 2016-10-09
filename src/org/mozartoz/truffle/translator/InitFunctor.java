@@ -26,7 +26,7 @@ public abstract class InitFunctor {
 				new LiteralNode(new Object[] { imports, new OzVar() }));
 
 		SourceSection sourceSection = SourceSection.createUnavailable("main", "Init.apply");
-		return new OzRootNode(sourceSection, new FrameDescriptor(), new TopLevelHandlerNode(node), 0);
+		return new OzRootNode(sourceSection, "Init.apply", new FrameDescriptor(), new TopLevelHandlerNode(node), 0);
 	}
 
 }

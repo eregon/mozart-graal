@@ -137,7 +137,7 @@ public abstract class BuiltinsManager {
 				arity++;
 			}
 
-			OzRootNode rootNode = new OzRootNode(sourceSection, new FrameDescriptor(), node, arity);
+			OzRootNode rootNode = new OzRootNode(sourceSection, name, new FrameDescriptor(), node, arity);
 			RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 			OzProc function = new OzProc(callTarget, null, arity);
 

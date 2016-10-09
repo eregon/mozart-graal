@@ -54,7 +54,7 @@ public class OzProc {
 		SourceSection sourceSection = SourceSection.createUnavailable("main", identifier);
 		FrameDescriptor frameDescriptor = new FrameDescriptor();
 		TopLevelHandlerNode topLevelHandler = new TopLevelHandlerNode(callNode);
-		OzRootNode rootNode = new OzRootNode(sourceSection, frameDescriptor, topLevelHandler, 0);
+		OzRootNode rootNode = new OzRootNode(sourceSection, identifier, frameDescriptor, topLevelHandler, 0);
 		return Truffle.getRuntime().createCallTarget(rootNode);
 	}
 
