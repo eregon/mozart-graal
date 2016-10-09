@@ -428,6 +428,7 @@ public class OzSerializer {
 					}
 					kryo.writeClassAndObject(output, value);
 				}
+				kryo.writeClassAndObject(output, node.getSourceSection());
 			} catch (ReflectiveOperationException e) {
 				throw new Error(e);
 			}
@@ -438,8 +439,13 @@ public class OzSerializer {
 			for (int i = 0; i < fields.length; i++) {
 				values[i] = kryo.readClassAndObject(input);
 			}
+			SourceSection sourceSection = (SourceSection) kryo.readClassAndObject(input);
 			try {
-				return (Node) constructor.newInstance(values);
+				Node node = (Node) constructor.newInstance(values);
+				if (node instanceof OzNode && node.getSourceSection() == null) {
+					((OzNode) node).setSourceSection(sourceSection);
+				}
+				return node;
 			} catch (ReflectiveOperationException e) {
 				throw new Error(e);
 			}
