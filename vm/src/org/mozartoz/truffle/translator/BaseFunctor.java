@@ -26,7 +26,7 @@ public abstract class BaseFunctor {
 
 		OzNode node = SequenceNode.sequence(apply, DerefNode.create(new LiteralNode(result)));
 		SourceSection sourceSection = SourceSection.createUnavailable("main", "Base.apply");
-		return new OzRootNode(sourceSection, new FrameDescriptor(), new TopLevelHandlerNode(node), 0);
+		return new OzRootNode(sourceSection, "Base.apply", new FrameDescriptor(), new TopLevelHandlerNode(node), 0);
 	}
 
 }

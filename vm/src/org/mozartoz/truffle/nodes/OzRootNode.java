@@ -12,13 +12,20 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class OzRootNode extends RootNode {
 
+	private final String name;
 	private final int arity;
 	@Child OzNode body;
 
-	public OzRootNode(SourceSection sourceSection, FrameDescriptor frameDescriptor, OzNode body, int arity) {
+	public OzRootNode(SourceSection sourceSection, String name, FrameDescriptor frameDescriptor, OzNode body, int arity) {
 		super(OzLanguage.class, sourceSection, frameDescriptor);
+		this.name = name;
 		this.body = body;
 		this.arity = arity;
+	}
+
+	@Override
+	public String getName() {
+		return name;
 	}
 
 	public int getArity() {

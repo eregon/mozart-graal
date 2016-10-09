@@ -234,6 +234,7 @@ public class OzSerializer {
 	private static class OzRootNodeSerializer extends Serializer<OzRootNode> {
 		public void write(Kryo kryo, Output output, OzRootNode rootNode) {
 			kryo.writeClassAndObject(output, rootNode.getSourceSection());
+			output.writeString(rootNode.getName());
 			kryo.writeObject(output, rootNode.getFrameDescriptor());
 			kryo.writeClassAndObject(output, rootNode.getBody());
 			output.writeInt(rootNode.getArity());
@@ -241,10 +242,11 @@ public class OzSerializer {
 
 		public OzRootNode read(Kryo kryo, Input input, Class<OzRootNode> type) {
 			SourceSection sourceSection = (SourceSection) kryo.readClassAndObject(input);
+			String name = input.readString();
 			FrameDescriptor frameDescriptor = kryo.readObject(input, FrameDescriptor.class);
 			OzNode body = (OzNode) kryo.readClassAndObject(input);
 			int arity = input.readInt();
-			return new OzRootNode(sourceSection, frameDescriptor, body, arity);
+			return new OzRootNode(sourceSection, name, frameDescriptor, body, arity);
 		}
 	}
 

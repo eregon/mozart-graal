@@ -184,7 +184,7 @@ public class Translator {
 		OzNode handler = new TopLevelHandlerNode(wrapped);
 
 		SourceSection sourceSection = SourceSection.createUnavailable("top-level", description);
-		return new OzRootNode(sourceSection, environment.frameDescriptor, handler, 0);
+		return new OzRootNode(sourceSection, description, environment.frameDescriptor, handler, 0);
 	}
 
 	OzNode translate(StatOrExpr node) {
@@ -313,7 +313,7 @@ public class Translator {
 			nodes[i] = translate(procExpression.body());
 
 			OzNode procBody = SequenceNode.sequence(nodes);
-			OzRootNode rootNode = new OzRootNode(sourceSection, environment.frameDescriptor, procBody, arity);
+			OzRootNode rootNode = new OzRootNode(sourceSection, identifier, environment.frameDescriptor, procBody, arity);
 			RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 			return new ProcDeclarationNode(callTarget);
 		} finally {
