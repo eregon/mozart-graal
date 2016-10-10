@@ -1,6 +1,7 @@
 package org.mozartoz.truffle.nodes;
 
 import org.mozartoz.truffle.runtime.OzArguments;
+import org.mozartoz.truffle.runtime.OzBacktrace;
 import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzLanguage;
 
@@ -52,7 +53,7 @@ public class OzRootNode extends RootNode {
 
 	@Override
 	public String toString() {
-		return OzRootNode.class.getSimpleName() + "@" + getSourceSection();
+		return OzBacktrace.formatNode(this);
 	}
 
 }
