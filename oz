@@ -1,29 +1,21 @@
 #!/usr/bin/env ruby
 
-require 'pathname'
+require_relative 'tool/common'
 
 dir = File.expand_path('..', __FILE__)
-rel = Dir.pwd == dir ? "" : "#{dir}/"
 
-BOOTCOMPILER = File.expand_path('../mozart2/bootcompiler', dir)
-BOOTCOMPILER_JAR = "#{BOOTCOMPILER}/target/scala-2.11/bootcompiler-assembly-2.0-SNAPSHOT.jar"
+bootclasspath = [TRUFFLE_API_JAR]
+classpath = oz_classpath
 
-TRUFFLE_API_JAR = File.expand_path("../truffle/mxbuild/dists/truffle-api.jar", dir)
-
-BOOTCLASSPATH = [TRUFFLE_API_JAR]
-maven_classpath = File.read("#{rel}.classpath").scan(%r{kind="lib" path="([^"]+/\.m2/repository/[^"]+)"}).map(&:first)
-CLASSPATH = [BOOTCOMPILER_JAR, "#{rel}bin"] + maven_classpath
-
+java = 'java'
 java_opts = %w[-ea -esa]
-java = if ARGV.delete('--graal')
-  graal_home = Dir["#{dir}/../jvmci/jdk1.8.0_*/product"].first
-  unless graal_home
-    system("rake build:graal")
-    graal_home = Dir["#{dir}/../jvmci/jdk1.8.0_*/product"].first
-  end
-  File.expand_path("#{graal_home}/bin/java")
-else
-  'java'
+
+if ARGV.delete('--graal')
+  jvmci_home = File.read("../graal-core/mx.graal-core/env").scan(/^JAVA_HOME=(.+)/)[0][0]
+  java = File.expand_path("#{jvmci_home}/bin/java")
+  java_opts += %w[-server -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -d64]
+  java_opts << "-Djvmci.class.path.append=#{GRAAL_JAR}"
+  java_opts << "-Djvmci.Compiler=graal"
 end
 
 args = ARGV.drop_while { |arg|
@@ -35,8 +27,8 @@ args = ARGV.drop_while { |arg|
 cmd = [
   java,
   *java_opts,
-  "-Xbootclasspath/p:" + BOOTCLASSPATH.join(':'),
-  '-cp', CLASSPATH.join(':'),
+  "-Xbootclasspath/p:" + bootclasspath.join(':'),
+  '-cp', classpath.join(':'),
   'org.mozartoz.truffle.Main'
 ] + args
 
