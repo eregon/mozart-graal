@@ -13,10 +13,11 @@ import scala.collection.mutable.ListBuffer
 object Whitespace {
   import fastparse.all._
 
-  val whitespace = (
-    CharPred(ch => ch <= ' ')
+  val w = P(CharPred(ch => ch <= ' ')
     | "/*" ~/ ((!"*/" ~ AnyChar).rep ~ "*/").opaque("unclosed comment")
-    | "%" ~/ CharsWhile(_ != '\n').?).rep.opaque("whitespace")
+    | "%" ~/ CharsWhile(_ != '\n').?)
+
+  val whitespace = w.rep.opaque("whitespace")
 
   val whitespaceWrapper = WhitespaceApi.Wrapper {
     NoTrace(whitespace)
