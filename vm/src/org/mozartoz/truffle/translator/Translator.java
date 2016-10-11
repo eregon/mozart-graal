@@ -603,7 +603,7 @@ public class Translator {
 		if (node.section() != null) {
 			return node.section();
 		} else {
-			return Loader.MAIN_SOURCE.createUnavailableSection();
+			return null;
 		}
 	}
 
