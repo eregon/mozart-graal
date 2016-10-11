@@ -14,6 +14,10 @@ import com.oracle.truffle.api.dsl.Specialization;
 @NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 public abstract class BindNode extends OzNode {
 
+	public static BindNode create() {
+		return BindNodeGen.create(null, null);
+	}
+
 	@Child UnifyNode unifyNode;
 	@Child BindVarValueNode bindVarValueNode;
 

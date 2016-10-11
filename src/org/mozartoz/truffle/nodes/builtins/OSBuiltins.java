@@ -17,6 +17,7 @@ import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltins.ToAtomNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
+import org.mozartoz.truffle.nodes.local.BindNode;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzException;
@@ -238,13 +239,44 @@ public abstract class OSBuiltins {
 		}
 	}
 
+	@Builtin(deref = { 1, 2 }, tryDeref = { 3, 4 })
 	@GenerateNodeFactory
-	@NodeChildren({ @NodeChild("fileNode"), @NodeChild("count"), @NodeChild("end"), @NodeChild("actualCount") })
+	@NodeChildren({ @NodeChild("file"), @NodeChild("count"), @NodeChild("tail"), @NodeChild("actualCount") })
 	public static abstract class FreadNode extends OzNode {
 
+		private static final int MAX_BUFFER_SIZE = 1024 * 1024;
+
+		@Child BindNode bindNode = BindNode.create();
+
+		@TruffleBoundary
 		@Specialization
-		Object fread(Object fileNode, Object count, Object end, OzVar actualCount) {
-			return unimplemented();
+		Object fread(FileInputStream file, long count, Object tail, Object actualCount) {
+			if (count <= 0) {
+				bindNode.executeBind(actualCount, 0L);
+				return tail;
+			}
+
+			int bufferSize = (int) Math.min(count, MAX_BUFFER_SIZE);
+			byte[] buffer = new byte[bufferSize];
+			int bytes;
+			try {
+				bytes = file.read(buffer);
+			} catch (IOException e) {
+				throw new Error(e);
+			}
+
+			if (bytes == -1) {
+				bindNode.executeBind(actualCount, 0L);
+				return tail;
+			}
+
+			Object list = tail;
+			for (int i = bytes - 1; i >= 0; i--) {
+				long ch = buffer[i];
+				list = new OzCons(ch, list);
+			}
+			bindNode.executeBind(actualCount, (long) bytes);
+			return list;
 		}
 
 	}
