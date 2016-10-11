@@ -548,6 +548,11 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
         case (prev, (RecordField(_, value))) => prev ++ patternVariables(value)
       }
 
+    case ListExpression(elements) =>
+      elements.foldLeft(Set.empty[RawVariable]) {
+        case (prev, value) => prev ++ patternVariables(value)
+      }
+
     case _ =>
       Set.empty
   }
