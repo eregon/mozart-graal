@@ -207,11 +207,15 @@ object Lexer {
     floatLiteralBase
       | "~" ~ floatLiteralBase ^^ (x => -x))
 
-  val floatLiteralBase: P[Double] = P(
-    (digit.rep(1).! ~ `.` ~ digit.rep.! ~ (CharIn("eE") ~ floatExponentBase).?).map {
-      case (int, frac, None)      => (int + "." + frac).toDouble
-      case (int, frac, Some(exp)) => { (int + "." + frac + "e" + exp).toDouble }
-    })
+  val afterFloatDot = P(CharIn("eE") ~ ("~" | digit) | digit)
+
+  val floatLiteralBase: P[Double] =
+    P((digit.rep(1).! ~ `.` ~ digit.rep.! ~ !(identCharPred)).map {
+      case (int, frac) => (int + "." + frac).toDouble
+    } |
+      (digit.rep(1).! ~ `.` ~ digit.rep.! ~ CharIn("eE") ~ floatExponentBase).map {
+        case (int, frac, exp) => { (int + "." + frac + "e" + exp).toDouble }
+      })
 
   val floatExponentBase: P[String] = P(
     digit.rep(1).!
@@ -219,7 +223,7 @@ object Lexer {
 
   val integerLiteral: P[Long] = P(
     integerLiteralBase
-      | "~" ~ integerLiteralBase ^^ (x => -x)) ~ !("." ~ (!"." ~ AnyChar)) // Disallow int.X but allow int..int (for I in 1..10 do)
+      | "~" ~ integerLiteralBase ^^ (x => -x)) ~ !("." ~ afterFloatDot) // Disallow int.X but allow int..int (for I in 1..10 do)
 
   def integerLiteralBase: P[Long] = P(
     "0" ~ CharIn("xX") ~ hexDigit.rep(1).! ^^ {
