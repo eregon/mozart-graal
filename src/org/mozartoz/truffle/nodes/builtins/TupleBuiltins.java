@@ -61,6 +61,11 @@ public abstract class TupleBuiltins {
 		}
 
 		@Specialization
+		boolean isTuple(OzCons cons) {
+			return true;
+		}
+
+		@Specialization
 		boolean isTuple(DynamicObject record) {
 			Arity arity = OzRecord.getArity(record);
 			return arity.isTupleArity();

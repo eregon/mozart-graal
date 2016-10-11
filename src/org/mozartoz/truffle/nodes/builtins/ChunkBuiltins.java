@@ -4,6 +4,7 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzChunk;
+import org.mozartoz.truffle.runtime.OzProc;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -32,6 +33,11 @@ public abstract class ChunkBuiltins {
 		@Specialization
 		boolean isChunk(OzChunk value) {
 			return true;
+		}
+
+		@Specialization
+		boolean isChunk(OzProc value) {
+			return false;
 		}
 
 	}
