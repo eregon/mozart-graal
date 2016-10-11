@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
@@ -84,35 +85,44 @@ public abstract class OSBuiltins {
 
 	}
 
+	private static final long RAND_MIN = 0;
+	private static final long RAND_MAX = 1L << 32;
+
+	@Builtin
 	@GenerateNodeFactory
 	public static abstract class RandNode extends OzNode {
 
 		@Specialization
-		Object rand() {
-			return unimplemented();
+		long rand() {
+			long random = ThreadLocalRandom.current().nextInt();
+			long value = random - (long) Integer.MIN_VALUE;
+			return value;
 		}
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("seed")
 	public static abstract class SrandNode extends OzNode {
 
 		@Specialization
-		Object srand(Object seed) {
-			return unimplemented();
+		Object srand(long seed) {
+			ThreadLocalRandom.current().setSeed(seed);
+			return unit;
 		}
 
 	}
 
+	@Builtin
 	@GenerateNodeFactory
 	@NodeChild("min")
 	public static abstract class RandLimitsNode extends OzNode {
 
 		@Specialization
-		Object randLimits(OzVar min) {
-			return unimplemented();
+		long randLimits(OzVar min) {
+			min.bind(RAND_MIN);
+			return RAND_MAX;
 		}
 
 	}
