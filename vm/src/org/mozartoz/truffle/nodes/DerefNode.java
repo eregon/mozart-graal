@@ -50,9 +50,14 @@ public abstract class DerefNode extends OzNode {
 		return check(var.waitValue(this));
 	}
 
-	@Specialization
+	@Specialization(guards = "isBound(future)")
 	Object deref(OzFuture future) {
 		return check(future.getBoundValue(this));
+	}
+
+	@Specialization(guards = "!isBound(future)")
+	Object derefUnbound(OzFuture future) {
+		return check(future.waitValue(this));
 	}
 
 	private Object check(Object value) {
