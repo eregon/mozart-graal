@@ -185,7 +185,13 @@ public class Loader {
 		tick("start loading Main");
 		final OzProc main;
 		if (new File(MAIN_IMAGE).exists()) {
-			main = OzSerializer.deserialize(MAIN_IMAGE, OzProc.class);
+			try {
+				main = OzSerializer.deserialize(MAIN_IMAGE, OzProc.class);
+			} catch (Exception e) {
+				System.err.println("Got " + e.getClass().getSimpleName() + " while deserializing, removing Main.image");
+				new File(MAIN_IMAGE).delete();
+				throw e;
+			}
 			tick("deserialized Main");
 			base = getBaseFromMain(main);
 		} else {
