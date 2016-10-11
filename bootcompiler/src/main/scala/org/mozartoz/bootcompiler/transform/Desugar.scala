@@ -146,12 +146,6 @@ object Desugar extends Transformer with TreeDSL {
     case BinaryOp(lhs, op, rhs) =>
       transformExpr(builtins.binaryOpToBuiltin(op) callExpr (lhs, rhs))
 
-    case ShortCircuitBinaryOp(lhs, "andthen", rhs) =>
-      transformExpr(IF (lhs) THEN (rhs) ELSE (False()))
-
-    case ShortCircuitBinaryOp(lhs, "orelse", rhs) =>
-      transformExpr(IF (lhs) THEN (True()) ELSE (rhs))
-
     case Record(label, fields) =>
       val fieldsNoAuto = fillAutoFeatures(fields)
       val newRecord = treeCopy.Record(expression, label, fieldsNoAuto)
