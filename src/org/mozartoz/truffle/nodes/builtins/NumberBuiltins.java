@@ -7,10 +7,12 @@ import java.math.BigInteger;
 import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.ExactMath;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class NumberBuiltins {
 
@@ -43,13 +45,19 @@ public abstract class NumberBuiltins {
 
 	}
 
+	@Builtin(name = "abs", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("operand")
 	public static abstract class AbsNode extends OzNode {
 
 		@Specialization
-		Object abs(Object operand) {
-			return unimplemented();
+		long abs(long operand,
+				@Cached("createBinaryProfile()") ConditionProfile negative) {
+			if (negative.profile(operand < 0)) {
+				return -operand;
+			} else {
+				return operand;
+			}
 		}
 
 	}
@@ -62,6 +70,11 @@ public abstract class NumberBuiltins {
 		@Specialization(rewriteOn = ArithmeticException.class)
 		long add(long a, long b) {
 			return ExactMath.addExact(a, b);
+		}
+
+		@Specialization
+		double add(double a, double b) {
+			return a + b;
 		}
 
 		@Specialization
