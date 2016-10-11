@@ -26,6 +26,7 @@ import org.mozartoz.bootcompiler.ast.RaiseCommon;
 import org.mozartoz.bootcompiler.ast.RawDeclarationOrVar;
 import org.mozartoz.bootcompiler.ast.Record;
 import org.mozartoz.bootcompiler.ast.RecordField;
+import org.mozartoz.bootcompiler.ast.ShortCircuitBinaryOp;
 import org.mozartoz.bootcompiler.ast.SkipStatement;
 import org.mozartoz.bootcompiler.ast.StatAndExpression;
 import org.mozartoz.bootcompiler.ast.StatOrExpr;
@@ -81,8 +82,10 @@ import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.NotEqualNodeFact
 import org.mozartoz.truffle.nodes.call.CallNode;
 import org.mozartoz.truffle.nodes.call.TailCallThrowerNode;
 import org.mozartoz.truffle.nodes.control.AndNode;
+import org.mozartoz.truffle.nodes.control.AndThenNode;
 import org.mozartoz.truffle.nodes.control.IfNode;
 import org.mozartoz.truffle.nodes.control.NoElseNode;
+import org.mozartoz.truffle.nodes.control.OrElseNode;
 import org.mozartoz.truffle.nodes.control.SequenceNode;
 import org.mozartoz.truffle.nodes.control.SkipNode;
 import org.mozartoz.truffle.nodes.control.TryNode;
@@ -109,14 +112,14 @@ import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.Unit;
 
-import scala.collection.JavaConversions;
-
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.SourceSection;
+
+import scala.collection.JavaConversions;
 
 public class Translator {
 
@@ -226,6 +229,11 @@ public class Translator {
 			} else if (node instanceof BinaryOp) {
 				BinaryOp binaryOp = (BinaryOp) node;
 				return translateBinaryOp(binaryOp.operator(),
+						translate(binaryOp.left()),
+						translate(binaryOp.right()));
+			} else if (node instanceof ShortCircuitBinaryOp) {
+				ShortCircuitBinaryOp binaryOp = (ShortCircuitBinaryOp) node;
+				return translateShortCircuitBinaryOp(binaryOp.operator(),
 						translate(binaryOp.left()),
 						translate(binaryOp.right()));
 			} else if (node instanceof ProcExpression) { // proc/fun literal
@@ -548,6 +556,17 @@ public class Translator {
 			return GreaterThanNodeFactory.create(left, right);
 		case ".":
 			return DotNodeFactory.create(left, right);
+		default:
+			throw unknown("operator", operator);
+		}
+	}
+
+	private OzNode translateShortCircuitBinaryOp(String operator, OzNode left, OzNode right) {
+		switch (operator) {
+		case "andthen":
+			return new AndThenNode(left, right);
+		case "orelse":
+			return new OrElseNode(left, right);
 		default:
 			throw unknown("operator", operator);
 		}
