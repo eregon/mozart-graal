@@ -21,6 +21,7 @@ import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -46,6 +47,11 @@ public abstract class RecordBuiltins {
 			return true;
 		}
 
+		@Specialization(guards = "isLiteral(value)")
+		boolean isRecordLiteral(Object value) {
+			return true;
+		}
+
 		@Specialization
 		boolean isRecord(OzCons value) {
 			return true;
@@ -54,6 +60,11 @@ public abstract class RecordBuiltins {
 		@Specialization
 		boolean isRecord(DynamicObject value) {
 			return true;
+		}
+
+		@Fallback
+		boolean isRecord(Object value) {
+			return false;
 		}
 
 	}
@@ -129,6 +140,11 @@ public abstract class RecordBuiltins {
 		}
 
 		@Specialization
+		Object arity(OzName name) {
+			return "nil";
+		}
+
+		@Specialization
 		Object arity(OzCons cons) {
 			return Arity.CONS_ARITY.asOzList();
 		}
@@ -151,11 +167,16 @@ public abstract class RecordBuiltins {
 		}
 
 		@Specialization
+		OzCons clone(OzCons cons) {
+			return new OzCons(new OzVar(getSourceSection()), new OzVar(getSourceSection()));
+		}
+
+		@Specialization
 		DynamicObject clone(DynamicObject record) {
 			Arity arity = OzRecord.getArity(record);
 			Object[] values = new Object[arity.getWidth()];
 			for (int i = 0; i < values.length; i++) {
-				values[i] = new OzVar();
+				values[i] = new OzVar(getSourceSection());
 			}
 			return OzRecord.buildRecord(arity, values);
 		}

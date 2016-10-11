@@ -804,6 +804,11 @@ public abstract class ValueBuiltins {
 		}
 
 		@Specialization
+		boolean hasFeature(OzName name, Object feature) {
+			return false;
+		}
+
+		@Specialization
 		boolean hasFeature(Unit unit, Object feature) {
 			return false;
 		}
@@ -847,6 +852,11 @@ public abstract class ValueBuiltins {
 
 		@Specialization
 		Object condSelect(String atom, Object feature, Object def) {
+			return def;
+		}
+
+		@Specialization(guards = "isLiteral(literal)")
+		Object condSelect(Object literal, Object feature, Object def) {
 			return def;
 		}
 
