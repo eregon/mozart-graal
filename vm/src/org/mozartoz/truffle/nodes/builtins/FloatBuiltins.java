@@ -253,13 +253,14 @@ public abstract class FloatBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class SqrtNode extends OzNode {
 
 		@Specialization
-		Object sqrt(Object value) {
-			return unimplemented();
+		double sqrt(double value) {
+			return Math.sqrt(value);
 		}
 
 	}
