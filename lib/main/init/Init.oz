@@ -348,6 +348,7 @@ define
       %% Initialize properties from env when unserialized
       proc {OnLoad}
          {RealModule.trace.set {OS.getEnv 'OZ_TRACE_MODULE'}\=false}
+         {Resolve.trace.set {OS.getEnv 'OZ_TRACE_LOAD'}\=false}
          \insert 'Prop.oz'
       in
          {SET load Resolve.load}
