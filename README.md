@@ -13,7 +13,7 @@ Many simple tests pass and the Panel is working:
 
 ## Dependencies
 
-* Java 8
+* Java SE Development Kit 8u92 from [here](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html#jdk-8u92-oth-JPR)
 * Maven 3
 * C/C++ toolchain (`build-essential`) for building Graal
 * Python 2.7 (for `mx`)
