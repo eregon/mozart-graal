@@ -11,8 +11,6 @@ TRUFFLE_DSL_PROCESSOR_JAR = TRUFFLE / "mxbuild/dists/truffle-dsl-processor.jar"
 JVMCI_HOME = JVMCI / "jdk1.8.0_92/product"
 GRAAL_MX_ENV = GRAAL / "mx.graal-core/env"
 
-JAVA_SOURCES = Dir["src/**/*.java"]
-
 def erb(template, output)
   require 'erb'
   File.write output, ERB.new(File.read(template), nil, '<>').result(binding)
