@@ -17,7 +17,7 @@ Many simple tests pass and the Panel is working:
 * Maven 3
 * C/C++ toolchain (`build-essential`) for building Graal
 * Python 2.7 (for `mx`)
-* Ruby >= 2.0.0 (for the launcher)
+* Ruby >= 2.2.0 (for the launcher)
 
 ## Build instructions
 
