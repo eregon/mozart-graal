@@ -29,6 +29,7 @@ import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.PropertyRegistry;
+import org.mozartoz.truffle.runtime.StacktraceThread;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -93,11 +94,16 @@ public class Loader {
 
 	private DynamicObject base = null;
 	private final PropertyRegistry propertyRegistry;
+	private StacktraceThread shutdownHook;
 
 	private Loader() {
 		BuiltinsManager.defineBuiltins();
 		propertyRegistry = PropertyRegistry.INSTANCE;
 		propertyRegistry.initialize();
+		if (Options.STACKTRACE_ON_INTERRUPT) {
+			shutdownHook = new StacktraceThread();
+			Runtime.getRuntime().addShutdownHook(shutdownHook);
+		}
 	}
 
 	public DynamicObject loadBase() {
@@ -213,11 +219,18 @@ public class Loader {
 		main.rootCall("main");
 
 		waitThreads();
+		shutdown();
 	}
 
 	private void waitThreads() {
 		while (OzThread.getNumberOfThreadsRunnable() > 1) {
 			OzThread.getCurrent().yield(null);
+		}
+	}
+
+	private void shutdown() {
+		if (Options.STACKTRACE_ON_INTERRUPT) {
+			Runtime.getRuntime().removeShutdownHook(shutdownHook);
 		}
 	}
 

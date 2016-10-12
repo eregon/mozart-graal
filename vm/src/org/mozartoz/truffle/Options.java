@@ -8,6 +8,8 @@ public abstract class Options {
 
 	public static final boolean TAIL_CALLS = bool("oz.tail.calls", true);
 
+	public static final boolean STACKTRACE_ON_INTERRUPT = System.getProperty("oz.stacktrace.on_interrupt") != null;
+
 	private static boolean bool(String property, boolean defaultValue) {
 		return Boolean.valueOf(System.getProperty(property, Boolean.toString(defaultValue)));
 	}

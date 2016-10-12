@@ -1,5 +1,10 @@
 package org.mozartoz.truffle.runtime;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.mozartoz.truffle.Options;
+
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.coro.Coroutine;
 import com.oracle.truffle.coro.CoroutineLocal;
@@ -9,6 +14,8 @@ public class OzThread implements Runnable {
 	private static final CoroutineLocal<OzThread> CURRENT_OZ_THREAD = new CoroutineLocal<>();
 
 	public static final OzThread MAIN_THREAD = new OzThread();
+
+	public static final Map<OzThread, OzBacktrace> BACKTRACES = Options.STACKTRACE_ON_INTERRUPT ? new ConcurrentHashMap<>() : null;
 
 	private static long threadsCreated = 1L;
 	private static long threadsRunnable = 1L;
@@ -46,6 +53,10 @@ public class OzThread implements Runnable {
 		CURRENT_OZ_THREAD.set(this);
 	}
 
+	public OzProc getProc() {
+		return proc;
+	}
+
 	public Coroutine getCoroutine() {
 		return coroutine;
 	}
@@ -68,6 +79,9 @@ public class OzThread implements Runnable {
 
 	public void yield(Node currentNode) {
 		status = "blocked";
+		if (Options.STACKTRACE_ON_INTERRUPT) {
+			BACKTRACES.put(this, OzBacktrace.capture(currentNode));
+		}
 		Coroutine.yield();
 		status = "runnable";
 	}
