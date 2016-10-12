@@ -83,7 +83,7 @@ namespace :build do
     sh "echo 'Choose JDK 1.8.0_92 when asked for JAVA_HOME' && echo"
     sh "cd #{JVMCI} && #{MX} build"
     sh "cd #{JVMCI_HOME} && bin/java -version"
-    JVMCI_HOME.touch
+    touch JVMCI_HOME
   end
 
   file GRAAL_MX_ENV => JVMCI_HOME do
