@@ -37,6 +37,8 @@ import com.oracle.truffle.api.source.Source;
 
 public abstract class OSBuiltins {
 
+	static final RecordFactory OS_ERROR_FACTORY4 = Arity.build("os", 1L, 2L, 3L, 4L).createFactory();
+
 	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("url")
@@ -58,7 +60,7 @@ public abstract class OSBuiltins {
 			assert url.endsWith(".oz") : url;
 
 			String path = null;
-			if (url.startsWith("x-oz://system/") || url.contains(Loader.LOCAL_LIB_DIR + "/x-oz/system")) {
+			if (url.startsWith("x-oz://system/")) {
 				String name = url.substring(url.lastIndexOf('/') + 1);
 				path = findSystemFunctor(url, name);
 			} else {
@@ -70,7 +72,7 @@ public abstract class OSBuiltins {
 				Loader loader = Loader.getInstance();
 				return loader.execute(loader.parseFunctor(source));
 			} else {
-				return url.intern();
+				throw notFound(url);
 			}
 		}
 
@@ -81,7 +83,12 @@ public abstract class OSBuiltins {
 					return file.toString();
 				}
 			}
-			throw new RuntimeException("Could not find system functor " + url);
+			throw notFound(url);
+		}
+
+		private OzException notFound(String url) {
+			DynamicObject error = OS_ERROR_FACTORY4.newRecord("os", "bootURLLoad " + url, 2, "No such file or directory");
+			return new OzException(this, OzException.newSystemError(error));
 		}
 
 	}
@@ -217,8 +224,6 @@ public abstract class OSBuiltins {
 			return ToAtomNodeFactory.create(value);
 		}
 
-		static final RecordFactory ERROR_FACTORY = Arity.build("os", 1L, 2L, 3L, 4L).createFactory();
-
 		@TruffleBoundary
 		@Specialization
 		Object fopen(String fileName, String mode) {
@@ -229,11 +234,11 @@ public abstract class OSBuiltins {
 				case "wb":
 					return new FileOutputStream(new File(fileName));
 				default:
-					DynamicObject error = ERROR_FACTORY.newRecord("os", "fopen", 1, "Opening mode not implemented");
+					DynamicObject error = OS_ERROR_FACTORY4.newRecord("os", "fopen", 1, "Opening mode not implemented");
 					throw new OzException(this, OzException.newSystemError(error));
 				}
 			} catch (FileNotFoundException e) {
-				DynamicObject error = ERROR_FACTORY.newRecord("os", "fopen", 2, "No such file or directory");
+				DynamicObject error = OS_ERROR_FACTORY4.newRecord("os", "fopen", 2, "No such file or directory");
 				throw new OzException(this, OzException.newSystemError(error));
 			}
 		}
