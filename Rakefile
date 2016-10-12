@@ -8,6 +8,9 @@ BOOTCOMPILER_ECLIPSE = BOOTCOMPILER / ".project"
 TRUFFLE_API_SRC = TRUFFLE / "mxbuild/dists/truffle-api.src.zip"
 TRUFFLE_DSL_PROCESSOR_JAR = TRUFFLE / "mxbuild/dists/truffle-dsl-processor.jar"
 
+JVMCI_HOME = JVMCI / "jdk1.8.0_92/product"
+GRAAL_MX_ENV = GRAAL / "mx.graal-core/env"
+
 JAVA_SOURCES = Dir["src/**/*.java"]
 
 def erb(template, output)
@@ -71,13 +74,24 @@ namespace :build do
     sh "cd #{JVMCI} && git checkout coro"
   end
 
-  file GRAAL => [TRUFFLE, JVMCI] do
+  file GRAAL => TRUFFLE do
     sh "git clone https://github.com/eregon/graal-core.git #{GRAAL}"
     sh "cd #{GRAAL} && git checkout coro"
   end
 
-  file GRAAL_JAR => [GRAAL, MX] do
-    sh "cd #{GRAAL} && #{MX} --vm server build"
+  file JVMCI_HOME => [JVMCI, MX] do
+    sh "echo 'Choose JDK 1.8.0_92 when asked for JAVA_HOME' && echo"
+    sh "cd #{JVMCI} && #{MX} build"
+    sh "cd #{JVMCI_HOME} && bin/java -version"
+    JVMCI_HOME.touch
+  end
+
+  file GRAAL_MX_ENV => JVMCI_HOME do
+    GRAAL_MX_ENV.write("JAVA_HOME=#{JVMCI_HOME}\n") unless GRAAL_MX_ENV.exist?
+  end
+
+  file GRAAL_JAR => [GRAAL, MX, GRAAL_MX_ENV] do
+    sh "cd #{GRAAL} && #{MX} build"
   end
 
   file ".classpath" => "tool/classpath.erb" do
