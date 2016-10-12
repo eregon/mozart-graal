@@ -9,8 +9,15 @@ classpath = oz_classpath
 
 java = 'java'
 java_opts = %w[-ea -esa]
+vm_options = []
 
-if ARGV.delete('--graal')
+args = ARGV.drop_while { |arg|
+  if arg.start_with? '-'
+    vm_options << arg
+  end
+}
+
+if vm_options.delete('--graal')
   jvmci_home = File.read("../graal-core/mx.graal-core/env").scan(/^JAVA_HOME=(.+)/)[0][0]
   java = File.expand_path("#{jvmci_home}/bin/java")
   java_opts += %w[-server -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -d64]
@@ -18,15 +25,10 @@ if ARGV.delete('--graal')
   java_opts << "-Djvmci.Compiler=graal"
 end
 
-args = ARGV.drop_while { |arg|
-  if arg.start_with? '-'
-    java_opts << arg
-  end
-}
-
 cmd = [
   java,
   *java_opts,
+  *vm_options,
   "-Xbootclasspath/p:" + bootclasspath.join(':'),
   '-cp', classpath.join(':'),
   'org.mozartoz.truffle.Main'
