@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.mozartoz.truffle.Options;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.coro.Coroutine;
 import com.oracle.truffle.coro.CoroutineLocal;
@@ -77,6 +78,7 @@ public class OzThread implements Runnable {
 		}
 	}
 
+	@TruffleBoundary
 	public void yield(Node currentNode) {
 		status = "blocked";
 		if (Options.STACKTRACE_ON_INTERRUPT) {
