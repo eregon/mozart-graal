@@ -65,6 +65,7 @@ public class Loader {
 			TOOLS_DIR + "/panel",
 			TOOLS_DIR + "/browser",
 			LIB_DIR + "/compiler",
+			MOZART2_DIR + "/stdlib/wp/qtk",
 	};
 
 	public static final Source MAIN_SOURCE = Source.newBuilder("").name("main").mimeType(OzLanguage.MIME_TYPE).internal().build();
