@@ -30,7 +30,7 @@ rake
 ```
 
 It takes around 5 min to build everything.
-When asked for which Java, pick any Java 8.
+When asked for which Java, pick Java 1.8.0_92.
 
 Run with
 ```bash
