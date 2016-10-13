@@ -51,6 +51,11 @@ namespace :build do
 
   file BOOTCOMPILER_ECLIPSE do
     sh "cd #{BOOTCOMPILER} && ./sbt eclipse eclipse-with-source"
+    # Export the Scala stdlib to mozart-graal
+    classpath = (BOOTCOMPILER / ".classpath")
+    classpath.write classpath.read.sub!(
+      /(<classpathentry) (kind="con" path=".*SCALA_CONTAINER)/,
+      '\1 exported="true" \2')
   end
 
   file MX do
