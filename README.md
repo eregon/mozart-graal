@@ -4,6 +4,8 @@
 
 An implementation of Oz on top of Truffle and Graal.
 
+The bootcompiler and Oz libraries are imported from [Mozart 2](https://github.com/mozart/mozart2).
+
 ## Current Status
 
 Early stage.
