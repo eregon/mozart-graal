@@ -1,6 +1,9 @@
-/.apt_generated
-/.classpath
-/.factorypath
-/bin/
+/vm/.apt_generated
+/vm/.classpath
+/vm/.factorypath
+/vm/bin/
+
+/wish/ozwish
+
 /*.oz
 /Main.image

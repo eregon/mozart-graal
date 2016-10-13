@@ -41,23 +41,20 @@ import com.oracle.truffle.api.source.Source;
 public class Loader {
 
 	public static final String PROJECT_ROOT = getProjectRoot();
-	public static final String MOZART2_DIR = new File(PROJECT_ROOT).getParent() + "/mozart2";
-	public static final String LOCAL_LIB_DIR = PROJECT_ROOT + "/lib";
+	public static final String LIB_DIR = PROJECT_ROOT + "/lib";
+	public static final String MAIN_LIB_DIR = LIB_DIR + "/main";
 
-	static final String LIB_DIR = MOZART2_DIR + "/lib";
-	static final String MAIN_LIB_DIR = LIB_DIR + "/main";
 	static final String TOOLS_DIR = LIB_DIR + "/tools";
 	static final String BASE_FILE_NAME = MAIN_LIB_DIR + "/base/Base.oz";
 	static final String INIT_FUNCTOR = MAIN_LIB_DIR + "/init/Init.oz";
 
 	static final String MAIN_IMAGE = PROJECT_ROOT + "/Main.image";
 
-	public static final String OZWISH = MOZART2_DIR + "/wish/ozwish";
+	public static final String OZWISH = PROJECT_ROOT + "/wish/ozwish";
 
 	public static final String[] SYSTEM_LOAD_PATH = new String[] {
 			MAIN_LIB_DIR + "/sys",
 			MAIN_LIB_DIR + "/support",
-			MOZART2_DIR + "/vm/boostenv/lib/",
 			MAIN_LIB_DIR + "/sp",
 			MAIN_LIB_DIR + "/op",
 			MAIN_LIB_DIR + "/cp",
@@ -66,7 +63,7 @@ public class Loader {
 			TOOLS_DIR + "/panel",
 			TOOLS_DIR + "/browser",
 			LIB_DIR + "/compiler",
-			MOZART2_DIR + "/stdlib/wp/qtk",
+			PROJECT_ROOT + "/stdlib/wp/qtk",
 	};
 
 	public static final Source MAIN_SOURCE = Source.newBuilder("").name("main").mimeType(OzLanguage.MIME_TYPE).internal().build();
@@ -297,7 +294,7 @@ public class Loader {
 
 	private static String getProjectRoot() {
 		String thisFile = Loader.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-		String path = new File(thisFile).getParent();
+		String path = new File(thisFile).getParentFile().getParent();
 		return path;
 	}
 

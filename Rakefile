@@ -1,7 +1,7 @@
 require_relative 'tool/common'
 
-OZWISH = MOZART2 / "wish/ozwish"
-OZWISH_SRC = MOZART2 / "wish/unixmain.cc"
+OZWISH = PROJECT_DIR / "wish/ozwish"
+OZWISH_SRC = PROJECT_DIR / "wish/unixmain.cc"
 
 BOOTCOMPILER_ECLIPSE = BOOTCOMPILER / ".project"
 
@@ -17,10 +17,9 @@ def erb(template, output)
 end
 
 namespace :build do
-  task :all => [:truffle, :mozart2, :bootcompiler, :project]
+  task :all => [:truffle, :bootcompiler, :ozwish, :stdlib, :project]
 
-  task :mozart2 => [MOZART2, :ozwish]
-  task :bootcompiler => [MOZART2, BOOTCOMPILER_JAR, BOOTCOMPILER_ECLIPSE]
+  task :bootcompiler => [BOOTCOMPILER_JAR, BOOTCOMPILER_ECLIPSE]
   task :ozwish => OZWISH
 
   task :truffle => TRUFFLE_API_JAR
@@ -28,12 +27,13 @@ namespace :build do
   desc "Build Graal"
   task :graal => GRAAL_JAR
 
-  task :project => [:javac, ".classpath", ".factorypath"]
+  task :project => [:javac, "vm/.classpath", "vm/.factorypath"]
   task :javac => MAIN_CLASS
 
-  file MOZART2 do
-    sh "cd .. && git clone https://github.com/eregon/mozart2.git"
-    sh "cd #{MOZART2} && git checkout mozart-graal"
+  task :stdlib => "stdlib/README"
+
+  file "stdlib/README" do
+    sh "git submodule update --init"
   end
 
   file OZWISH => OZWISH_SRC do
@@ -92,19 +92,19 @@ namespace :build do
     sh "cd #{GRAAL} && #{MX} build"
   end
 
-  file ".classpath" => "tool/classpath.erb" do
-    sh "mvn dependency:build-classpath"
-    erb 'tool/classpath.erb', '.classpath'
+  file "vm/.classpath" => "tool/classpath.erb" do
+    sh "cd vm && mvn dependency:build-classpath"
+    erb 'tool/classpath.erb', 'vm/.classpath'
   end
 
-  file ".factorypath" => "tool/factorypath.erb" do
-    erb 'tool/factorypath.erb', '.factorypath'
+  file "vm/.factorypath" => "tool/factorypath.erb" do
+    erb 'tool/factorypath.erb', 'vm/.factorypath'
   end
 
-  directory "bin"
+  directory VM_CLASSES
 
-  file MAIN_CLASS => ["bin", TRUFFLE_API_JAR, TRUFFLE_DSL_PROCESSOR_JAR, BOOTCOMPILER_JAR, ".classpath", *JAVA_SOURCES] do
-    sh *["javac", "-cp", "#{TRUFFLE_API_JAR}:#{TRUFFLE_DSL_PROCESSOR_JAR}:#{oz_classpath.join(':')}", "-sourcepath", "src", "-d", "bin", *JAVA_SOURCES]
+  file MAIN_CLASS => [VM_CLASSES, TRUFFLE_API_JAR, TRUFFLE_DSL_PROCESSOR_JAR, BOOTCOMPILER_JAR, "vm/.classpath", *JAVA_SOURCES] do
+    sh *["javac", "-cp", "#{TRUFFLE_API_JAR}:#{TRUFFLE_DSL_PROCESSOR_JAR}:#{oz_classpath.join(':')}", "-sourcepath", "src", "-d", VM_CLASSES, *JAVA_SOURCES]
   end
 end
 
@@ -120,7 +120,7 @@ task :default => [:build, :test]
 
 desc "Update all repositories"
 task :up do
-  [".", MOZART2, TRUFFLE, JVMCI, GRAAL].each { |dir|
+  [".", TRUFFLE, JVMCI, GRAAL].each { |dir|
     if File.directory?(dir)
       sh "cd #{dir} && git pull"
     end

@@ -8,8 +8,8 @@ import com.oracle.truffle.api.source.Source;
 
 public class Main {
 
-	private static final String BASE_TESTS = Loader.MOZART2_DIR + "/platform-test/base/";
-	private static final String TEST_RUNNER = Loader.MOZART2_DIR + "/platform-test/simple_runner.oz";
+	private static final String BASE_TESTS = Loader.PROJECT_ROOT + "/platform-test/base/";
+	private static final String TEST_RUNNER = Loader.PROJECT_ROOT + "/platform-test/simple_runner.oz";
 
 	private static final String[] PASSING_TESTS = {
 			BASE_TESTS + "int.oz",

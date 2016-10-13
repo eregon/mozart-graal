@@ -26,8 +26,8 @@ public class PropertyRegistry {
 		registerValue("oz.home", Loader.PROJECT_ROOT.intern());
 		registerConstant("oz.version", "3.0.0-alpha");
 		registerValue("oz.search.path", ".");
-		String libCache = "cache=" + Loader.LOCAL_LIB_DIR;
-		String libImages = Loader.LOCAL_LIB_DIR + "/x-oz/system/images";
+		String libCache = "cache=" + Loader.LIB_DIR;
+		String libImages = Loader.LIB_DIR + "/x-oz/system/images";
 		registerValue("oz.search.load", (libCache + ":" + libImages).intern());
 
 		registerConstant("application.gui", false);

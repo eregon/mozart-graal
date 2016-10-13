@@ -4,6 +4,7 @@ lib_managed/
 src_managed/
 project/boot/
 .cache
+/.cache-main
 
 # Eclipse
 /.classpath
