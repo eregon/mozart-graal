@@ -110,6 +110,20 @@ public abstract class BuiltinsManager {
 		BOOT_MODULES.put("Boot_WeakRef", BOOT_MODULES.get("Boot_WeakReference")); // TODO: hack
 	}
 
+	public static OzNode createNodeFromFactory(NodeFactory<? extends OzNode> factory, OzNode[] args) {
+		Builtin builtin = factory.getNodeClass().getAnnotation(Builtin.class);
+		if (builtin == null) {
+			builtin = Builtin.DEFAULT;
+		}
+
+		Object[] arguments = new OzNode[args.length];
+		for (int i = 0; i < args.length; i++) {
+			arguments[i] = transformArgumentNode(builtin, i, args[i]);
+		}
+
+		return factory.createNode(arguments);
+	}
+
 	private static void installBuiltins(String module, List<NodeFactory<? extends OzNode>> factories) {
 		// The builtins of this module only, indexed by the builtin name
 		Map<String, OzProc> builtins = new HashMap<>(factories.size());
@@ -131,11 +145,11 @@ public abstract class BuiltinsManager {
 			SourceSection sourceSection = BUILTINS_SOURCE.createUnavailableSection();
 
 			int arity = factory.getNodeSignatures().get(0).size();
-			Object[] readArguments = new OzNode[arity];
+			OzNode[] readArguments = new OzNode[arity];
 			for (int i = 0; i < readArguments.length; i++) {
-				readArguments[i] = readArgumentNode(builtin, i);
+				readArguments[i] = new ReadArgumentNode(i);
 			}
-			OzNode node = factory.createNode(readArguments);
+			OzNode node = createNodeFromFactory(factory, readArguments);
 			if (!builtin.proc()) {
 				node = BindNodeGen.create(new ReadArgumentNode(arity), node);
 				arity++;
@@ -155,14 +169,13 @@ public abstract class BuiltinsManager {
 		BOOT_MODULES.put(("Boot_" + module).intern(), OzRecord.buildRecord(label, builtins));
 	}
 
-	private static OzNode readArgumentNode(Builtin builtin, int i) {
-		ReadArgumentNode argumentNode = new ReadArgumentNode(i);
+	private static OzNode transformArgumentNode(Builtin builtin, int i, OzNode arg) {
 		if (annoArrayInclude(builtin.deref(), i + 1)) {
-			return DerefNode.create(argumentNode);
+			return DerefNode.create(arg);
 		} else if (annoArrayInclude(builtin.tryDeref(), i + 1)) {
-			return DerefIfBoundNode.create(argumentNode);
+			return DerefIfBoundNode.create(arg);
 		} else {
-			return argumentNode;
+			return arg;
 		}
 	}
 

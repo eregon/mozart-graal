@@ -130,21 +130,12 @@ object Desugar extends Transformer with TreeDSL {
     case DotAssignExpression(left, center, right) =>
       transformExpr(builtins.dotExchange callExpr (left, center, right))
 
-    case BinaryOp(lhs, "+", Constant(OzInt(1))) =>
-      transformExpr(builtins.plus1 callExpr (lhs))
-
-    case BinaryOp(lhs, "-", Constant(OzInt(1))) =>
-      transformExpr(builtins.minus1 callExpr (lhs))
-
     case UnaryOp(op, arg) =>
       transformExpr(builtins.unaryOpToBuiltin(op) callExpr (arg))
 
     case BinaryOp(module @ Variable(sym), ".", rhs) if !program.eagerLoad && sym.isImport =>
       transformExpr(
         baseEnvironment("ByNeedDot").copyAttrs(expression) callExpr (module, rhs))
-
-    case BinaryOp(lhs, op, rhs) =>
-      transformExpr(builtins.binaryOpToBuiltin(op) callExpr (lhs, rhs))
 
     case Record(label, fields) =>
       val fieldsNoAuto = fillAutoFeatures(fields)

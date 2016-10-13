@@ -64,6 +64,7 @@ import org.mozartoz.truffle.nodes.TopLevelHandlerNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
 import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.FailNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.RaiseNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.FloatBuiltinsFactory.FloatDivNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.IntBuiltinsFactory.DivNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.IntBuiltinsFactory.ModNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.HeadNodeGen;
@@ -73,9 +74,11 @@ import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.MulNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.SubNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.LabelNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.DotNode;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.CatExchangeNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.DotNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.GreaterThanNodeFactory;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.GreaterThanOrEqualNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanOrEqualNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.NotEqualNodeFactory;
@@ -112,14 +115,15 @@ import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.Unit;
 
-import scala.collection.JavaConversions;
-
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.SourceSection;
+
+import scala.collection.JavaConversions;
 
 public class Translator {
 
@@ -531,34 +535,42 @@ public class Translator {
 	}
 
 	private OzNode translateBinaryOp(String operator, OzNode left, OzNode right) {
-		left = deref(left);
-		right = deref(right);
 		switch (operator) {
-		case "+":
-			return AddNodeFactory.create(left, right);
-		case "-":
-			return SubNodeFactory.create(left, right);
-		case "*":
-			return MulNodeFactory.create(left, right);
-		case "div":
-			return DivNodeFactory.create(left, right);
-		case "mod":
-			return ModNodeFactory.create(left, right);
 		case "==":
-			return EqualNodeFactory.create(left, right);
+			return createBinaryOp(EqualNodeFactory.getInstance(), left, right);
 		case "\\=":
-			return NotEqualNodeFactory.create(left, right);
+			return createBinaryOp(NotEqualNodeFactory.getInstance(), left, right);
+		case "+":
+			return createBinaryOp(AddNodeFactory.getInstance(), left, right);
+		case "-":
+			return createBinaryOp(SubNodeFactory.getInstance(), left, right);
+		case "*":
+			return createBinaryOp(MulNodeFactory.getInstance(), left, right);
+		case "/":
+			return createBinaryOp(FloatDivNodeFactory.getInstance(), left, right);
+		case "div":
+			return createBinaryOp(DivNodeFactory.getInstance(), left, right);
+		case "mod":
+			return createBinaryOp(ModNodeFactory.getInstance(), left, right);
 		case "<":
-			return LesserThanNodeFactory.create(left, right);
+			return createBinaryOp(LesserThanNodeFactory.getInstance(), left, right);
 		case "=<":
-			return LesserThanOrEqualNodeFactory.create(left, right);
+			return createBinaryOp(LesserThanOrEqualNodeFactory.getInstance(), left, right);
 		case ">":
-			return GreaterThanNodeFactory.create(left, right);
+			return createBinaryOp(GreaterThanNodeFactory.getInstance(), left, right);
+		case ">=":
+			return createBinaryOp(GreaterThanOrEqualNodeFactory.getInstance(), left, right);
 		case ".":
-			return DotNodeFactory.create(left, right);
+			return createBinaryOp(DotNodeFactory.getInstance(), left, right);
+		case ":=":
+			return createBinaryOp(CatExchangeNodeFactory.getInstance(), left, right);
 		default:
 			throw unknown("operator", operator);
 		}
+	}
+
+	private static OzNode createBinaryOp(NodeFactory<? extends OzNode> factory, OzNode left, OzNode right) {
+		return BuiltinsManager.createNodeFromFactory(factory, new OzNode[] { left, right });
 	}
 
 	private OzNode translateShortCircuitBinaryOp(String operator, OzNode left, OzNode right) {
