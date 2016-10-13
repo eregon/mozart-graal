@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.mozartoz.truffle.nodes.DerefIfBoundNode;
+import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.DerefNodeGen;
 import org.mozartoz.truffle.nodes.ExecuteValuesNode;
@@ -24,10 +25,22 @@ import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
 import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.FailNodeFactory.FailNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ExceptionBuiltinsFactory.RaiseNodeFactory.RaiseNodeGen;
+import org.mozartoz.truffle.nodes.builtins.FloatBuiltinsFactory.FloatDivNodeFactory.FloatDivNodeGen;
+import org.mozartoz.truffle.nodes.builtins.IntBuiltinsFactory.DivNodeFactory.DivNodeGen;
+import org.mozartoz.truffle.nodes.builtins.IntBuiltinsFactory.ModNodeFactory.ModNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.HeadNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ListBuiltinsFactory.TailNodeGen;
+import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.AddNodeFactory.AddNodeGen;
+import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.MulNodeFactory.MulNodeGen;
+import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.SubNodeFactory.SubNodeGen;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.CatExchangeNodeFactory.CatExchangeNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.DotNodeFactory.DotNodeGen;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory.EqualNodeGen;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.GreaterThanNodeFactory.GreaterThanNodeGen;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.GreaterThanOrEqualNodeFactory.GreaterThanOrEqualNodeGen;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanNodeFactory.LesserThanNodeGen;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanOrEqualNodeFactory.LesserThanOrEqualNodeGen;
+import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.NotEqualNodeFactory.NotEqualNodeGen;
 import org.mozartoz.truffle.nodes.call.CallMethodNodeGen;
 import org.mozartoz.truffle.nodes.call.CallNodeGen;
 import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
@@ -675,10 +688,24 @@ public class OzSerializer {
 		kryo.register(PatternMatchOpenRecordNodeGen.class);
 
 		kryo.register(DerefNodeGen.class);
-		kryo.register(DotNodeGen.class);
-		kryo.register(EqualNodeGen.class);
+		kryo.register(DerefIfBoundNodeGen.class);
 		kryo.register(HeadNodeGen.class);
 		kryo.register(TailNodeGen.class);
+
+		kryo.register(AddNodeGen.class);
+		kryo.register(SubNodeGen.class);
+		kryo.register(MulNodeGen.class);
+		kryo.register(DivNodeGen.class);
+		kryo.register(FloatDivNodeGen.class);
+		kryo.register(ModNodeGen.class);
+		kryo.register(EqualNodeGen.class);
+		kryo.register(NotEqualNodeGen.class);
+		kryo.register(LesserThanNodeGen.class);
+		kryo.register(LesserThanOrEqualNodeGen.class);
+		kryo.register(GreaterThanNodeGen.class);
+		kryo.register(GreaterThanOrEqualNodeGen.class);
+		kryo.register(DotNodeGen.class);
+		kryo.register(CatExchangeNodeGen.class);
 
 		kryo.register(LiteralNode.class);
 		kryo.register(BooleanLiteralNode.class);
