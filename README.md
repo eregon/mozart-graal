@@ -44,3 +44,11 @@ To build it, run
 ```bash
 rake build:graal
 ```
+
+## IDE: Scala IDE for Eclipse
+
+Eclipse files are auto-generated for the two projects.
+We recommend using `mozart-dev` as the workspace.
+You can then import the projects with:
+`File` => `Import...` => `General` => `Existing Projects into Workspace`.
+Click `Browse...`, select `mozart-graal` and click `Finish`.
