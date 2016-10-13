@@ -14,6 +14,7 @@ PROJECT_DIR = dir = Pathname(File.expand_path('../..', __FILE__))
 
 BOOTCOMPILER = PROJECT_DIR / "bootcompiler"
 BOOTCOMPILER_JAR = BOOTCOMPILER / "target/scala-2.11/bootcompiler-assembly-2.0-SNAPSHOT.jar"
+BOOTCOMPILER_CLASSES = BOOTCOMPILER / "bin"
 
 MX = Pathname("../mx/mx").expand_path(dir)
 
@@ -33,5 +34,5 @@ MAIN_IMAGE = PROJECT_DIR / "Main.image"
 
 def oz_classpath
   maven_classpath = (VM / ".classpath").read.scan(%r{kind="lib" path="([^"]+/\.m2/repository/[^"]+)"}).map(&:first)
-  [VM_CLASSES, BOOTCOMPILER_JAR] + maven_classpath
+  [VM_CLASSES, BOOTCOMPILER_CLASSES, BOOTCOMPILER_JAR] + maven_classpath
 end
