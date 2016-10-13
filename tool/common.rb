@@ -2,6 +2,12 @@ require 'pathname'
 
 class Pathname
   alias :/ :+ unless method_defined?(:/)
+
+  def write(contents)
+    open('w') do |f|
+      f.write contents
+    end
+  end unless method_defined?(:write)
 end
 
 PROJECT_DIR = dir = Pathname(File.expand_path('../..', __FILE__))
