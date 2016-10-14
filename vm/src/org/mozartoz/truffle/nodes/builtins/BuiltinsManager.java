@@ -19,8 +19,6 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -80,9 +78,7 @@ public abstract class BuiltinsManager {
 		if (fun == null) {
 			throw new Error("No builtin " + name);
 		}
-		// Create a new node tree for every call site
-		RootNode rootNode = NodeUtil.cloneNode(fun.callTarget.getRootNode());
-		return new OzProc(Truffle.getRuntime().createCallTarget(rootNode), null, fun.arity);
+		return fun;
 	}
 
 	public static DynamicObject getBootModule(String name) {
