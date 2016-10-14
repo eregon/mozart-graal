@@ -32,7 +32,7 @@ if vm_options.delete('--graal')
 end
 
 if vm_options.delete('--igv')
-  java_opts << "-Dgraal.Dump="
+  java_opts << "-Dgraal.Dump=PartialEscape"
   java_opts << "-Dgraal.PrintBackendCFG=false"
   java_opts << "-Dgraal.TruffleBackgroundCompilation=false"
 end
