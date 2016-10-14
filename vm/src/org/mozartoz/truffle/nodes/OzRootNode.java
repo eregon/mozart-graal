@@ -31,6 +31,11 @@ public class OzRootNode extends RootNode {
 	}
 
 	@Override
+	public boolean isCloningAllowed() {
+		return true;
+	}
+
+	@Override
 	public String getName() {
 		return name;
 	}
