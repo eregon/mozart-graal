@@ -9,7 +9,7 @@ define
    P={NewPort S}
    {Browse S}
 
-   for I in {List.number 1 10 1} do
+   for I in 1..10 do
       {Delay 1000}
       {Send P I}
    end

@@ -36,6 +36,9 @@ class TreeCopier {
   def NoElseStatement(tree: Node) =
     new NoElseStatement().copyAttrs(tree)
 
+  def ForStatement(tree: Node, from: Expression, to: Expression, proc: ProcExpression) =
+    new ForStatement(from, to, proc).copyAttrs(tree)
+
   def ThreadStatement(tree: Node, statement: Statement) =
     new ThreadStatement(statement).copyAttrs(tree)
 

@@ -679,15 +679,17 @@ object Parser {
       case (arg0, listExpr, body0) =>
         val (args, body) = postProcessArgsAndBody(Seq(arg0), body0)
         val forProc = ProcPhrase(None, args, body, Nil)
-        CallPhrase(RawVariable("ForAll"), Seq(listExpr, forProc))
+        listExpr match {
+          case ForPhrase(from, to, _) => ForPhrase(from, to, forProc)
+          case _                      => CallPhrase(RawVariable("ForAll"), Seq(listExpr, forProc))
+        }
     }
   }
 
   val forListGenerator = deepPositioned {
     expression ~ (`..` ~/ expression).? ^^ {
       case (start, Some(end)) =>
-        val listNumber = BinaryOpPhrase(RawVariable("List"), ".", Constant(OzAtom("number")))
-        CallPhrase(listNumber, Seq(start, end, Constant(OzInt(1))))
+        ForPhrase(start, end, null)
       case (expr, None) => expr
     }
   }

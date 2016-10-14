@@ -70,6 +70,10 @@ abstract class Transformer extends (Program => Unit) {
     case NoElseStatement() =>
       statement
 
+    case ForStatement(from, to, proc) =>
+      treeCopy.ForStatement(statement, transformExpr(from), transformExpr(to),
+        transformExpr(proc).asInstanceOf[ProcExpression])
+
     case ThreadStatement(body) =>
       treeCopy.ThreadStatement(statement, transformStat(body))
 

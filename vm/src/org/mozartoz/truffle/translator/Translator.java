@@ -14,6 +14,7 @@ import org.mozartoz.bootcompiler.ast.CompoundStatement;
 import org.mozartoz.bootcompiler.ast.Constant;
 import org.mozartoz.bootcompiler.ast.Expression;
 import org.mozartoz.bootcompiler.ast.FailStatement;
+import org.mozartoz.bootcompiler.ast.ForStatement;
 import org.mozartoz.bootcompiler.ast.IfCommon;
 import org.mozartoz.bootcompiler.ast.ListExpression;
 import org.mozartoz.bootcompiler.ast.LocalCommon;
@@ -86,6 +87,7 @@ import org.mozartoz.truffle.nodes.call.CallNode;
 import org.mozartoz.truffle.nodes.call.TailCallThrowerNode;
 import org.mozartoz.truffle.nodes.control.AndNode;
 import org.mozartoz.truffle.nodes.control.AndThenNode;
+import org.mozartoz.truffle.nodes.control.ForNode;
 import org.mozartoz.truffle.nodes.control.IfNode;
 import org.mozartoz.truffle.nodes.control.NoElseNode;
 import org.mozartoz.truffle.nodes.control.OrElseNode;
@@ -281,6 +283,10 @@ public class Translator {
 					translate(ifNode.falsePart()));
 		} else if (node instanceof MatchCommon) {
 			return translateMatch((MatchCommon) node);
+		} else if (node instanceof ForStatement) {
+			ForStatement forNode = (ForStatement) node;
+			return new ForNode(translate(forNode.from()), translate(forNode.to()),
+					translate(forNode.proc()));
 		} else if (node instanceof TryCommon) {
 			TryCommon tryNode = (TryCommon) node;
 			FrameSlotAndDepth exceptionVarSlot = findVariable(((Variable) tryNode.exceptionVar()).symbol());

@@ -92,6 +92,8 @@ object TypeAST {
       treeCopy.NoElseStatement(p)
     case MatchPhrase(value, clauses, elsePhrase) =>
       treeCopy.MatchStatement(p, expr(value), clauses.map(_.toStat), stat(elsePhrase))
+    case ForPhrase(from, to, proc) =>
+      treeCopy.ForStatement(p, expr(from), expr(to), expr(proc).asInstanceOf[ProcExpression])
     case TryPhrase(body, exceptionVar, catchBody) =>
       treeCopy.TryStatement(p, stat(body), exceptionVar, stat(catchBody))
     case TryFinallyPhrase(body, finallyBody) =>

@@ -36,6 +36,8 @@ case class MatchPhraseClause(pattern: Phrase, guard: Option[Phrase], body: Phras
 
 case class NoElsePhrase() extends PhraseNode
 
+case class ForPhrase(from: Phrase, to: Phrase, proc: ProcPhrase) extends PhraseNode
+
 case class ThreadPhrase(body: Phrase) extends PhraseNode
 
 case class LockPhrase(lock: Phrase, body: Phrase) extends PhraseNode

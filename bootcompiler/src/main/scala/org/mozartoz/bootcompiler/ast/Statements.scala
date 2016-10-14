@@ -109,6 +109,22 @@ case class MatchStatementClause(pattern: Expression, guard: Option[Expression],
 case class NoElseStatement() extends Statement with NoElseCommon {
 }
 
+/** For statement
+ *
+ *  {{{
+ *  for <variable> in <from>..<to> do
+ *     <body>
+ *  end
+ *  }}}
+ */
+case class ForStatement(from: Expression, to: Expression, proc: ProcExpression) extends Statement {
+  def syntax(indent: String) = {
+    val variable = proc.args(0)
+    val decl = "for " + variable.syntax(indent) + " in " + from.syntax(indent) + ".." + to.syntax(indent) + " do"
+    decl + "\n" + proc.body.syntax(indent + "   ") + "\n" + indent + "end"
+  }
+}
+
 /** Thread statement
  *
  *  {{{
