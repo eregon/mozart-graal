@@ -5,7 +5,7 @@ require_relative 'tool/common'
 dir = File.expand_path('..', __FILE__)
 
 if MAIN_IMAGE.exist? and mtime = MAIN_IMAGE.mtime and
-    f = JAVA_SOURCES.find { |src| File.mtime(src) > mtime }
+    f = (JAVA_SOURCES + SCALA_SOURCES).find { |src| File.mtime(src) > mtime }
   $stderr.puts "Removing Main.image because #{File.basename(f)} is more recent"
   MAIN_IMAGE.delete
 end

@@ -44,7 +44,7 @@ namespace :build do
     end
   end
 
-  file BOOTCOMPILER_JAR => Dir[BOOTCOMPILER / "src/**/*.scala"] + [TRUFFLE_API_JAR] do
+  file BOOTCOMPILER_JAR => SCALA_SOURCES + [TRUFFLE_API_JAR] do
     sh "cd #{BOOTCOMPILER} && ./sbt assembly"
     touch BOOTCOMPILER_JAR # sbt might not update mtime
   end
