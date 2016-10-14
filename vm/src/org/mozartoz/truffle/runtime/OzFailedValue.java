@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
-public class OzFailedValue {
+public final class OzFailedValue {
 
 	private final Object data;
 

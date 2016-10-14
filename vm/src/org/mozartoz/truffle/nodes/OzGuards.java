@@ -88,6 +88,10 @@ public class OzGuards {
 		return value instanceof OzFailedValue;
 	}
 
+	public static boolean isFailedValueClass(Class<?> klass) {
+		return klass == OzFailedValue.class;
+	}
+
 	public static boolean isVar(Object value) {
 		return value instanceof OzVar;
 	}
@@ -98,6 +102,10 @@ public class OzGuards {
 
 	public static boolean isVariable(Object value) {
 		return value instanceof Variable;
+	}
+
+	public static boolean isVariableClass(Class<?> klass) {
+		return Variable.class.isAssignableFrom(klass);
 	}
 
 	// Guards on specific types

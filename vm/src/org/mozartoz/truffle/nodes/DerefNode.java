@@ -5,6 +5,7 @@ import org.mozartoz.truffle.runtime.OzFailedValue;
 import org.mozartoz.truffle.runtime.OzFuture;
 import org.mozartoz.truffle.runtime.OzVar;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
@@ -30,8 +31,17 @@ public abstract class DerefNode extends OzNode {
 		return value;
 	}
 
-	@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" })
-	Object deref(Object value) {
+	@Specialization(guards = {
+			"value.getClass() == klass",
+			"!isVariableClass(klass)", "!isFailedValueClass(klass)"
+	})
+	Object derefValueProfiled(Object value,
+			@Cached("value.getClass()") Class<?> klass) {
+		return klass.cast(value);
+	}
+
+	@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" }, contains = "derefValueProfiled")
+	Object derefValue(Object value) {
 		return value;
 	}
 
