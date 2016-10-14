@@ -4,6 +4,7 @@ import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzBacktrace;
 import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzLanguage;
+import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -12,6 +13,11 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class OzRootNode extends RootNode {
+
+	public static OzRootNode createTopRootNode(String name, OzNode body) {
+		final TopLevelHandlerNode handler = new TopLevelHandlerNode(body);
+		return new OzRootNode(Loader.MAIN_SOURCE_SECTION, name, new FrameDescriptor(), handler, 0);
+	}
 
 	private final String name;
 	private final int arity;
