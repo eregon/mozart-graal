@@ -697,9 +697,14 @@ public abstract class ValueBuiltins {
 	@NodeChild("value")
 	public static abstract class IsDetNode extends OzNode {
 
-		@Specialization
-		boolean isDet(Variable var) {
-			return var.isBound();
+		@Specialization(guards = "var.isBound()")
+		boolean isDetVar(Variable var) {
+			return true;
+		}
+
+		@Specialization(guards = "!var.isBound()")
+		boolean isDetUnbound(Variable var) {
+			return false;
 		}
 
 		@Specialization(guards = "!isVariable(value)")
