@@ -37,6 +37,7 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 
 public class Loader {
 
@@ -67,6 +68,7 @@ public class Loader {
 	};
 
 	public static final Source MAIN_SOURCE = Source.newBuilder("").name("main").mimeType(OzLanguage.MIME_TYPE).internal().build();
+	public static final SourceSection MAIN_SOURCE_SECTION = MAIN_SOURCE.createUnavailableSection();
 
 	// public static final PolyglotEngine ENGINE = PolyglotEngine.newBuilder().build();
 

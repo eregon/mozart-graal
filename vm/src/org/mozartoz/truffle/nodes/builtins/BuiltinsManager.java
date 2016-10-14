@@ -69,6 +69,7 @@ public abstract class BuiltinsManager {
 	private static final Map<String, DynamicObject> BOOT_MODULES = new HashMap<>();
 
 	private static final Source BUILTINS_SOURCE = Source.newBuilder("").name("builtin").mimeType(OzLanguage.MIME_TYPE).internal().build();
+	private static final SourceSection BUILTINS_SOURCE_SECTION = BUILTINS_SOURCE.createUnavailableSection();
 
 	public static OzProc getBuiltin(String moduleName, String builtinName) {
 		return getBuiltin(moduleName + "." + builtinName);
@@ -134,6 +135,18 @@ public abstract class BuiltinsManager {
 				builtin = Builtin.DEFAULT;
 			}
 
+			int arity = factory.getNodeSignatures().get(0).size();
+			OzNode[] readArguments = new OzNode[arity];
+			for (int i = 0; i < readArguments.length; i++) {
+				readArguments[i] = new ReadArgumentNode(i);
+			}
+			OzNode node = createNodeFromFactory(factory, readArguments);
+
+			if (!builtin.proc()) {
+				node = BindNodeGen.create(new ReadArgumentNode(arity), node);
+				arity++;
+			}
+
 			final String builtinName;
 			if (!builtin.name().isEmpty()) {
 				builtinName = builtin.name();
@@ -142,20 +155,8 @@ public abstract class BuiltinsManager {
 				builtinName = Character.toLowerCase(nodeName.charAt(0)) + nodeName.substring(1, nodeName.lastIndexOf("Node"));
 			}
 			String name = module + "." + builtinName;
-			SourceSection sourceSection = BUILTINS_SOURCE.createUnavailableSection();
 
-			int arity = factory.getNodeSignatures().get(0).size();
-			OzNode[] readArguments = new OzNode[arity];
-			for (int i = 0; i < readArguments.length; i++) {
-				readArguments[i] = new ReadArgumentNode(i);
-			}
-			OzNode node = createNodeFromFactory(factory, readArguments);
-			if (!builtin.proc()) {
-				node = BindNodeGen.create(new ReadArgumentNode(arity), node);
-				arity++;
-			}
-
-			OzRootNode rootNode = new OzRootNode(sourceSection, name, new FrameDescriptor(), node, arity);
+			OzRootNode rootNode = new OzRootNode(BUILTINS_SOURCE_SECTION, name, new FrameDescriptor(), node, arity);
 			RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 			OzProc function = new OzProc(callTarget, null, arity);
 

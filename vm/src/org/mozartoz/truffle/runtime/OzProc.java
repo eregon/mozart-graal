@@ -13,7 +13,6 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.source.SourceSection;
 
 public class OzProc {
 
@@ -51,10 +50,9 @@ public class OzProc {
 	/** Wraps itself in a CallNode so it works well with TailCallException */
 	private CallTarget wrap(String identifier) {
 		OzNode callNode = CallNode.create(new LiteralNode(this), new LiteralNode(new Object[0]));
-		SourceSection sourceSection = Loader.MAIN_SOURCE.createUnavailableSection();
 		FrameDescriptor frameDescriptor = new FrameDescriptor();
 		TopLevelHandlerNode topLevelHandler = new TopLevelHandlerNode(callNode);
-		OzRootNode rootNode = new OzRootNode(sourceSection, identifier, frameDescriptor, topLevelHandler, 0);
+		OzRootNode rootNode = new OzRootNode(Loader.MAIN_SOURCE_SECTION, identifier, frameDescriptor, topLevelHandler, 0);
 		return Truffle.getRuntime().createCallTarget(rootNode);
 	}
 

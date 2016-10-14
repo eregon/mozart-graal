@@ -115,6 +115,8 @@ import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.Unit;
 
+import scala.collection.JavaConversions;
+
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.NodeFactory;
@@ -122,8 +124,6 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.SourceSection;
-
-import scala.collection.JavaConversions;
 
 public class Translator {
 
@@ -188,8 +188,7 @@ public class Translator {
 		OzNode wrapped = wrap.apply(translated);
 		OzNode handler = new TopLevelHandlerNode(wrapped);
 
-		SourceSection sourceSection = Loader.MAIN_SOURCE.createUnavailableSection();
-		return new OzRootNode(sourceSection, description, environment.frameDescriptor, handler, 0);
+		return new OzRootNode(Loader.MAIN_SOURCE_SECTION, description, environment.frameDescriptor, handler, 0);
 	}
 
 	OzNode translate(StatOrExpr node) {

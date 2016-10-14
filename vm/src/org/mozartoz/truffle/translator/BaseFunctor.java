@@ -12,7 +12,6 @@ import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class BaseFunctor {
 
@@ -25,8 +24,7 @@ public abstract class BaseFunctor {
 				new LiteralNode(new Object[] { imports, result }));
 
 		OzNode node = SequenceNode.sequence(apply, DerefNode.create(new LiteralNode(result)));
-		SourceSection sourceSection = Loader.MAIN_SOURCE.createUnavailableSection();
-		return new OzRootNode(sourceSection, "Base.apply", new FrameDescriptor(), new TopLevelHandlerNode(node), 0);
+		return new OzRootNode(Loader.MAIN_SOURCE_SECTION, "Base.apply", new FrameDescriptor(), new TopLevelHandlerNode(node), 0);
 	}
 
 }

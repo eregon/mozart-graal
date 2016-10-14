@@ -12,7 +12,6 @@ import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzVar;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class InitFunctor {
 
@@ -25,8 +24,7 @@ public abstract class InitFunctor {
 				DotNodeFactory.create(new LiteralNode(initFunctor), new LiteralNode("apply")),
 				new LiteralNode(new Object[] { imports, new OzVar() }));
 
-		SourceSection sourceSection = Loader.MAIN_SOURCE.createUnavailableSection();
-		return new OzRootNode(sourceSection, "Init.apply", new FrameDescriptor(), new TopLevelHandlerNode(node), 0);
+		return new OzRootNode(Loader.MAIN_SOURCE_SECTION, "Init.apply", new FrameDescriptor(), new TopLevelHandlerNode(node), 0);
 	}
 
 }
