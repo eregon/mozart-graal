@@ -31,6 +31,17 @@ if vm_options.delete('--graal')
   java_opts << "-Djvmci.Compiler=graal"
 end
 
+if vm_options.delete('--igv')
+  java_opts << "-Dgraal.Dump="
+  java_opts << "-Dgraal.PrintBackendCFG=false"
+  java_opts << "-Dgraal.TruffleBackgroundCompilation=false"
+end
+
+if vm_options.delete('--infopoints')
+  java_opts << "-XX:+UnlockDiagnosticVMOptions" << "-XX:+DebugNonSafepoints"
+  java_opts << "-Dgraal.TruffleEnableInfopoints=true"
+end
+
 cmd = [
   java,
   *java_opts,
