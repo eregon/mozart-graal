@@ -2,10 +2,10 @@ package org.mozartoz.bootcompiler
 package transform
 
 import scala.collection.mutable.ListBuffer
-
 import oz._
 import ast._
 import symtab._
+import org.mozartoz.bootcompiler.symtab.BaseDeclarations
 
 /** Namer phase
  *
@@ -267,7 +267,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
       if (symbol.isDefined) {
         treeCopy.Variable(v, symbol.get)
       } else if (!program.isBaseEnvironment &&
-          ((program.baseDeclarations contains name) || (name == "Base"))) {
+          ((BaseDeclarations contains name) || (name == "Base"))) {
         atPos(v)(baseEnvironment(name))
       } else {
         program.reportError("Undeclared variable "+name, v)

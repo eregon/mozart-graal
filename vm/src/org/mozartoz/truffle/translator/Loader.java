@@ -143,8 +143,7 @@ public class Loader {
 		DynamicObject base = loadBase();
 
 		String fileName = new File(source.getPath()).getName();
-		Program program = BootCompiler.buildMainProgram(source,
-				BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
+		Program program = BootCompiler.buildMainProgram(source, BuiltinsRegistry.getBuiltins());
 		Statement ast = compile(program, fileName);
 
 		Translator translator = new Translator(base);
@@ -164,8 +163,7 @@ public class Loader {
 		String fileName = new File(source.getPath()).getName();
 		System.out.println("Loading " + fileName);
 		tick("start parse");
-		Program program = BootCompiler.buildProgram(source, false, eagerLoad,
-				BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
+		Program program = BootCompiler.buildProgram(source, false, eagerLoad, BuiltinsRegistry.getBuiltins());
 		tick("parse functor " + fileName);
 		Statement ast = compile(program, fileName);
 		tick("compiled functor " + fileName);

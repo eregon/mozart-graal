@@ -14,21 +14,19 @@ import com.oracle.truffle.api.source.Source
  * Main interface, called from Java
  */
 object BootCompiler {
-
-  def buildMainProgram(source: Source, builtins: Builtins, baseDecls: Buffer[String]) = {
-    val program = new Program(false, false, builtins, baseDecls)
+  def buildMainProgram(source: Source, builtins: Builtins) = {
+    val program = new Program(false, false, builtins)
     val statement = parseStatement(source, Set.empty)
     program.rawCode = statement
     program
   }
 
   def buildBaseEnvProgram(source: Source, builtins: Builtins) = {
-    buildProgram(source, true, true, builtins, Buffer())
+    buildProgram(source, true, true, builtins)
   }
 
-  def buildProgram(source: Source, isBase: Boolean, eagerLoad: Boolean,
-      builtins: Builtins, baseDecls: Buffer[String]) = {
-    val program = new Program(isBase, eagerLoad, builtins, baseDecls)
+  def buildProgram(source: Source, isBase: Boolean, eagerLoad: Boolean, builtins: Builtins) = {
+    val program = new Program(isBase, eagerLoad, builtins)
     val functor = parseExpression(source, Set.empty)
     ProgramBuilder.buildModuleProgram(program, functor)
     program

@@ -13,10 +13,7 @@ class Program(
     val eagerLoad: Boolean = false,
 
     /** Builtin manager */
-    val builtins: Builtins = new Builtins,
-
-    /** Variables declared by the base environment */
-    val baseDeclarations: Buffer[String] = new ArrayBuffer[String]) {
+    val builtins: Builtins = new Builtins) {
 
   /** Before flattening, abstract syntax tree of the whole program */
   var rawCode: Statement = SkipStatement()
