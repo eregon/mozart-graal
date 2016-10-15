@@ -123,8 +123,9 @@ public class Loader {
 
 	private OzRootNode parseBase() {
 		tick("enter parseBase");
-		Program program = BootCompiler.buildBaseEnvProgram(createSource(BASE_FILE_NAME),
-				BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
+		Program program = BootCompiler.buildBaseEnvProgram(
+				createSource(BASE_FILE_NAME),
+				BuiltinsRegistry.getBuiltins());
 		tick("parse Base");
 		Statement ast = compile(program, "the base environment");
 

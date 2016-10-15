@@ -22,8 +22,8 @@ object BootCompiler {
     program
   }
 
-  def buildBaseEnvProgram(source: Source, builtins: Builtins, baseDecls: Buffer[String]) = {
-    buildProgram(source, true, true, builtins, baseDecls)
+  def buildBaseEnvProgram(source: Source, builtins: Builtins) = {
+    buildProgram(source, true, true, builtins, Buffer())
   }
 
   def buildProgram(source: Source, isBase: Boolean, eagerLoad: Boolean,
