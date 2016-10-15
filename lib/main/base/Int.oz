@@ -62,8 +62,6 @@ Int = int(is:              IsInt
           isEven:          IsEven
           'div':           Boot_Int.'div'
           'mod':           Boot_Int.'mod'
-          '+1':            Boot_Int.'+1'
-          '-1':            Boot_Int.'-1'
           toFloat:         IntToFloat
           toCompactString: IntToCompactString
           toString:        IntToString)

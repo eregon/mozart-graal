@@ -79,9 +79,6 @@ class Builtins {
 
   lazy val newName = builtinByName("Name", "new")
 
-  lazy val plus1 = builtinByName("Int", "+1")
-  lazy val minus1 = builtinByName("Int", "-1")
-
   lazy val raise = builtinByName("Exception", "raise")
   lazy val raiseError = builtinByName("Exception", "raiseError")
   lazy val fail = builtinByName("Exception", "fail")

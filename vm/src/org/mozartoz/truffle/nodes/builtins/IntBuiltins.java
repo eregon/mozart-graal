@@ -6,15 +6,12 @@ import java.math.BigInteger;
 
 import org.mozartoz.truffle.nodes.OzNode;
 
-import com.oracle.truffle.api.ExactMath;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 
 public abstract class IntBuiltins {
-
-	private static final BigInteger ONE = BigInteger.valueOf(1);
 
 	@Builtin(name = "is", deref = ALL)
 	@GenerateNodeFactory
@@ -34,40 +31,6 @@ public abstract class IntBuiltins {
 		@Specialization(guards = { "!isLong(value)", "!isBigInteger(value)" })
 		boolean isInt(Object value) {
 			return false;
-		}
-
-	}
-
-	@Builtin(name = "+1", deref = ALL)
-	@GenerateNodeFactory
-	@NodeChild("value")
-	public static abstract class AddOneNode extends OzNode {
-
-		@Specialization(rewriteOn = ArithmeticException.class)
-		protected long addOne(long n) {
-			return ExactMath.addExact(n, 1);
-		}
-
-		@Specialization
-		protected BigInteger addOne(BigInteger n) {
-			return n.add(ONE);
-		}
-
-	}
-
-	@Builtin(name = "-1", deref = ALL)
-	@GenerateNodeFactory
-	@NodeChild("value")
-	public static abstract class SubOneNode extends OzNode {
-
-		@Specialization(rewriteOn = ArithmeticException.class)
-		protected long subOne(long n) {
-			return ExactMath.subtractExact(n, 1);
-		}
-
-		@Specialization
-		protected BigInteger subOne(BigInteger n) {
-			return n.subtract(ONE);
 		}
 
 	}
