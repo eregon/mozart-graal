@@ -207,7 +207,7 @@ object ConstantFolding extends Transformer with TreeDSL {
 
       def unapply(call: CallExpression): Option[(Expression, Expression)] = {
         call match {
-          case CallExpression(Constant(ozBuiltin), Seq(left, right)) =>
+          case CallExpression(Constant(builtin), Seq(left, right)) if builtin eq ozBuiltin =>
             Some((left, right))
 
           case _ => None
