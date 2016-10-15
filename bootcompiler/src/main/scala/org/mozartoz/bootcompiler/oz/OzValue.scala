@@ -181,6 +181,11 @@ case class OzBuiltin(builtin: symtab.Builtin) extends OzValue {
   def syntax() = builtin.toString()
 }
 
+/** Oz value representing the value of a field of Base */
+case class OzBaseValue(name: String) extends OzValue {
+  def syntax() = name
+}
+
 /** Special value representing a wildcard in a pattern */
 case class OzPatMatWildcard() extends OzValue {
   def syntax() = "_"

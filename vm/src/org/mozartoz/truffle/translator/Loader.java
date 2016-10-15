@@ -128,7 +128,7 @@ public class Loader {
 		tick("parse Base");
 		Statement ast = compile(program, "the base environment");
 
-		Translator translator = new Translator();
+		Translator translator = new Translator(null);
 		FrameSlot topLevelResultSlot = translator.addRootSymbol(program.topLevelResultSymbol());
 		return translator.translateAST("<Base>", ast, node -> {
 			return SequenceNode.sequence(
@@ -146,7 +146,7 @@ public class Loader {
 				BuiltinsRegistry.getBuiltins(), BaseDeclarations.getDeclarations());
 		Statement ast = compile(program, fileName);
 
-		Translator translator = new Translator();
+		Translator translator = new Translator(base);
 		FrameSlot baseSlot = translator.addRootSymbol(program.baseEnvSymbol());
 		return translator.translateAST(fileName, ast, node -> {
 			return SequenceNode.sequence(
@@ -169,7 +169,7 @@ public class Loader {
 		Statement ast = compile(program, fileName);
 		tick("compiled functor " + fileName);
 
-		Translator translator = new Translator();
+		Translator translator = new Translator(base);
 		FrameSlot baseSlot = translator.addRootSymbol(program.baseEnvSymbol());
 		FrameSlot topLevelResultSlot = translator.addRootSymbol(program.topLevelResultSymbol());
 		OzRootNode rootNode = translator.translateAST(fileName, ast, node -> {

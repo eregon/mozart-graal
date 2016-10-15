@@ -40,6 +40,7 @@ import org.mozartoz.bootcompiler.ast.VariableOrRaw;
 import org.mozartoz.bootcompiler.oz.False;
 import org.mozartoz.bootcompiler.oz.OzArity;
 import org.mozartoz.bootcompiler.oz.OzAtom;
+import org.mozartoz.bootcompiler.oz.OzBaseValue;
 import org.mozartoz.bootcompiler.oz.OzBuiltin;
 import org.mozartoz.bootcompiler.oz.OzFeature;
 import org.mozartoz.bootcompiler.oz.OzFloat;
@@ -125,6 +126,7 @@ import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class Translator {
@@ -153,8 +155,10 @@ public class Translator {
 
 	private Environment environment = new Environment(null, new FrameDescriptor());
 	private final Environment rootEnvironment = environment;
+	private final DynamicObject base;
 
-	public Translator() {
+	public Translator(DynamicObject base) {
+		this.base = base;
 	}
 
 	public FrameSlot addRootSymbol(Symbol symbol) {
@@ -498,6 +502,11 @@ public class Translator {
 		} else if (value instanceof OzBuiltin) {
 			Builtin builtin = ((OzBuiltin) value).builtin();
 			return BuiltinsManager.getBuiltin(builtin.moduleName(), builtin.name());
+		} else if (value instanceof OzBaseValue) {
+			String name = ((OzBaseValue) value).name();
+			Object baseValue = base.get(name);
+			assert baseValue != null;
+			return baseValue;
 		}
 		throw unknown("value", value);
 	}

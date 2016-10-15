@@ -19,8 +19,7 @@ abstract class Transformer extends (Program => Unit) {
     } else if (name == "Base") {
       Variable(program.baseEnvSymbol)
     } else {
-      CallExpression(Constant(OzBuiltin(builtins.binaryOpToBuiltin("."))),
-          Seq(Variable(program.baseEnvSymbol), Constant(OzAtom(name))))
+      Constant(OzBaseValue(name))
     }
   }
 
