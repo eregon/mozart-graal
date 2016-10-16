@@ -289,8 +289,9 @@ public class Translator {
 			return translateMatch((MatchCommon) node);
 		} else if (node instanceof ForStatement) {
 			ForStatement forNode = (ForStatement) node;
-			return new ForNode(translate(forNode.from()), translate(forNode.to()),
-					translate(forNode.proc()));
+			return new ForNode(translate(forNode.from()), translate(forNode.to()), translate(forNode.proc()),
+					ForNode.createSlot(environment.frameDescriptor, "for(I)"),
+					ForNode.createSlot(environment.frameDescriptor, "for(N)"));
 		} else if (node instanceof TryCommon) {
 			TryCommon tryNode = (TryCommon) node;
 			FrameSlotAndDepth exceptionVarSlot = findVariable(((Variable) tryNode.exceptionVar()).symbol());
