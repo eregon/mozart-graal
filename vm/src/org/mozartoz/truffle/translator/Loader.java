@@ -189,7 +189,7 @@ public class Loader {
 	public void runFunctor(Source source, String... args) {
 		tick("start loading Main");
 		final OzProc main;
-		if (new File(MAIN_IMAGE).exists()) {
+		if (Options.SERIALIZER && new File(MAIN_IMAGE).exists()) {
 			try {
 				main = OzSerializer.deserialize(MAIN_IMAGE, OzProc.class);
 			} catch (Throwable t) {
@@ -205,7 +205,9 @@ public class Loader {
 				Object initFunctor = execute(parseFunctor(createSource(INIT_FUNCTOR)));
 				Object applied = execute(InitFunctor.apply(initFunctor));
 				main = (OzProc) ((DynamicObject) applied).get("main");
-				OzSerializer.serialize(main, MAIN_IMAGE);
+				if (Options.SERIALIZER) {
+					OzSerializer.serialize(main, MAIN_IMAGE);
+				}
 			} finally {
 				eagerLoad = false;
 			}
