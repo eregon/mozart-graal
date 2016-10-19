@@ -68,8 +68,13 @@ public abstract class BrowserBuiltins {
 	@NodeChild("variable")
 	public static abstract class GetsBoundBNode extends OzNode {
 
+		@Specialization(guards = "!isVariable(value)")
+		OzVar getsBoundB(Object value) {
+			return new OzVar();
+		}
+
 		@Specialization
-		OzVar getsBoundB(OzVar variable) {
+		OzVar getsBoundB(Variable variable) {
 			OzVar var = new OzVar();
 			variable.link(var);
 			return var;
