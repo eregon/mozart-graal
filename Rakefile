@@ -37,8 +37,13 @@ namespace :build do
   end
 
   file OZWISH => OZWISH_SRC do
+    flags = if RUBY_PLATFORM.include? "darwin"
+      "-I/opt/X11/include"
+    else
+      ""
+    end
     begin
-      sh "cc -o #{OZWISH} -ltcl -ltk #{OZWISH_SRC}"
+      sh "cc -o #{OZWISH} -ltcl -ltk #{flags} #{OZWISH_SRC}"
     rescue
       puts "WARNING: Failed to build ozwish"
     end
