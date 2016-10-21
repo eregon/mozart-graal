@@ -31,6 +31,10 @@ if vm_options.delete('--graal')
   java_opts << "-Djvmci.Compiler=graal"
 end
 
+if vm_options.delete('--trace')
+  java_opts << "-Dgraal.TraceTruffleCompilation=true"
+end
+
 if vm_options.delete('--fg')
   java_opts << "-Dgraal.TruffleBackgroundCompilation=false"
 end
