@@ -91,7 +91,7 @@ object ConstantFolding extends Transformer with TreeDSL {
     } else if (fields.isEmpty) {
       label
     } else {
-      val newRecord = treeCopy.Record(record, label, sortRecordFields(fields))
+      val newRecord = treeCopy.Record(record, label, sortRecordFields(record))
 
       if (newRecord.isConstant) newRecord.getAsConstant
       else newRecord
@@ -106,7 +106,7 @@ object ConstantFolding extends Transformer with TreeDSL {
       record
     } else {
       val newRecord = treeCopy.OpenRecordPattern(record,
-          label, sortRecordFields(fields))
+          label, sortRecordFields(record))
 
       if (newRecord.isConstant) newRecord.getAsConstant
       else newRecord
@@ -114,12 +114,17 @@ object ConstantFolding extends Transformer with TreeDSL {
   }
 
   /** Sort the fields of a record according to their features */
-  private def sortRecordFields(fields: Seq[RecordField]) = {
-    fields.sortWith { (leftField, rightField) =>
+  private def sortRecordFields(record: BaseRecord) = {
+    val sortedFields = record.fields.sortWith { (leftField, rightField) =>
       val Constant(left:OzFeature) = leftField.feature
       val Constant(right:OzFeature) = rightField.feature
       left feature_< right
     }
+    if (!sortedFields.isEmpty)
+      for ((left, right) <- sortedFields.zip(sortedFields.tail))
+        if (left.feature == right.feature)
+          program.reportError("Duplicate features in record\n" + record, record)
+    sortedFields
   }
 
   private def processConstAssignments(decls: Seq[Variable],
