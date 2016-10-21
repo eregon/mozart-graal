@@ -24,7 +24,7 @@ args = ARGV.drop_while { |arg|
 }
 
 if vm_options.delete('--graal')
-  jvmci_home = File.read("../graal-core/mx.graal-core/env").scan(/^JAVA_HOME=(.+)/)[0][0]
+  jvmci_home = (GRAAL / "mx.graal-core/env").read.scan(/^JAVA_HOME=(.+)/)[0][0]
   java = File.expand_path("#{jvmci_home}/bin/java")
   java_opts += %w[-server -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -d64]
   java_opts << "-Djvmci.class.path.append=#{GRAAL_JAR}"
