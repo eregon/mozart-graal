@@ -32,6 +32,7 @@ public class Arity {
 	static final Shape CONS_SHAPE = CONS_ARITY.getShape();
 
 	public static final Arity PAIR_ARITY = Arity.build("#", 1L, 2L);
+	public static final RecordFactory PAIR_FACTORY = PAIR_ARITY.createFactory();
 
 	private final Object label;
 	private final Shape shape;
@@ -148,6 +149,7 @@ public class Arity {
 		Shape shape = Arity.BASE;
 		for (Object feature : features) {
 			assert OzGuards.isFeature(feature);
+			assert !shape.hasProperty(feature) : "duplicated feature " + feature;
 			shape = shape.defineProperty(feature, SOME_OBJECT, 0);
 		}
 		return new Arity(label, shape);

@@ -243,6 +243,9 @@ public abstract class RecordBuiltins {
 			for (int i = 0; i < size; i++) {
 				Object feature = derefNode.executeDerefIfBound(contents.get((long) i * 2 + 1));
 				Object value = derefNode.executeDerefIfBound(contents.get((long) i * 2 + 2));
+				if (map.containsKey(feature)) {
+					throw kernelError("recordConstruction", label, buildPairs(contents));
+				}
 				map.put(feature, value);
 			}
 
@@ -251,6 +254,17 @@ public abstract class RecordBuiltins {
 			} else {
 				return OzRecord.buildRecord(label, map);
 			}
+		}
+
+		private Object buildPairs(DynamicObject contents) {
+			int size = OzRecord.getArity(contents).getWidth() / 2;
+			Object list = "nil";
+			for (int i = size - 1; i >= 0; i--) {
+				Object feature = derefNode.executeDerefIfBound(contents.get((long) i * 2 + 1));
+				Object value = derefNode.executeDerefIfBound(contents.get((long) i * 2 + 2));
+				list = new OzCons(Arity.PAIR_FACTORY.newRecord(feature, value), list);
+			}
+			return list;
 		}
 
 	}
