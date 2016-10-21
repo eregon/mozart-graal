@@ -96,7 +96,9 @@ prepare
             end
             %% terminate local computation
             if {System.onToplevel} then
-               {{Property.condGet 'errors.toplevel' ExitError}}
+               % {{Property.condGet 'errors.toplevel' ExitError}}
+               % Let the VM do the exit so it can print the internal backtrace
+               skip
             elsecase Exc of failure(...) then fail
             else
                {{Property.condGet 'errors.subordinate' ExitError}}

@@ -23,8 +23,8 @@ public class OzProc {
 		this.arity = arity;
 	}
 
-	public Object rootCall(String identifier) {
-		return wrap(identifier).call(OzArguments.pack(null, new Object[0]));
+	public Object rootCall(String identifier, Object... arguments) {
+		return wrap(identifier, arguments).call(OzArguments.pack(null, new Object[0]));
 	}
 
 	@Override
@@ -45,8 +45,8 @@ public class OzProc {
 	}
 
 	/** Wraps itself in a CallNode so it works well with TailCallException */
-	private CallTarget wrap(String identifier) {
-		OzNode callNode = CallNode.create(new LiteralNode(this), new LiteralNode(new Object[0]));
+	private CallTarget wrap(String identifier, Object[] arguments) {
+		OzNode callNode = CallNode.create(new LiteralNode(this), new LiteralNode(arguments));
 		OzRootNode rootNode = OzRootNode.createTopRootNode(identifier, callNode);
 		return Truffle.getRuntime().createCallTarget(rootNode);
 	}

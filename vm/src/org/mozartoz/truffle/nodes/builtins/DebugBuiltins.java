@@ -1,6 +1,9 @@
 package org.mozartoz.truffle.nodes.builtins;
 
+import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
+
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzThread;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -20,14 +23,18 @@ public abstract class DebugBuiltins {
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("thread"), @NodeChild("value") })
 	public static abstract class SetRaiseOnBlockNode extends OzNode {
 
 		@Specialization
-		Object setRaiseOnBlock(Object thread, Object value) {
-			return unimplemented();
+		Object setRaiseOnBlock(OzThread thread, boolean value) {
+			if (value) {
+				// TODO
+				System.err.println("dummy implementation for Debug.setRaiseOnBlock");
+			}
+			return unit;
 		}
 
 	}

@@ -17,6 +17,7 @@ import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.EqualNodeFactory
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.TypeNodeFactory;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzArray;
+import org.mozartoz.truffle.runtime.OzBacktrace;
 import org.mozartoz.truffle.runtime.OzCell;
 import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -777,6 +778,12 @@ public abstract class ValueBuiltins {
 			} else {
 				return "record";
 			}
+		}
+
+		@Specialization
+		String type(OzBacktrace backtrace) {
+			// Pretend OzBacktrace is a cons list for the error handler
+			return "tuple";
 		}
 
 	}

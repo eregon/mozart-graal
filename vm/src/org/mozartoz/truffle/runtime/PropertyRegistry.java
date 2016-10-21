@@ -36,6 +36,7 @@ public class PropertyRegistry {
 		registerValue("errors.thread", 40L);
 		registerValue("errors.width", 20L);
 		registerValue("errors.depth", 10L);
+		registerValue("errors.handler", Unit.INSTANCE);
 
 		registerConstant("fd.variables", 0L);
 		registerConstant("fd.propagators", 0L);
