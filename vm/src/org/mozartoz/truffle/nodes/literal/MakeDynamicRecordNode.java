@@ -6,6 +6,7 @@ import java.util.Map;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.NodeHelpers;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzRecord;
 
@@ -39,7 +40,11 @@ public class MakeDynamicRecordNode extends OzNode {
 		Map<Object, Object> map = new HashMap<Object, Object>(features.length);
 
 		for (int i = 0; i < features.length; i++) {
-			map.put(features[i], values[i]);
+			Object feature = features[i];
+			if (map.containsKey(feature)) {
+				throw kernelError("recordConstruction", label, buildPairs(features, values));
+			}
+			map.put(feature, values[i]);
 		}
 
 		if (label == "|" && features.length == 2 && map.containsKey(1L) && map.containsKey(2L)) {
@@ -48,6 +53,14 @@ public class MakeDynamicRecordNode extends OzNode {
 			return OzRecord.buildRecord(label, map);
 		}
 
+	}
+
+	private Object buildPairs(Object[] features, Object[] values) {
+		Object list = "nil";
+		for (int i = features.length - 1; i >= 0; i--) {
+			list = new OzCons(Arity.PAIR_FACTORY.newRecord(features[i], values[i]), list);
+		}
+		return list;
 	}
 
 }
