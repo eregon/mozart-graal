@@ -1,4 +1,5 @@
 require_relative 'tool/common'
+require 'tempfile'
 
 OZWISH = PROJECT_DIR / "wish/ozwish"
 OZWISH_SRC = PROJECT_DIR / "wish/unixmain.cc"
@@ -114,7 +115,11 @@ namespace :build do
   directory VM_CLASSES
 
   file MAIN_CLASS => [VM_CLASSES, TRUFFLE_API_JAR, TRUFFLE_DSL_PROCESSOR_JAR, BOOTCOMPILER_JAR, "vm/.classpath", *JAVA_SOURCES] do
-    sh "javac", "-cp", "#{TRUFFLE_API_JAR}:#{TRUFFLE_DSL_PROCESSOR_JAR}:#{BOOTCOMPILER_JAR}:#{maven_classpath.join(':')}", "-d", VM_CLASSES, *JAVA_SOURCES
+    Tempfile.open("sources") do |f|
+      f.puts JAVA_SOURCES
+      f.close
+      sh "javac", "-cp", "#{TRUFFLE_API_JAR}:#{TRUFFLE_DSL_PROCESSOR_JAR}:#{BOOTCOMPILER_JAR}:#{maven_classpath.join(':')}", "-d", VM_CLASSES, "@#{f.path}"
+    end
   end
 end
 
