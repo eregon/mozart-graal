@@ -114,7 +114,7 @@ namespace :build do
   directory VM_CLASSES
 
   file MAIN_CLASS => [VM_CLASSES, TRUFFLE_API_JAR, TRUFFLE_DSL_PROCESSOR_JAR, BOOTCOMPILER_JAR, "vm/.classpath", *JAVA_SOURCES] do
-    sh *["javac", "-cp", "#{TRUFFLE_API_JAR}:#{TRUFFLE_DSL_PROCESSOR_JAR}:#{oz_classpath.join(':')}", "-sourcepath", "src", "-d", VM_CLASSES, *JAVA_SOURCES]
+    sh *["javac", "-cp", "#{TRUFFLE_API_JAR}:#{TRUFFLE_DSL_PROCESSOR_JAR}:#{BOOTCOMPILER_JAR}:#{maven_classpath.join(':')}", "-sourcepath", "src", "-d", VM_CLASSES, *JAVA_SOURCES]
   end
 end
 

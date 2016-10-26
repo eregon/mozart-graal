@@ -33,7 +33,17 @@ JAVA_SOURCES = Dir["#{VM}/src/**/*.java"]
 
 MAIN_IMAGE = PROJECT_DIR / "Main.image"
 
+def maven_classpath
+  (VM / ".classpath").read.scan(%r{kind="lib" path="([^"]+/\.m2/repository/[^"]+)"}).map(&:first)
+end
+
 def oz_classpath
-  maven_classpath = (VM / ".classpath").read.scan(%r{kind="lib" path="([^"]+/\.m2/repository/[^"]+)"}).map(&:first)
-  [VM_CLASSES, BOOTCOMPILER_CLASSES, BOOTCOMPILER_JAR] + maven_classpath
+  cp = []
+  cp << VM_CLASSES
+  newest_bootcompiler_class = Dir[BOOTCOMPILER_CLASSES / "**/*.class"].max_by { |f| File.mtime(f) }
+  if newest_bootcompiler_class and File.mtime(newest_bootcompiler_class) > BOOTCOMPILER_JAR.mtime
+    cp << BOOTCOMPILER_CLASSES
+  end
+  cp << BOOTCOMPILER_JAR
+  cp + maven_classpath
 end
