@@ -30,9 +30,21 @@ public abstract class Variable {
 		return value;
 	}
 
+	private boolean contains(Variable v) {
+		Variable var = this;
+		do {
+			if (var == v) {
+				return true;
+			}
+			var = var.next;
+		} while (var != this);
+		return false;
+	}
+
 	public void link(Variable other) {
 		assert !isBound();
 		assert !other.isBound();
+		assert !contains(other);
 
 		// Link both circular lists
 		Variable oldNext = this.next;
