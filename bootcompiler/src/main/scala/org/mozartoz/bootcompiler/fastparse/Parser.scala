@@ -505,7 +505,7 @@ object Parser {
     case (lhs, None)                                  => lhs
   }
   val lvl0: P[Phrase] = P(lvl1 ~ ("=" ~/ lvl0).?).map {
-    case (lhs, Some(rhs)) => BindPhrase(lhs, rhs)
+    case (lhs, Some(rhs)) => nameBindRHS(BindPhrase(lhs, rhs))
     case (lhs, None)      => lhs
   }
   val expression: P[Phrase] = lvl0
@@ -793,6 +793,15 @@ object Parser {
     }
 
   // Helpers
+
+  def nameBindRHS(bind: BindPhrase) = bind match {
+    case BindPhrase(lhs @ RawVariable(varName), proc @ ProcPhrase(None, args, body, flags)) =>
+      BindPhrase(lhs, proc.copy(name = Some(lhs)))
+    case BindPhrase(lhs @ RawVariable(varName), fun @ FunPhrase(None, args, body, flags)) =>
+      BindPhrase(lhs, fun.copy(name = Some(lhs)))
+    case _ =>
+      bind
+  }
 
   def postProcessArgsAndBody(args: Seq[Phrase], body: Phrase) = {
     if (args.forall(_.isInstanceOf[RawVariable])) {

@@ -6,6 +6,19 @@ import ast._
 import symtab._
 
 object Desugar extends Transformer with TreeDSL {
+
+  var procName: VariableOrRaw = RawVariable("")
+
+  private def withProcName[A](name: Option[VariableOrRaw])(f: => A) = {
+    val oldName = procName
+    procName = name.get
+    try f
+    finally procName = oldName
+  }
+
+  private def genProcName(kind: String) =
+    Some(RawVariable(kind + " in " + procName.name))
+
   override def transformStat(statement: Statement) = statement match {
     case assign @ BinaryOpStatement(lhs, ":=", rhs) =>
       builtins.catAssign call (transformExpr(lhs), transformExpr(rhs))
@@ -22,7 +35,7 @@ object Desugar extends Transformer with TreeDSL {
 
     case thread @ ThreadStatement(body) =>
       atPos(thread) {
-        val proc = PROC(None, Nil) {
+        val proc = PROC(genProcName("thread"), Nil) {
           transformStat(body)
         }
 
@@ -31,7 +44,7 @@ object Desugar extends Transformer with TreeDSL {
 
     case lockStat @ LockStatement(lock, body) =>
       atPos(lockStat) {
-        val proc = PROC(None, Nil) {
+        val proc = PROC(genProcName("lock"), Nil) {
           transformStat(body)
         }
 
@@ -71,25 +84,31 @@ object Desugar extends Transformer with TreeDSL {
         if (isLazy) flags filterNot "lazy".==
         else flags
 
-      val newBody = transformExpr(body)
-
       atPos(fun) {
         PROC(name, args :+ result, newFlags) {
-          if (isLazy) {
-            val result2 = Variable.newSynthetic("<Result2>").copyAttrs(fun)
-            transformStat {
-              LOCAL (result2) IN {
-                THREAD {
-                  (builtins.waitNeeded call (result2)) ~
-                  exprToBindStatement(result2, newBody)
-                } ~
-                (builtins.unaryOpToBuiltin("!!") call (result2, result))
+          withProcName(name) {
+            val newBody =  transformExpr(body)
+            if (isLazy) {
+              val result2 = Variable.newSynthetic("<Result2>").copyAttrs(fun)
+              transformStat {
+                LOCAL (result2) IN {
+                  THREAD {
+                    (builtins.waitNeeded call (result2)) ~
+                    exprToBindStatement(result2, newBody)
+                  } ~
+                  (builtins.unaryOpToBuiltin("!!") call (result2, result))
+                }
               }
+            } else {
+              exprToBindStatement(result, newBody)
             }
-          } else {
-            exprToBindStatement(result, newBody)
           }
         }
+      }
+
+    case proc @ ProcExpression(name, args, body, flags) =>
+      withProcName(name) {
+        super.transformExpr(proc)
       }
 
     case thread @ ThreadExpression(body) =>

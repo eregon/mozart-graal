@@ -35,6 +35,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
 
   /** Current environment */
   private var env: Env = Map.empty
+  private var envName: VariableOrRaw = RawVariable("")
 
   /** Computes a sub expression with a new given environment
    *
@@ -56,9 +57,15 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
    *  @return result of `f` evaluated with the given environment
    */
   private def withEnvironmentFromDecls[A](
-      decls: Seq[Variable])(f: => A) = {
+      decls: Seq[Variable], name: VariableOrRaw = envName)(f: => A) = {
     val newEnv = (decls map (decl => decl.symbol.name -> decl.symbol))
-    withEnvironment(env ++ newEnv)(f)
+    val oldName = envName
+    try {
+      envName = name
+      withEnvironment(env ++ newEnv)(f)
+    } finally {
+      envName = oldName
+    }
   }
 
   override def transformStat(statement: Statement) = statement match {
@@ -220,10 +227,11 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
      */
     case proc @ ProcExpression(name, args, body, flags) =>
       val namedFormals = nameFormals(args)
+      val resolvedName = resolveProcName(name)
 
-      withEnvironmentFromDecls(namedFormals) {
+      withEnvironmentFromDecls(namedFormals, resolvedName) {
         treeCopy.ProcExpression(proc,
-            resolveVariable(name),
+            Some(resolvedName),
             namedFormals,
             transformStat(body),
             flags)
@@ -238,10 +246,11 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
      */
     case fun @ FunExpression(name, args, body, flags) =>
       val namedFormals = nameFormals(args)
+      val resolvedName = resolveProcName(name)
 
-      withEnvironmentFromDecls(namedFormals) {
+      withEnvironmentFromDecls(namedFormals, resolvedName) {
         treeCopy.FunExpression(fun,
-            resolveVariable(name),
+            Some(resolvedName),
             namedFormals,
             transformExpr(body),
             flags)
@@ -296,7 +305,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
 
     val (requireDecls, newRequire) = transformFunctorImports(require)
 
-    withEnvironmentFromDecls(requireDecls) {
+    withEnvironmentFromDecls(requireDecls, RawVariable(functor.fullName)) {
       val (prepareDecls, newPrepare) = transformFunctorDefine(prepare)
 
       withEnvironmentFromDecls(prepareDecls) {
@@ -608,13 +617,11 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
     }
   }
 
-  /** Resolves an optional raw variable into an optional variable */
-  def resolveVariable(rawVar: Option[VariableOrRaw]): Option[VariableOrRaw] = {
-    rawVar.flatMap(_ match {
-      case RawVariable(name) =>
-        env.get(name).map(sym => Variable(sym))
-      case _ => None
-    })
+  def resolveProcName(rawVar: Option[VariableOrRaw]): VariableOrRaw = rawVar match {
+    case Some(RawVariable(name)) =>
+      Variable(env.get(name).get)
+    case _ =>
+      RawVariable("proc in " + envName.name)
   }
 
   /** Names a list of raw variables */

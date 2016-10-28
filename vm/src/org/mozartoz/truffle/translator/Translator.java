@@ -312,7 +312,7 @@ public class Translator {
 		SourceSection sourceSection = t(procExpression);
 		String identifier = "";
 		if (procExpression.name().isDefined()) {
-			identifier = ((Variable) procExpression.name().get()).symbol().name();
+			identifier = procExpression.name().get().name();
 		}
 		if (Options.SHOW_PROC_AST != null && identifier.endsWith(Options.SHOW_PROC_AST)) {
 			System.out.println(procExpression);

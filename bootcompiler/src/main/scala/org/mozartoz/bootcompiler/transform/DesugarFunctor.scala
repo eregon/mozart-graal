@@ -41,7 +41,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
 
       val importsRec = makeImportsRec(imports)
       val exportsRec = makeExportsRec(exports)
-      val applyFun = makeApplyFun(define, imports, exports)
+      val applyFun = makeApplyFun(functor, define, imports, exports)
 
       val functorRec = atPos(functor) {
         Record(OzAtom("functor"), Seq(
@@ -97,7 +97,8 @@ object DesugarFunctor extends Transformer with TreeDSL {
     Record(OzAtom("export"), resultFields)
   }
 
-  def makeApplyFun(define: Option[LocalStatementOrRaw],
+  def makeApplyFun(functor: FunctorExpression,
+      define: Option[LocalStatementOrRaw],
       imports: Seq[FunctorImport],
       exports: Seq[FunctorExport]): Expression = {
     val importsParam = Variable.newSynthetic("<Imports>", formal = true)
@@ -121,7 +122,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
 
     val allDecls = importedDecls ++ definedDecls ++ utilsDecls
 
-    FUN(None, Seq(importsParam)) {
+    FUN(Some(RawVariable(functor.fullName)), Seq(importsParam)) {
       LOCAL (allDecls:_*) IN {
         val statements = new ListBuffer[Statement]
         def exec(statement: Statement) = statements += statement

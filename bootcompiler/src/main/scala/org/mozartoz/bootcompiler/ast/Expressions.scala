@@ -305,6 +305,8 @@ case class FunctorExpression(name: String,
     imports: Seq[FunctorImport], define: Option[LocalStatementOrRaw],
     exports: Seq[FunctorExport]) extends Expression {
 
+  def fullName = if (name.isEmpty) "functor" else "functor " + name
+
   def syntax(indent: String) = {
     val subIndent = indent + "   "
 
@@ -354,7 +356,9 @@ case class ShortCircuitBinaryOp(left: Expression, operator: String,
 trait VarOrConst extends Expression
 
 /** Variable or raw variable */
-trait VariableOrRaw extends Expression
+trait VariableOrRaw extends Expression {
+  def name: String
+}
 
 /** Raw variable (unnamed) */
 case class RawVariable(name: String) extends VariableOrRaw with RawDeclaration with Phrase {
@@ -365,6 +369,8 @@ case class RawVariable(name: String) extends VariableOrRaw with RawDeclaration w
 /** Variable */
 case class Variable(symbol: Symbol) extends VarOrConst with VariableOrRaw with Phrase
     with RawDeclarationOrVar {
+  def name = symbol.name
+
   def syntax(indent: String) =
     symbol.fullName
 }
