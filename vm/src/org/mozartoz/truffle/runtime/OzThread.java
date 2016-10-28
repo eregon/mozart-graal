@@ -75,6 +75,9 @@ public class OzThread implements Runnable {
 		} finally {
 			threadsRunnable--;
 			status = "terminated";
+			if (Options.STACKTRACE_ON_INTERRUPT) {
+				BACKTRACES.remove(this);
+			}
 		}
 	}
 
