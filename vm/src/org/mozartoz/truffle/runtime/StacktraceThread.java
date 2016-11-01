@@ -5,21 +5,23 @@ import java.util.Map.Entry;
 public class StacktraceThread extends Thread {
 	@Override
 	public void run() {
-		int byNeedFutures = 0;
+		int waitNeeded = 0;
 		for (Entry<OzThread, OzBacktrace> entry : OzThread.BACKTRACES.entrySet()) {
-			OzThread thread = entry.getKey();
-			if (isByNeedFuture(thread)) {
-				byNeedFutures++;
+			final OzThread thread = entry.getKey();
+			final OzBacktrace backtrace = entry.getValue();
+
+			if (isWaitNeeded(backtrace)) {
+				waitNeeded++;
 			} else {
 				System.out.println(thread.getProc());
-				entry.getValue().showUserBacktrace();
+				backtrace.showUserBacktrace();
 				System.out.println();
 			}
 		}
-		System.out.println(byNeedFutures + " threads in ByNeedFuture");
+		System.out.println(waitNeeded + " threads in WaitNeeded");
 	}
 
-	private boolean isByNeedFuture(OzThread thread) {
-		return thread.getProc() != null && thread.getProc().toString().contains("thread in ByNeedFuture in Base.oz");
+	private boolean isWaitNeeded(OzBacktrace backtrace) {
+		return backtrace.getFirst().equals("from Value.waitNeeded");
 	}
 }

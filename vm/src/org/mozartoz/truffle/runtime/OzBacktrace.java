@@ -24,6 +24,10 @@ public class OzBacktrace {
 		}
 	}
 
+	public String getFirst() {
+		return formatFrom(backtrace[0]);
+	}
+
 	private static String formatFrom(Node node) {
 		return "from " + formatNode(node);
 	}
