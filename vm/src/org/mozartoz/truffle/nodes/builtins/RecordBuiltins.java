@@ -19,6 +19,7 @@ import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.runtime.Variable;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -195,11 +196,12 @@ public abstract class RecordBuiltins {
 			Iterable<Property> properties = record.getShape().getProperties();
 			for (;;) {
 				for (Property property : properties) {
-					Object value = deref(property.get(record, record.getShape()));
+					Object value = tryDeref(property.get(record, record.getShape()));
 					if (OzGuards.isFailedValue(value)) {
 						throw new OzException(this, ((OzFailedValue) value).getData());
 					} else if (OzGuards.isVariable(value)) {
 						// Need to wait
+						((Variable) value).makeNeeded();
 					} else {
 						return value;
 					}
@@ -209,7 +211,7 @@ public abstract class RecordBuiltins {
 			}
 		}
 
-		private Object deref(Object value) {
+		private Object tryDeref(Object value) {
 			return derefNode.executeDerefIfBound(value);
 		}
 

@@ -71,6 +71,8 @@ public abstract class ValueBuiltins {
 		@Specialization(guards = { "!isBound(a)", "!isBound(b)" })
 		protected boolean equal(OzVar a, OzVar b) {
 			while (!a.isLinkedTo(b) && !a.isBound() && !b.isBound()) {
+				a.makeNeeded();
+				b.makeNeeded();
 				OzThread.getCurrent().yield(this);
 			}
 			if (a.isLinkedTo(b)) {
@@ -540,7 +542,7 @@ public abstract class ValueBuiltins {
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class WaitNode extends OzNode {
@@ -552,19 +554,14 @@ public abstract class ValueBuiltins {
 			return unit;
 		}
 
-		@Specialization(guards = "isBound(var)")
-		Object wait(OzVar var) {
-			return check(var.getBoundValue(this));
+		@Specialization
+		Object wait(OzFailedValue failedValue) {
+			return check(failedValue);
 		}
 
 		@Specialization(guards = "!isBound(var)")
 		Object waitUnbound(OzVar var) {
 			return check(var.waitValue(this));
-		}
-
-		@Specialization
-		Object wait(OzFailedValue failedValue) {
-			return check(failedValue);
 		}
 
 		private Object check(Object value) {
@@ -576,7 +573,7 @@ public abstract class ValueBuiltins {
 
 	}
 
-	@Builtin(proc = true)
+	@Builtin(proc = true, tryDeref = 1)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class WaitQuietNode extends OzNode {
@@ -588,19 +585,14 @@ public abstract class ValueBuiltins {
 			return unit;
 		}
 
-		@Specialization(guards = "isBound(var)")
-		Object waitQuiet(OzVar var) {
-			return executeWaitQuiet(var.getBoundValue(this));
+		@Specialization
+		Object waitQuiet(OzFailedValue failedValue) {
+			return unit;
 		}
 
 		@Specialization(guards = "!isBound(var)")
 		Object waitQuietUnbound(OzVar var) {
 			return executeWaitQuiet(var.waitValueQuiet(this));
-		}
-
-		@Specialization
-		Object waitQuiet(OzFailedValue failedValue) {
-			return unit;
 		}
 
 	}
