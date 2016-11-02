@@ -347,7 +347,7 @@ case class BinaryOp(left: Expression, operator: String,
 /** Boolean binary operation with short-circuit semantics */
 case class ShortCircuitBinaryOp(left: Expression, operator: String,
     right: Expression) extends Expression with InfixSyntax {
-  protected val opSyntax = operator
+  protected val opSyntax = " " + operator + " "
 }
 
 // Trivial expressions
