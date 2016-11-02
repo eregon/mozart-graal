@@ -154,13 +154,19 @@ public abstract class DictionaryBuiltins {
 
 	}
 
+	@Builtin(deref = { 1, 2 }, tryDeref = { 3, 4 })
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("dict"), @NodeChild("feature"), @NodeChild("defaultValue"), @NodeChild("newValue") })
 	public static abstract class CondExchangeFunNode extends OzNode {
 
 		@Specialization
-		Object condExchangeFun(Object dict, Object feature, Object defaultValue, Object newValue) {
-			return unimplemented();
+		Object condExchangeFun(OzDict dict, Object feature, Object defaultValue, Object newValue) {
+			Object oldValue = dict.put(feature, newValue);
+			if (oldValue == null) {
+				return defaultValue;
+			} else {
+				return oldValue;
+			}
 		}
 
 	}
@@ -229,13 +235,18 @@ public abstract class DictionaryBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("dict")
 	public static abstract class ItemsNode extends OzNode {
 
 		@Specialization
-		Object items(Object dict) {
-			return unimplemented();
+		Object items(OzDict dict) {
+			Object list = "nil";
+			for (Object value : dict.values()) {
+				list = new OzCons(value, list);
+			}
+			return list;
 		}
 
 	}

@@ -138,7 +138,7 @@ public abstract class ObjectBuiltins {
 
 	@Builtin(proc = true, deref = { 1, 2 }, tryDeref = 3)
 	@GenerateNodeFactory
-	@NodeChildren({ @NodeChild("object"), @NodeChild("attribute"), @NodeChild("newValue") })
+	@NodeChildren({ @NodeChild("object"), @NodeChild("attr"), @NodeChild("newValue") })
 	public static abstract class AttrPutNode extends OzNode {
 
 		public static AttrPutNode create() {
@@ -158,13 +158,18 @@ public abstract class ObjectBuiltins {
 
 	}
 
+	@Builtin(deref = { 1, 2 }, tryDeref = 3)
 	@GenerateNodeFactory
-	@NodeChildren({ @NodeChild("object"), @NodeChild("attribute"), @NodeChild("newValue") })
+	@NodeChildren({ @NodeChild("object"), @NodeChild("attr"), @NodeChild("newValue") })
 	public static abstract class AttrExchangeFunNode extends OzNode {
 
 		@Specialization
-		Object attrExchangeFun(Object object, Object attribute, Object newValue) {
-			return unimplemented();
+		Object attrExchangeFun(OzObject object, Object attr, Object newValue) {
+			DynamicObject attributes = object.getAttributes();
+			assert attributes.containsKey(attr);
+			Object oldValue = attributes.get(attr);
+			attributes.set(attr, newValue);
+			return oldValue;
 		}
 
 	}

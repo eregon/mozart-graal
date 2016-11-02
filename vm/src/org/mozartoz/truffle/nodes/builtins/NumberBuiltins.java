@@ -8,6 +8,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.ExactMath;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -16,14 +17,29 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class NumberBuiltins {
 
-	@Builtin(name = "is")
+	@Builtin(name = "is", deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class IsNumberNode extends OzNode {
 
 		@Specialization
-		Object isNumber(Object value) {
-			return unimplemented();
+		boolean isNumber(long value) {
+			return true;
+		}
+
+		@Specialization
+		boolean isNumber(double value) {
+			return true;
+		}
+
+		@Specialization
+		boolean isNumber(BigInteger value) {
+			return true;
+		}
+
+		@Fallback
+		boolean isNumber(Object value) {
+			return false;
 		}
 
 	}

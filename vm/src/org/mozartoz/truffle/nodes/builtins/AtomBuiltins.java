@@ -4,12 +4,11 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.runtime.OzCons;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class AtomBuiltins {
 
@@ -24,13 +23,8 @@ public abstract class AtomBuiltins {
 			return true;
 		}
 
-		@Specialization
-		boolean isAtom(OzCons cons) {
-			return false;
-		}
-
-		@Specialization
-		boolean isAtom(DynamicObject record) {
+		@Fallback
+		boolean isAtom(Object value) {
 			return false;
 		}
 

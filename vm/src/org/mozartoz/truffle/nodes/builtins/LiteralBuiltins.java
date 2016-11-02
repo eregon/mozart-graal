@@ -26,6 +26,11 @@ public abstract class LiteralBuiltins {
 			return true;
 		}
 
+		@Specialization(guards = "!isLiteral(value)")
+		boolean isLiteral(Object value) {
+			return false;
+		}
+
 	}
 
 }
