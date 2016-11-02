@@ -55,17 +55,17 @@ public abstract class OzNode extends Node {
 		return new OzException(this, data);
 	}
 
-	private static final RecordFactory KERNEL_ERROR_FACTORY4 = Arity.build("kernel", 1L, 2L, 3L).createFactory();
+	private static final RecordFactory KERNEL_ERROR_FACTORY4 = Arity.build("kernel", 1L, 2L, 3L, 4L).createFactory();
 
 	protected OzException kernelError(String kind, Object arg1, Object arg2, Object arg3) {
 		DynamicObject data = OzException.newError(KERNEL_ERROR_FACTORY4.newRecord(kind, arg1, arg2, arg3));
 		return new OzException(this, data);
 	}
 
-	private static final RecordFactory KERNEL_ERROR_FACTORY5 = Arity.build("kernel", 1L, 2L, 3L, 4L, 5L, 6L).createFactory();
+	private static final RecordFactory KERNEL_ERROR_FACTORY6 = Arity.build("kernel", 1L, 2L, 3L, 4L, 5L, 6L).createFactory();
 
 	protected OzException kernelError(String kind, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5) {
-		DynamicObject data = OzException.newError(KERNEL_ERROR_FACTORY5.newRecord(kind, arg1, arg2, arg3, arg4, arg5));
+		DynamicObject data = OzException.newError(KERNEL_ERROR_FACTORY6.newRecord(kind, arg1, arg2, arg3, arg4, arg5));
 		return new OzException(this, data);
 	}
 }

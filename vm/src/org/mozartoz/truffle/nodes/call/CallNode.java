@@ -48,7 +48,7 @@ public abstract class CallNode extends OzNode {
 
 	@Specialization
 	protected Object callOther(VirtualFrame frame, Object object, Object[] arguments) {
-		throw kernelError("type", unit, new OzCons(object, "nil"), "Callable", 1, "nil");
+		throw kernelError("type", unit, new OzCons(object, "nil"), "Callable", 1L, "nil");
 	}
 
 }

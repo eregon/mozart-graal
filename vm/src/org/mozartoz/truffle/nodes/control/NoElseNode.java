@@ -19,7 +19,7 @@ public class NoElseNode extends OzNode {
 		SourceSection sourceSection = getSourceSection();
 		throw kernelError("noElse",
 				sourceSection.getSource().getName(),
-				sourceSection.getStartLine(),
+				(long) sourceSection.getStartLine(),
 				value);
 	}
 

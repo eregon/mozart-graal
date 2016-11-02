@@ -87,13 +87,13 @@ public abstract class OSBuiltins {
 		}
 
 		private OzException notFound(String url) {
-			DynamicObject error = OS_ERROR_FACTORY4.newRecord("os", "bootURLLoad " + url, 2, "No such file or directory");
+			DynamicObject error = OS_ERROR_FACTORY4.newRecord("os", "bootURLLoad " + url, 2L, "No such file or directory");
 			return new OzException(this, OzException.newSystemError(error));
 		}
 
 	}
 
-	private static final long RAND_MIN = 0;
+	private static final long RAND_MIN = 0L;
 	private static final long RAND_MAX = 1L << 32;
 
 	@Builtin
@@ -234,11 +234,11 @@ public abstract class OSBuiltins {
 				case "wb":
 					return new FileOutputStream(new File(fileName));
 				default:
-					DynamicObject error = OS_ERROR_FACTORY4.newRecord("os", "fopen", 1, "Opening mode not implemented");
+					DynamicObject error = OS_ERROR_FACTORY4.newRecord("os", "fopen", 1L, "Opening mode not implemented");
 					throw new OzException(this, OzException.newSystemError(error));
 				}
 			} catch (FileNotFoundException e) {
-				DynamicObject error = OS_ERROR_FACTORY4.newRecord("os", "fopen", 2, "No such file or directory");
+				DynamicObject error = OS_ERROR_FACTORY4.newRecord("os", "fopen", 2L, "No such file or directory");
 				throw new OzException(this, OzException.newSystemError(error));
 			}
 		}
