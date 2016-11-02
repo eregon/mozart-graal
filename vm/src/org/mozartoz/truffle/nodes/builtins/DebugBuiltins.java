@@ -12,13 +12,14 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 public abstract class DebugBuiltins {
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("thread")
 	public static abstract class GetRaiseOnBlockNode extends OzNode {
 
 		@Specialization
-		Object getRaiseOnBlock(Object thread) {
-			return unimplemented();
+		boolean getRaiseOnBlock(OzThread thread) {
+			return thread.getRaiseOnBlock();
 		}
 
 	}
@@ -34,6 +35,7 @@ public abstract class DebugBuiltins {
 				// TODO
 				System.err.println("dummy implementation for Debug.setRaiseOnBlock");
 			}
+			thread.setRaiseOnBlock(value);
 			return unit;
 		}
 

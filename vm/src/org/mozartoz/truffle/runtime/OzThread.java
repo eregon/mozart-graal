@@ -37,6 +37,7 @@ public class OzThread implements Runnable {
 	private final OzProc proc;
 
 	private String status = "runnable";
+	private boolean raiseOnBlock = false;
 
 	private OzThread() {
 		coroutine = (Coroutine) Coroutine.current();
@@ -64,6 +65,14 @@ public class OzThread implements Runnable {
 
 	public String getStatus() {
 		return status;
+	}
+
+	public boolean getRaiseOnBlock() {
+		return raiseOnBlock;
+	}
+
+	public void setRaiseOnBlock(boolean raiseOnBlock) {
+		this.raiseOnBlock = raiseOnBlock;
 	}
 
 	@Override
