@@ -19,9 +19,8 @@ public class TailCallCatcherNode extends OzNode {
 	public Object execute(VirtualFrame frame) {
 		try {
 			return callNode.execute(frame);
-		} catch (TailCallException firstException) {
+		} catch (TailCallException tailCall) {
 			tailCallProfile.enter();
-			TailCallException tailCall = firstException;
 			while (true) {
 				try {
 					return callNode.executeCall(frame, tailCall.receiver, tailCall.arguments);
