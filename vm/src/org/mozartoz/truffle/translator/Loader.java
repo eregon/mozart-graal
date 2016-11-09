@@ -13,8 +13,8 @@ import org.mozartoz.bootcompiler.transform.Desugar;
 import org.mozartoz.bootcompiler.transform.DesugarClass;
 import org.mozartoz.bootcompiler.transform.DesugarFunctor;
 import org.mozartoz.bootcompiler.transform.Namer;
-import org.mozartoz.bootcompiler.transform.Simplify;
 import org.mozartoz.bootcompiler.transform.TailCallMarking;
+import org.mozartoz.bootcompiler.transform.Unnester;
 import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
@@ -288,7 +288,7 @@ public class Loader {
 		Desugar.apply(program);
 
 		ConstantFolding.apply(program);
-		Simplify.apply(program);
+		Unnester.apply(program);
 
 		TailCallMarking.apply(program);
 

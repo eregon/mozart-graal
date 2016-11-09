@@ -185,7 +185,7 @@ object Desugar extends Transformer with TreeDSL {
       treeCopy.NoElseStatement(expr)
       
     case CallExpression(callable, args) =>
-      treeCopy.CallStatement(expr, callable, Simplify.putVarInArgs(args, result))
+      treeCopy.CallStatement(expr, callable, Unnester.putVarInArgs(args, result))
       
     case MatchExpression(value, clauses, elseExpression) =>
       treeCopy.MatchStatement(expr, value,

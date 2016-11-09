@@ -1,14 +1,18 @@
 package org.mozartoz.bootcompiler
 package transform
 
-import scala.collection.mutable.ListBuffer
-
 import ast._
 import oz._
 import symtab._
 
 object Unnester extends Transformer with TreeDSL {
   override def transformStat(statement: Statement) = statement match {
+    // Make sure the value of a @ MatchStatement is a Variable for convenience later
+    case matchStat @ MatchStatement(value, _, _) if !value.isInstanceOf[Variable] =>
+      transformStat {
+        assignMatchValue(matchStat)
+      }
+
     case bind @ ((v:Variable) === rhs) =>
       transformBindVarToExpression(bind, v, rhs)
 
@@ -22,81 +26,27 @@ object Unnester extends Transformer with TreeDSL {
         }
       }
 
-    case call @ CallStatement(callable, args) =>
-      withSimplifiedHeaderAndArgs(callable, args) { (newCallable, newArgs) =>
-        treeCopy.CallStatement(call, newCallable, newArgs)
+    case _ =>
+      super.transformStat(statement)
+  }
+
+  override def transformExpr(expression: Expression) = expression match {
+    // Make sure the value of a @ MatchStatement is a Variable for convenience later
+    case matchExpr @ MatchExpression(value, _, _) if !value.isInstanceOf[Variable] =>
+      transformExpr {
+        assignMatchValue(matchExpr)
       }
 
-    case test @ IfStatement(cond, trueStat, falseStat) =>
-      val newTrueStat = transformStat(trueStat)
-      val newFalseStat = transformStat(falseStat)
-
-      cond match {
-        case v:Variable =>
-          IF (v) THEN (newTrueStat) ELSE (newFalseStat)
-
-        case _ =>
-          statementWithTemp { temp =>
-            transformStat(temp === cond) ~ {
-              IF (temp) THEN (newTrueStat) ELSE (newFalseStat)
-            }
-          }
-      }
-
-    case matchStat @ MatchStatement(value, clauses, elseStat) =>
-      val newClauses = clauses map transformClauseStat map transformMatchClauseGuard
-      val newElseStat = transformStat(elseStat)
-
-      def makeNewElseStat(v: Variable) = newElseStat match {
-        case NoElseStatement() =>
-          transformStat {
-            atPos(newElseStat) {
-              val exception = Tuple(Constant(OzAtom("kernel")), Seq(
-                  Constant(OzAtom("noElse")),
-                  Constant(OzAtom(matchStat.section.getSource.getPath)),
-                  Constant(OzInt(matchStat.section.getStartLine)),
-                  v))
-
-              builtins.raiseError call (exception)
-            }
-          }
-
-        case _ =>
-          newElseStat
-      }
-
-      value match {
-        case v:Variable =>
-          if (newClauses.isEmpty) makeNewElseStat(v)
-          else treeCopy.MatchStatement(matchStat, v, newClauses,
-              makeNewElseStat(v))
-
-        case _ =>
-          statementWithTemp { temp =>
-            transformStat(temp === value) ~ {
-              if (newClauses.isEmpty) makeNewElseStat(temp)
-              else treeCopy.MatchStatement(matchStat, temp, newClauses,
-                  makeNewElseStat(temp))
-            }
-          }
-      }
-
-    case raiseStat @ RaiseStatement(exception) =>
-      transformStat {
-        atPos(raiseStat) {
-          builtins.raise call (exception)
-        }
-      }
-
-    case failStat @ FailStatement() =>
-      transformStat {
-        atPos(failStat) {
-          builtins.fail call ()
+    case CallExpression(callable, args) =>
+      transformExpr {
+        expressionWithTemp { result =>
+          val newArgs = putVarInArgs(args, result)
+          treeCopy.CallStatement(expression, callable, newArgs) ~> result
         }
       }
 
     case _ =>
-      super.transformStat(statement)
+      super.transformExpr(expression)
   }
 
   def transformBindVarToExpression(bind: BindStatement,
@@ -168,31 +118,24 @@ object Unnester extends Transformer with TreeDSL {
         v === treeCopy.Record(record, label, newFields)
       }
 
+    case ListExpression(elements) =>
+      withSimplifiedArgs(elements) { newElements =>
+        v === treeCopy.ListExpression(rhs, newElements)
+      }
+
     case NestingMarker() =>
       program.reportError("Illegal use of nesting marker", rhs)
       treeCopy.SkipStatement(rhs)
 
+    case BinaryOp(left, op, right) =>
+      v === transformExpr(rhs)
+
+    case ShortCircuitBinaryOp(left, op, right) =>
+      v === transformExpr(rhs)
+
     case _ =>
       throw new Exception(
           "illegal tree in Unnester.transformBindVarToExpression\n" + rhs)
-  }
-
-  private def transformMatchClauseGuard(clause: MatchStatementClause) = clause match {
-    case MatchStatementClause(_, None, _) => clause
-    case MatchStatementClause(pattern, Some(guard), body) =>
-      val newGuard = expressionWithTemp { temp =>
-        transformStat(temp === guard) ~> temp
-      }
-      treeCopy.MatchStatementClause(clause, pattern, Some(newGuard), body)
-  }
-
-  private def withSimplifiedHeaderAndArgs(header: Expression,
-      args: Seq[Expression])(
-      makeStatement: (Expression, Seq[Expression]) => Statement) = {
-
-    withSimplifiedArgs(header +: args) { simplified =>
-      makeStatement(simplified.head, simplified.tail)
-    }
   }
 
   private def withSimplifiedArgs(args: Seq[Expression])(
@@ -227,7 +170,7 @@ object Unnester extends Transformer with TreeDSL {
     }
   }
 
-  private def putVarInArgs(args: Seq[Expression], v: Variable) = {
+  private[transform] def putVarInArgs(args: Seq[Expression], v: Variable) = {
     var nestingMarkerFound = false
 
     def replaceNestingMarkerIn(expr: Expression): Expression = expr match {
@@ -247,6 +190,9 @@ object Unnester extends Transformer with TreeDSL {
           treeCopy.RecordField(field, feature, replaceNestingMarkerIn(value))
         }
         treeCopy.Record(expr, label, newFields)
+
+      case ListExpression(elements) =>
+        treeCopy.ListExpression(expr, elements.map(replaceNestingMarkerIn))
 
       case _ =>
         expr
@@ -271,5 +217,25 @@ object Unnester extends Transformer with TreeDSL {
     val tupleWithFields = treeCopy.Record(record, OzAtom("#"), fieldsOfTheTuple)
 
     builtins.makeRecordDynamic callExpr (record.label, tupleWithFields)
+  }
+
+  private def assignMatchValue(matchStat: MatchStatement) = {
+    matchStat match {
+      case MatchStatement(value, clauses, elseStat) =>
+        statementWithTemp { temp =>
+          transformStat(temp === value) ~
+            treeCopy.MatchStatement(matchStat, temp, clauses, elseStat)
+        }
+    }
+  }
+
+  private def assignMatchValue(matchExpr: MatchExpression) = {
+    matchExpr match {
+      case MatchExpression(value, clauses, elseStat) =>
+        expressionWithTemp { temp =>
+          transformStat(temp === value) ~>
+            treeCopy.MatchExpression(matchExpr, temp, clauses, elseStat)
+        }
+    }
   }
 }
