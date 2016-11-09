@@ -25,6 +25,9 @@ public class OzBacktrace {
 	}
 
 	public String getFirst() {
+		if (backtrace.length == 0) {
+			return "";
+		}
 		return formatFrom(backtrace[0]);
 	}
 
