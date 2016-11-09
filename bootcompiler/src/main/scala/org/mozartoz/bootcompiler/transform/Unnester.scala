@@ -7,7 +7,7 @@ import symtab._
 
 object Unnester extends Transformer with TreeDSL {
   override def transformStat(statement: Statement) = statement match {
-    // Make sure the value of a @ MatchStatement is a Variable for convenience later
+    // Make sure the value of a MatchStatement is a Variable for convenience later
     case matchStat @ MatchStatement(value, _, _) if !value.isInstanceOf[Variable] =>
       transformStat {
         assignMatchValue(matchStat)
@@ -31,7 +31,7 @@ object Unnester extends Transformer with TreeDSL {
   }
 
   override def transformExpr(expression: Expression) = expression match {
-    // Make sure the value of a @ MatchStatement is a Variable for convenience later
+    // Make sure the value of a MatchStatement is a Variable for convenience later
     case matchExpr @ MatchExpression(value, _, _) if !value.isInstanceOf[Variable] =>
       transformExpr {
         assignMatchValue(matchExpr)
