@@ -101,13 +101,7 @@ object Unnester extends Transformer with TreeDSL {
     case BindExpression(lhs2, rhs2) =>
       transformStat((v === lhs2) ~ (v === rhs2))
 
-    case record:Record if !record.hasConstantArity =>
-      transformBindVarToExpression(bind, v,
-          atPos(record)(makeDynamicRecord(record)))
-
     case record @ Record(label, fields) =>
-      assert(record.hasConstantArity)
-
       withSimplifiedArgs(fields map (_.value)) { newValues =>
         val newFields = for {
           (field @ RecordField(feature, _), newValue) <- fields zip newValues
@@ -202,21 +196,6 @@ object Unnester extends Transformer with TreeDSL {
 
     if (nestingMarkerFound) newArgs
     else newArgs :+ v
-  }
-
-  private def makeDynamicRecord(record: Record): Expression = {
-    val elementsOfTheTuple = for {
-      RecordField(feature, value) <- record.fields
-      elem <- List(feature, value)
-    } yield elem
-
-    val fieldsOfTheTuple =
-      for ((elem, index) <- elementsOfTheTuple.zipWithIndex)
-        yield treeCopy.RecordField(elem, OzInt(index+1), elem)
-
-    val tupleWithFields = treeCopy.Record(record, OzAtom("#"), fieldsOfTheTuple)
-
-    builtins.makeRecordDynamic callExpr (record.label, tupleWithFields)
   }
 
   private def assignMatchValue(matchStat: MatchStatement) = {
