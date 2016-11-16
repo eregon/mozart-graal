@@ -40,13 +40,14 @@ public abstract class FloatBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class PowNode extends OzNode {
 
 		@Specialization
-		Object pow(Object left, Object right) {
-			return unimplemented();
+		double pow(double left, double right) {
+			return Math.pow(left, right);
 		}
 
 	}
@@ -231,13 +232,14 @@ public abstract class FloatBuiltins {
 
 	}
 
+	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class SinNode extends OzNode {
 
 		@Specialization
-		Object sin(Object value) {
-			return unimplemented();
+		double sin(double value) {
+			return Math.sin(value);
 		}
 
 	}

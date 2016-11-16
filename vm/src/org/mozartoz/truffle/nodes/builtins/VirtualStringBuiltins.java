@@ -203,15 +203,19 @@ public abstract class VirtualStringBuiltins {
 		@TruffleBoundary
 		@Specialization
 		String toAtom(OzCons cons) {
-			Object head = deref(cons.getHead());
-			long longHead = (long) head;
-			char c = (char) longHead;
-			Object tail = deref(cons.getTail());
-			if (tail == "nil") {
-				return ("" + c).intern();
-			} else {
-				return (c + executeToAtom(tail)).intern();
+			StringBuilder builder = new StringBuilder();
+			Object list = cons;
+			while (list instanceof OzCons) {
+				OzCons xs = (OzCons) list;
+				Object head = deref(xs.getHead());
+				assert head instanceof Long;
+				long longHead = (long) head;
+				char c = (char) longHead;
+				builder.append(c);
+				list = deref(xs.getTail());
 			}
+			assert list == "nil";
+			return builder.toString().intern();
 		}
 
 		@TruffleBoundary
@@ -256,14 +260,17 @@ public abstract class VirtualStringBuiltins {
 		@TruffleBoundary
 		@Specialization
 		long length(OzCons cons) {
-			Object head = deref(cons.getHead());
-			assert head instanceof Long;
-			Object consTail = deref(cons.getTail());
-			if (consTail == "nil") {
-				return 1;
-			} else {
-				return 1 + executeLength(consTail);
+			long length = 0;
+			Object list = cons;
+			while (list instanceof OzCons) {
+				OzCons xs = (OzCons) list;
+				Object head = deref(xs.getHead());
+				assert head instanceof Long;
+				length += 1;
+				list = deref(xs.getTail());
 			}
+			assert list == "nil";
+			return length;
 		}
 
 		@TruffleBoundary
