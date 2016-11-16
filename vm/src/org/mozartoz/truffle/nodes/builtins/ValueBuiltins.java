@@ -764,6 +764,11 @@ public abstract class ValueBuiltins {
 		}
 
 		@Specialization
+		String type(Unit unit) {
+			return "name";
+		}
+
+		@Specialization
 		String type(DynamicObject record) {
 			if (Arity.forRecord(record).isTupleArity()) {
 				return "tuple";

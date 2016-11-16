@@ -76,6 +76,16 @@ public abstract class NumberBuiltins {
 			}
 		}
 
+		@Specialization
+		double abs(double operand,
+				@Cached("createBinaryProfile()") ConditionProfile negative) {
+			if (negative.profile(operand < 0)) {
+				return -operand;
+			} else {
+				return operand;
+			}
+		}
+
 	}
 
 	@Builtin(name = "+", deref = ALL)
