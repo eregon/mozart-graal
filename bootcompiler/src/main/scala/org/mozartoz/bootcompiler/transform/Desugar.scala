@@ -1,8 +1,8 @@
 package org.mozartoz.bootcompiler
 package transform
 
-import oz._
 import ast._
+import oz._
 import symtab._
 
 object Desugar extends Transformer with TreeDSL {
@@ -174,6 +174,12 @@ object Desugar extends Transformer with TreeDSL {
   def exprToBindStatement(result: Variable, expr: Expression): Statement = expr match {
     case StatAndExpression(statement, expression) =>
       treeCopy.CompoundStatement(expr, Seq(statement, exprToBindStatement(result, expression)))
+      
+    case ShortCircuitBinaryOp(left, "andthen", right) =>
+      treeCopy.IfStatement(expr, left, exprToBindStatement(result, right), result === False())
+      
+    case ShortCircuitBinaryOp(left, "orelse", right) =>
+      treeCopy.IfStatement(expr, left, result === True(), exprToBindStatement(result, right))
       
     case LocalExpression(declarations, expression) =>
       treeCopy.LocalStatement(expr, declarations, exprToBindStatement(result, expression))
