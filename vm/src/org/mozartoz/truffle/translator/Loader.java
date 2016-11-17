@@ -17,7 +17,6 @@ import org.mozartoz.bootcompiler.transform.TailCallMarking;
 import org.mozartoz.bootcompiler.transform.Unnester;
 import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.DerefNode;
-import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
 import org.mozartoz.truffle.nodes.control.SequenceNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
@@ -32,12 +31,13 @@ import org.mozartoz.truffle.runtime.PropertyRegistry;
 import org.mozartoz.truffle.runtime.StacktraceThread;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.vm.PolyglotEngine;
+import com.oracle.truffle.tools.Profiler;
 
 public class Loader {
 
@@ -70,7 +70,6 @@ public class Loader {
 	public static final Source MAIN_SOURCE = Source.newBuilder("").name("main").mimeType(OzLanguage.MIME_TYPE).internal().build();
 	public static final SourceSection MAIN_SOURCE_SECTION = MAIN_SOURCE.createUnavailableSection();
 
-	// public static final PolyglotEngine ENGINE = PolyglotEngine.newBuilder().build();
 
 	private static long last = System.currentTimeMillis();
 
@@ -93,26 +92,44 @@ public class Loader {
 
 	private DynamicObject base = null;
 	private final PropertyRegistry propertyRegistry;
+	private final PolyglotEngine engine;
 	private StacktraceThread shutdownHook;
 
 	private Loader() {
 		BuiltinsManager.defineBuiltins();
 		propertyRegistry = PropertyRegistry.INSTANCE;
 		propertyRegistry.initialize();
+		engine = PolyglotEngine.newBuilder().build();
+
 		if (Options.STACKTRACE_ON_INTERRUPT) {
 			shutdownHook = new StacktraceThread();
 			Runtime.getRuntime().addShutdownHook(shutdownHook);
 		}
+
+		if (Options.PROFILER) {
+			setupProfiler();
+		}
+	}
+
+	private void setupProfiler() {
+		Profiler profiler = Profiler.find(engine);
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> profiler.printHistograms(System.err)));
+		profiler.setCollecting(true);
+		profiler.setTiming(true);
+	}
+
+	public PolyglotEngine getEngine() {
+		return engine;
 	}
 
 	public DynamicObject loadBase() {
 		if (base == null) {
 			tick("start loading Base");
-			OzRootNode baseRootNode = parseBase();
+			RootCallTarget baseFunctorTarget = parseBase();
 			tick("translated Base");
-			Object baseFunctor = execute(baseRootNode);
+			Object baseFunctor = execute(baseFunctorTarget);
 
-			OzRootNode applyBase = BaseFunctor.apply(baseFunctor);
+			RootCallTarget applyBase = BaseFunctor.apply(baseFunctor);
 			Object result = execute(applyBase);
 			assert result instanceof DynamicObject;
 
@@ -121,7 +138,7 @@ public class Loader {
 		return base;
 	}
 
-	private OzRootNode parseBase() {
+	private RootCallTarget parseBase() {
 		tick("enter parseBase");
 		Program program = BootCompiler.buildBaseEnvProgram(
 				createSource(BASE_FILE_NAME),
@@ -139,7 +156,7 @@ public class Loader {
 		});
 	}
 
-	public OzRootNode parseMain(Source source) {
+	public RootCallTarget parseMain(Source source) {
 		DynamicObject base = loadBase();
 
 		String fileName = new File(source.getPath()).getName();
@@ -157,7 +174,7 @@ public class Loader {
 
 	private boolean eagerLoad = false;
 
-	public OzRootNode parseFunctor(Source source) {
+	public RootCallTarget parseFunctor(Source source) {
 		DynamicObject base = loadBase();
 
 		String fileName = new File(source.getPath()).getName();
@@ -171,7 +188,7 @@ public class Loader {
 		Translator translator = new Translator(base);
 		FrameSlot baseSlot = translator.addRootSymbol(program.baseEnvSymbol());
 		FrameSlot topLevelResultSlot = translator.addRootSymbol(program.topLevelResultSymbol());
-		OzRootNode rootNode = translator.translateAST(fileName, ast, node -> {
+		RootCallTarget callTarget = translator.translateAST(fileName, ast, node -> {
 			return SequenceNode.sequence(
 					new InitializeTmpNode(baseSlot, new LiteralNode(base)),
 					new InitializeVarNode(topLevelResultSlot),
@@ -179,7 +196,7 @@ public class Loader {
 					DerefNode.create(new ReadLocalVariableNode(topLevelResultSlot)));
 		});
 		tick("translated functor " + fileName);
-		return rootNode;
+		return callTarget;
 	}
 
 	public void run(Source source) {
@@ -202,7 +219,9 @@ public class Loader {
 		} else {
 			eagerLoad = true;
 			try {
-				Object initFunctor = execute(parseFunctor(createSource(INIT_FUNCTOR)));
+				// The first execution of code needs to go through PolyglotEngine
+				// to initialize it for instrumentation purposes.
+				Object initFunctor = engine.eval(createSource(INIT_FUNCTOR)).get();
 				Object applied = execute(InitFunctor.apply(initFunctor));
 				main = (OzProc) ((DynamicObject) applied).get("main");
 				if (Options.SERIALIZER) {
@@ -267,11 +286,10 @@ public class Loader {
 		}
 	}
 
-	public Object execute(OzRootNode rootNode) {
-		RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+	public Object execute(RootCallTarget callTarget) {
 		Object[] arguments = OzArguments.pack(null, new Object[0]);
 		Object value = callTarget.call(arguments);
-		tick("executed " + rootNode.getName());
+		tick("executed " + callTarget.getRootNode().getName());
 		return value;
 	}
 

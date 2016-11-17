@@ -6,7 +6,9 @@ public abstract class Options {
 
 	public static final String SHOW_PROC_AST = System.getProperty("oz.show.ast");
 
-	public static final boolean SERIALIZER = bool("oz.serializer", true);
+	public static final boolean PROFILER = bool("oz.profiler", false);
+
+	public static final boolean SERIALIZER = !PROFILER && bool("oz.serializer", true);
 
 	public static final boolean TAIL_CALLS = bool("oz.tail.calls", true);
 

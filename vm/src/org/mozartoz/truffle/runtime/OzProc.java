@@ -8,7 +8,6 @@ import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 
 public class OzProc {
@@ -45,10 +44,9 @@ public class OzProc {
 	}
 
 	/** Wraps itself in a CallNode so it works well with TailCallException */
-	private CallTarget wrap(String identifier, Object[] arguments) {
+	public CallTarget wrap(String identifier, Object[] arguments) {
 		OzNode callNode = CallNode.create(new LiteralNode(this), new LiteralNode(arguments));
-		OzRootNode rootNode = OzRootNode.createTopRootNode(identifier, callNode);
-		return Truffle.getRuntime().createCallTarget(rootNode);
+		return OzRootNode.createTopRootNode(identifier, callNode).toCallTarget();
 	}
 
 }

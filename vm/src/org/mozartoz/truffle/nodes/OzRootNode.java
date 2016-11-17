@@ -7,6 +7,8 @@ import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
@@ -25,9 +27,16 @@ public class OzRootNode extends RootNode {
 
 	public OzRootNode(SourceSection sourceSection, String name, FrameDescriptor frameDescriptor, OzNode body, int arity) {
 		super(OzLanguage.class, sourceSection, frameDescriptor);
+		assert sourceSection != null;
 		this.name = name;
 		this.body = body;
 		this.arity = arity;
+
+		// Mark the body with the RootTag and make it has a source section
+		body.hasRootTag = true;
+		if (body.getSourceSection() == null) {
+			body.setSourceSection(sourceSection);
+		}
 	}
 
 	@Override
@@ -46,6 +55,15 @@ public class OzRootNode extends RootNode {
 
 	public OzNode getBody() {
 		return body;
+	}
+
+	public RootCallTarget toCallTarget() {
+		return Truffle.getRuntime().createCallTarget(this);
+	}
+
+	@Override
+	protected boolean isInstrumentable() {
+		return true;
 	}
 
 	@Override

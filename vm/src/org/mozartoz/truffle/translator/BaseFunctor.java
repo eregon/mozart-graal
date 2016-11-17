@@ -10,9 +10,11 @@ import org.mozartoz.truffle.nodes.control.SequenceNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.runtime.OzVar;
 
+import com.oracle.truffle.api.RootCallTarget;
+
 public abstract class BaseFunctor {
 
-	public static OzRootNode apply(Object baseFunctor) {
+	public static RootCallTarget apply(Object baseFunctor) {
 		Object imports = BuiltinsManager.getBootModulesRecord();
 
 		OzVar result = new OzVar();
@@ -21,7 +23,7 @@ public abstract class BaseFunctor {
 				new LiteralNode(new Object[] { imports, result }));
 
 		OzNode node = SequenceNode.sequence(apply, DerefNode.create(new LiteralNode(result)));
-		return OzRootNode.createTopRootNode("Base.apply", node);
+		return OzRootNode.createTopRootNode("Base.apply", node).toCallTarget();
 	}
 
 }

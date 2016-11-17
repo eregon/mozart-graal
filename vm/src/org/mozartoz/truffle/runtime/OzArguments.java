@@ -8,6 +8,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 public class OzArguments {
 	private static final int PARENT_FRAME_INDEX = 0;
 	private static final int ARGUMENTS_INDEX = 1;
+	public static final int IMPLICIT_ARGUMENTS = ARGUMENTS_INDEX;
 
 	public static Object[] pack(MaterializedFrame parentFrame, Object[] arguments) {
 		Object[] frameArguments = new Object[ARGUMENTS_INDEX + arguments.length];

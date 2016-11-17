@@ -3,17 +3,22 @@ package org.mozartoz.truffle.runtime;
 import java.io.IOException;
 
 import org.mozartoz.truffle.nodes.OzRootNode;
+import org.mozartoz.truffle.nodes.RunCallTargetNode;
 import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.Registration;
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.instrumentation.ProvidedTags;
+import com.oracle.truffle.api.instrumentation.StandardTags.RootTag;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 
 @Registration(name = "Oz", version = "0.1", mimeType = OzLanguage.MIME_TYPE)
+@ProvidedTags({ RootTag.class })
 public class OzLanguage extends TruffleLanguage<Object> {
 
 	public static final String MIME_TYPE = "application/x-oz";
@@ -27,8 +32,12 @@ public class OzLanguage extends TruffleLanguage<Object> {
 
 	@Override
 	protected CallTarget parse(Source source, Node context, String... argumentNames) throws IOException {
-		OzRootNode rootNode = Loader.getInstance().parseMain(source);
-		return Truffle.getRuntime().createCallTarget(rootNode);
+		final RootCallTarget ozTarget = Loader.getInstance().parseFunctor(source);
+		RunCallTargetNode runOzTarget = new RunCallTargetNode(ozTarget);
+		String name = ozTarget.getRootNode().getName();
+		FrameDescriptor frameDescriptor = new FrameDescriptor();
+		OzRootNode rootNode = new OzRootNode(Loader.MAIN_SOURCE_SECTION, name, frameDescriptor, runOzTarget, -OzArguments.IMPLICIT_ARGUMENTS);
+		return rootNode.toCallTarget();
 	}
 
 	@Override

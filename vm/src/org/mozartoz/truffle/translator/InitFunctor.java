@@ -10,9 +10,11 @@ import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzVar;
 
+import com.oracle.truffle.api.RootCallTarget;
+
 public abstract class InitFunctor {
 
-	public static OzRootNode apply(Object initFunctor) {
+	public static RootCallTarget apply(Object initFunctor) {
 		Object imports = OzRecord.buildRecord(
 				Arity.build("import", "Boot"),
 				BuiltinsManager.getBootModule("Boot_Boot"));
@@ -21,7 +23,7 @@ public abstract class InitFunctor {
 				DotNodeFactory.create(new LiteralNode(initFunctor), new LiteralNode("apply")),
 				new LiteralNode(new Object[] { imports, new OzVar() }));
 
-		return OzRootNode.createTopRootNode("Init.apply", node);
+		return OzRootNode.createTopRootNode("Init.apply", node).toCallTarget();
 	}
 
 }

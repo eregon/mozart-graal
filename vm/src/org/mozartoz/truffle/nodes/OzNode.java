@@ -10,13 +10,18 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.Instrumentable;
+import com.oracle.truffle.api.instrumentation.StandardTags.RootTag;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 @TypeSystemReference(OzTypes.class)
 @ImportStatic(OzGuards.class)
+@Instrumentable(factory = OzNodeWrapper.class)
 public abstract class OzNode extends Node {
+
+	boolean hasRootTag = false;
 
 	private @CompilationFinal SourceSection sourceSection;
 
@@ -34,6 +39,14 @@ public abstract class OzNode extends Node {
 	protected static final Object unit = Unit.INSTANCE;
 
 	public abstract Object execute(VirtualFrame frame);
+
+	@Override
+	protected boolean isTaggedWith(Class<?> tag) {
+		if (tag == RootTag.class) {
+			return hasRootTag;
+		}
+		return false;
+	}
 
 	protected Object unimplemented() {
 		throw new OzException(this, "unimplemented");

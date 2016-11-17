@@ -121,7 +121,6 @@ import org.mozartoz.truffle.runtime.Unit;
 import scala.collection.JavaConversions;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
@@ -189,12 +188,13 @@ public class Translator {
 		throw new Error(symbol.fullName());
 	}
 
-	public OzRootNode translateAST(String description, Statement ast, Function<OzNode, OzNode> wrap) {
+	public RootCallTarget translateAST(String description, Statement ast, Function<OzNode, OzNode> wrap) {
 		OzNode translated = translate(ast);
 		OzNode wrapped = wrap.apply(translated);
 		OzNode handler = new TopLevelHandlerNode(wrapped);
 
-		return new OzRootNode(Loader.MAIN_SOURCE_SECTION, description, environment.frameDescriptor, handler, 0);
+		OzRootNode rootNode = new OzRootNode(Loader.MAIN_SOURCE_SECTION, description, environment.frameDescriptor, handler, 0);
+		return rootNode.toCallTarget();
 	}
 
 	OzNode translate(StatOrExpr node) {
@@ -336,8 +336,7 @@ public class Translator {
 
 			OzNode procBody = SequenceNode.sequence(nodes);
 			OzRootNode rootNode = new OzRootNode(sourceSection, identifier, environment.frameDescriptor, procBody, arity);
-			RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-			return new ProcDeclarationNode(callTarget);
+			return new ProcDeclarationNode(rootNode.toCallTarget());
 		} finally {
 			popEnvironment();
 		}

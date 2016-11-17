@@ -240,7 +240,7 @@ public class OzSerializer {
 
 		public RootCallTarget read(Kryo kryo, Input input, Class<RootCallTarget> type) {
 			OzRootNode rootNode = kryo.readObject(input, OzRootNode.class);
-			RootCallTarget callTarget = TRUFFLE.createCallTarget(rootNode);
+			RootCallTarget callTarget = rootNode.toCallTarget();
 			assert NodeUtil.verify(rootNode);
 			return callTarget;
 		}

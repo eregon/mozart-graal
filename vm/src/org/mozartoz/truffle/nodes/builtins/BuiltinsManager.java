@@ -15,8 +15,6 @@ import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.translator.BuiltinsRegistry;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -153,8 +151,7 @@ public abstract class BuiltinsManager {
 			String name = module + "." + builtinName;
 
 			OzRootNode rootNode = new OzRootNode(BUILTINS_SOURCE_SECTION, name, new FrameDescriptor(), node, arity);
-			RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-			OzProc function = new OzProc(callTarget, null, arity);
+			OzProc function = new OzProc(rootNode.toCallTarget(), null, arity);
 
 			assert !BUILTINS.containsKey(name) : name;
 			BUILTINS.put(name, function);
