@@ -67,9 +67,8 @@ public class Loader {
 			PROJECT_ROOT + "/stdlib/wp/qtk",
 	};
 
-	public static final Source MAIN_SOURCE = Source.newBuilder("").name("main").mimeType(OzLanguage.MIME_TYPE).internal().build();
+	public static final Source MAIN_SOURCE = buildInternalSource("main");
 	public static final SourceSection MAIN_SOURCE_SECTION = MAIN_SOURCE.createUnavailableSection();
-
 
 	private static long last = System.currentTimeMillis();
 
@@ -284,6 +283,10 @@ public class Loader {
 		} catch (IOException e) {
 			throw new Error(e);
 		}
+	}
+
+	public static Source buildInternalSource(String name) {
+		return Source.newBuilder("").name(name).mimeType(OzLanguage.MIME_TYPE).internal().build();
 	}
 
 	public Object execute(RootCallTarget callTarget) {
