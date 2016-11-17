@@ -16,11 +16,12 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 @NodeChildren({ @NodeChild("proc"), @NodeChild("arguments") })
 public abstract class CallProcNode extends OzNode {
 
+	/** Must only be used by CallNode */
 	public static CallProcNode create() {
 		return CallProcNodeGen.create(null, null);
 	}
 
-	public abstract Object executeCall(VirtualFrame frame, OzProc proc, Object[] arguments);
+	abstract Object executeCall(VirtualFrame frame, OzProc proc, Object[] arguments);
 
 	@Specialization(guards = "proc == cachedProc")
 	protected Object callProcIdentity(VirtualFrame frame, OzProc proc, Object[] arguments,

@@ -14,15 +14,18 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-@NodeChildren({ @NodeChild("receiver"), @NodeChild("arguments") })
-public abstract class CallNode extends OzNode {
+@NodeChildren({
+		@NodeChild(value = "receiver", type = OzNode.class),
+		@NodeChild(value = "arguments", type = OzNode.class)
+})
+public abstract class CallNode extends CallableNode {
 
 	@CreateCast("receiver")
 	protected OzNode derefReceiver(OzNode var) {
 		return DerefNode.create(var);
 	}
 
-	public static OzNode create(OzNode receiver, OzNode arguments) {
+	public static CallableNode create(OzNode receiver, OzNode arguments) {
 		if (Options.TAIL_CALLS) {
 			// Always create a TailCallCatcherNode to ensure a TailCallException
 			// never goes back further than the current call.

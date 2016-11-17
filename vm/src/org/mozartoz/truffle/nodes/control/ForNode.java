@@ -1,7 +1,8 @@
 package org.mozartoz.truffle.nodes.control;
 
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.call.CallProcNode;
+import org.mozartoz.truffle.nodes.call.CallNode;
+import org.mozartoz.truffle.nodes.call.CallableNode;
 import org.mozartoz.truffle.runtime.OzProc;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -15,7 +16,7 @@ public class ForNode extends OzNode {
 	@Child OzNode toNode;
 	@Child OzNode procNode;
 
-	@Child CallProcNode callProcNode = CallProcNode.create();
+	@Child CallableNode callNode = CallNode.create(null, null);
 	private final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
 
 	public ForNode(OzNode fromNode, OzNode toNode, OzNode procNode) {
@@ -38,7 +39,7 @@ public class ForNode extends OzNode {
 			loopProfile.profileCounted(count);
 			for (long i = from; loopProfile.inject(i <= to); i++) {
 				OzProc proc = (OzProc) procNode.execute(frame);
-				callProcNode.executeCall(frame, proc, new Object[] { i });
+				callNode.executeCall(frame, proc, new Object[] { i });
 			}
 		} finally {
 			LoopNode.reportLoopCount(this, count);

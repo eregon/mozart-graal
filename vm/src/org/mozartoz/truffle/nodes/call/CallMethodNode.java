@@ -23,11 +23,12 @@ import com.oracle.truffle.api.object.DynamicObject;
 @NodeChildren({ @NodeChild("object"), @NodeChild("arguments") })
 public abstract class CallMethodNode extends OzNode {
 
+	/** Must only be used by CallNode */
 	public static CallMethodNode create() {
 		return CallMethodNodeGen.create(null, null);
 	}
 
-	public abstract Object executeCall(VirtualFrame frame, OzObject self, Object[] args);
+	abstract Object executeCall(VirtualFrame frame, OzObject self, Object[] args);
 
 	static final RecordFactory OTHERWISE_MESSAGE_FACTORY = Arity.build("otherwise", 1L).createFactory();
 
