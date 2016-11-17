@@ -127,6 +127,16 @@ end
 desc "Build the project and dependencies"
 task :build => "build:all"
 
+task :clean do
+  rm_rf BOOTCOMPILER / 'target'
+  rm_rf BOOTCOMPILER_ECLIPSE
+  rm_rf BOOTCOMPILER / ".classpath"
+
+  rm_rf VM_CLASSES
+  rm_rf "vm/.classpath"
+  rm_rf "vm/.factorypath"
+end
+
 desc "Run tests"
 task :test do
   exec './oz'
