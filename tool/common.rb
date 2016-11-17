@@ -25,6 +25,7 @@ GRAAL_JAR = GRAAL / "mxbuild/dists/graal.jar"
 
 TRUFFLE = Pathname("../truffle").expand_path(dir)
 TRUFFLE_API_JAR = TRUFFLE / "mxbuild/dists/truffle-api.jar"
+TRUFFLE_DEBUG_JAR = TRUFFLE / "mxbuild/dists/truffle-debug.jar"
 
 VM = PROJECT_DIR / "vm"
 VM_CLASSES = (VM / "bin").to_s

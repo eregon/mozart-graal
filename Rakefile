@@ -7,6 +7,7 @@ OZWISH_SRC = PROJECT_DIR / "wish/unixmain.cc"
 BOOTCOMPILER_ECLIPSE = BOOTCOMPILER / ".project"
 
 TRUFFLE_API_SRC = TRUFFLE / "mxbuild/dists/truffle-api.src.zip"
+TRUFFLE_DEBUG_SRC = TRUFFLE / "mxbuild/dists/truffle-debug.src.zip"
 TRUFFLE_DSL_PROCESSOR_JAR = TRUFFLE / "mxbuild/dists/truffle-dsl-processor.jar"
 
 JVMCI_HOME = JVMCI / "jdk1.8.0_92/product"

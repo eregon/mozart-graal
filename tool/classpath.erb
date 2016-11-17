@@ -8,6 +8,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="<%= TRUFFLE_API_JAR %>" sourcepath="<%= TRUFFLE_API_SRC %>"/>
+	<classpathentry kind="lib" path="<%= TRUFFLE_DEBUG_JAR %>" sourcepath="<%= TRUFFLE_DEBUG_SRC %>"/>
 <% `cd vm && mvn dependency:build-classpath`.lines.grep(/^[^\[]/)[0].strip.split(':').each do |path| %>
 	<classpathentry kind="lib" path="<%= path %>" sourcepath="<%= path[0...-4] %>-sources.jar"/>
 <% end %>
