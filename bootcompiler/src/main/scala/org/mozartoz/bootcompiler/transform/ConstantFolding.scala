@@ -64,7 +64,7 @@ object ConstantFolding extends Transformer with TreeDSL {
       case BinaryOp(Constant(record:OzRecord), ".", Constant(feature:OzFeature)) =>
         val value = record.select(feature)
         if (value.isDefined) {
-          Constant(value.get)
+          Constant(value.get)(expression)
         } else {
           program.reportError(
               "The constant record %s does not have feature %s".format(

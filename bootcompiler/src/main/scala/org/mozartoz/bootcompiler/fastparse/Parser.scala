@@ -4,6 +4,7 @@ import com.oracle.truffle.api.source.Source
 import fastparse.WhitespaceApi
 import java.io.File
 import org.mozartoz.bootcompiler.ast._
+import org.mozartoz.bootcompiler.ast.Node.Pos
 import org.mozartoz.bootcompiler.oz._
 import org.mozartoz.bootcompiler.fastparse.Preprocessor.SourceMap
 import org.mozartoz.bootcompiler.fastparse.Tokens._
@@ -29,11 +30,16 @@ object CompatAPI {
   import fastparse.all.Parser
   import fastparse.all.P
   import fastparse.all.parserApi
+  import fastparse.all.Index
 
   class ParserMapper[T](val p: Parser[T]) {
     def ^^[U](f: T => U): Parser[U] = p.map { x => f(x) }
 
     def ^^^[U](f: => U): Parser[U] = p.map { x => f }
+
+    def ^[N <: Node](map: T => Pos => N): P[N] = P(Index ~ p ~ Index).map {
+      case (pB, t, pE) => map(t)(Parser.createSection(pB, pE))
+    }
   }
 
   implicit def parser2mapper[T](p: Parser[T]) = new ParserMapper(p)
@@ -333,22 +339,24 @@ object Parser {
     source.createSection(start, len)
   }
 
-  def positioned[T <: Node](p: P[T]) = P(Index ~~ p ~~ Index).map {
-    case (pB, node, pE) => node.setSourceSection(createSection(pB, pE))
+  def pos[T, U <: Phrase](p: P[T])(map: Pos => U) = P(Index ~~ p ~~ Index).map {
+    case (pB, node, pE) => map(createSection(pB, pE))
   }
 
-  def deepPositioned[T <: Node](p: P[T]) = P(Index ~~ p ~~ Index).map {
-    case (pB, node, pE) =>
-      val section = createSection(pB, pE)
-      node.walkBreak { subNode =>
-        if (subNode.section != null) {
-          false
-        } else {
-          subNode.setSourceSection(section)
-          true
-        }
-      }
-      node
+  def pos1[T, U <: Node](p: P[T])(map: (T, Pos) => U) = P(Index ~~ p ~~ Index).map {
+    case (pB, node, pE) => map(node, createSection(pB, pE))
+  }
+
+  def pos2[A, B, U <: Node](p: P[(A, B)])(map: (A, B, Pos) => U) = P(Index ~~ p ~~ Index).map {
+    case (pB, (a, b), pE) => map(a, b, createSection(pB, pE))
+  }
+
+  def pos3[A, B, C, U <: Node](p: P[(A, B, C)])(map: (A, B, C, Pos) => U) = P(Index ~~ p ~~ Index).map {
+    case (pB, (a, b, c), pE) => map(a, b, c, createSection(pB, pE))
+  }
+
+  def pos4[A, B, C, D, U <: Node](p: P[(A, B, C, D)])(map: (A, B, C, D, Pos) => U) = P(Index ~~ p ~~ Index).map {
+    case (pB, (a, b, c, d), pE) => map(a, b, c, d, createSection(pB, pE))
   }
 
   /** Extracts the name of a RawVariable, or "" if it is not */
@@ -356,24 +364,23 @@ object Parser {
     case RawVariable(name) => name
     case _                 => ""
   }
-  
+
   /** Extracts the name of an optional raw variable  */
   private def nameOf(expression: Option[Phrase]): Option[VariableOrRaw] = expression match {
     case Some(v @ RawVariable(_)) => Some(v)
-    case _ => None
+    case _                        => None
   }
-  
+
   private val generatedIdentCounter = new org.mozartoz.bootcompiler.util.Counter
   private def generateExcIdent() = "<exc$" + generatedIdentCounter.next() + ">"
   private def generateParamIdent() = "<arg$" + generatedIdentCounter.next() + ">"
 
-  def leftAssoc(p: P[Phrase], op: P[String], binOp: (Phrase, String, Phrase) => Phrase) = positioned {
-    P(p ~ (op ~ p).rep).map {
-      case (lhs, ops) => ops.foldLeft(lhs) { case (lhs, (op, rhs)) => binOp(lhs, op, rhs) }
+  def leftAssoc(p: P[Phrase], op: P[String], binOp: (Phrase, String, Phrase) => Pos => Phrase) =
+    pos2(p ~ (op ~ p).rep) {
+      case (lhs, ops, pos) => ops.foldLeft(lhs) { case (lhs, (op, rhs)) => binOp(lhs, op, rhs)(pos) }
     }
-  }
 
-  def unaryOp(p: P[(String, Phrase)]) = p ^^ UnaryOpPhrase.tupled
+  def unaryOp(p: P[(String, Phrase)]) = p ^ UnaryOpPhrase.apply
 
   // Constants
 
@@ -392,27 +399,27 @@ object Parser {
   val stringConst: P[OzValue] =
     stringLit ^^ (chars => OzList(chars map (c => OzInt(c.toInt))))
 
-  val featureNoVar = positioned(featureConst ^^ Constant)
+  val featureNoVar = featureConst ^ Constant.apply
 
   // Trivial expressions
 
-  val variable = positioned("?".? ~ identifier.! ^^ RawVariable)
+  val variable = P("?".? ~ identifier.!) ^ RawVariable.apply
 
   val escapedVariable: P[EscapedVariable] =
-    positioned("!" ~ variable ^^ EscapedVariable)
+    "!" ~ (variable ^ EscapedVariable.apply)
 
   val wildcardExpr: P[UnboundExpression] =
-    positioned(("_").!.map(_ => UnboundExpression()))
+    pos(("_").!) { pos => UnboundExpression()(pos) }
 
   val nestingMarker: P[NestingMarker] =
-    positioned(P("$") ^^^ NestingMarker())
+    pos(P("$")) { pos => NestingMarker()(pos) }
 
-  val integerConstExpr = positioned(integerConst ^^ Constant)
-  val floatConstExpr = positioned(floatConst ^^ Constant)
-  val atomConstExpr = positioned(atomConst ^^ Constant)
-  val literalConstExpr = positioned(literalConst ^^ Constant)
-  val stringConstExpr = positioned(stringConst ^^ Constant)
-  val selfExpr = positioned(P(`self`) ^^^ Self())
+  val integerConstExpr = integerConst ^ Constant.apply
+  val floatConstExpr = floatConst ^ Constant.apply
+  val atomConstExpr = atomConst ^ Constant.apply
+  val literalConstExpr = literalConst ^ Constant.apply
+  val stringConstExpr = stringConst ^ Constant.apply
+  val selfExpr = pos(P(`self`)) { pos => Self()(pos) }
 
   val attrOrFeat: P[Phrase] =
     P(variable | escapedVariable | integerConstExpr | literalConstExpr)
@@ -422,28 +429,25 @@ object Parser {
 
   // Record expressions
 
-  val recordExpression: P[Phrase] = positioned(
-    P(recordLabel ~~ "(" ~/ recordField.rep ~ ")" ^^ RecordPhrase))
+  val recordExpression: P[Phrase] =
+    P(recordLabel ~~ "(" ~/ recordField.rep ~ ")") ^ RecordPhrase.apply
 
   val recordLabel: P[Phrase] = atomConstExpr | variable
 
-  val recordField = P(positioned {
-    optFeature ~ expression ^^ RecordFieldPhrase
-  })
+  val recordField = P(optFeature ~ expression) ^ RecordFieldPhrase.apply
 
   val feature: P[Phrase] = (featureNoVar | variable)
 
-  val optFeature: P[Phrase] = positioned {
-    (feature ~ `:`).? ^^ (_.getOrElse(AutoFeature()))
-  }
+  val optFeature: P[Phrase] =
+    pos1((feature ~ `:`).?) { case (f, p) => f.getOrElse(AutoFeature()(p)) }
 
   // List expressions
 
-  val listExpression = P("[" ~ expression.rep(1) ~ "]") ^^ ListPhrase
+  val listExpression = P("[" ~ expression.rep(1) ~ "]") ^ ListPhrase.apply
 
   // Skip
 
-  val skipStatement: P[Phrase] = positioned(P(`skip`) ^^^ SkipStatement())
+  val skipStatement: P[Phrase] = pos(P(`skip`)) { p => SkipStatement()(p) }
 
   // Expressions
 
@@ -468,15 +472,15 @@ object Parser {
       | stringConstExpr
       | forStatement
       | skipStatement)
-  val lvlD: P[Phrase] = P(("@" | "!!").! ~/ lvlD ^^ UnaryOpPhrase | atPhrase)
-  val lvlC: P[Phrase] = P(leftAssoc(lvlD, `.`.!.~/, BinaryOpPhrase))
-  val lvlB: P[Phrase] = P("~".! ~/ lvlB ^^ UnaryOpPhrase | lvlC)
+  val lvlD: P[Phrase] = P((("@" | "!!").! ~/ lvlD) ^ UnaryOpPhrase.apply | atPhrase)
+  val lvlC: P[Phrase] = P(leftAssoc(lvlD, `.`.!.~/, BinaryOpPhrase.apply))
+  val lvlB: P[Phrase] = P(("~".! ~/ lvlB) ^ UnaryOpPhrase.apply | lvlC)
   val lvlA: P[Phrase] = P(lvlB ~ ("," ~/ lvlA).?).map {
-    case (lhs, Some(rhs)) => BinaryOpPhrase(lhs, ",", rhs)
+    case (lhs, Some(rhs)) => BinaryOpPhrase(lhs, ",", rhs)(Node.extend(lhs, rhs))
     case (lhs, None)      => lhs
   }
-  val lvl9: P[Phrase] = leftAssoc(lvlA, ("*" | "/" | `div` | `mod`).!.~/, BinaryOpPhrase)
-  val lvl8: P[Phrase] = leftAssoc(lvl9, ("+" | "-").!.~/, BinaryOpPhrase)
+  val lvl9: P[Phrase] = leftAssoc(lvlA, ("*" | "/" | `div` | `mod`).!.~/, BinaryOpPhrase.apply)
+  val lvl8: P[Phrase] = leftAssoc(lvl9, ("+" | "-").!.~/, BinaryOpPhrase.apply)
   val lvl7: P[Phrase] = P(lvl8 ~ ("#" ~/ lvl8).rep).map {
     case (first, rest) if !rest.isEmpty => sharp(first +: rest)
     case (first, _)                     => first
@@ -488,37 +492,37 @@ object Parser {
   val lvl5: P[Phrase] = lvl6 // Unsupported X::Y, X:::Y
   val comparisonOperator = ("==" | "\\=" | `<` | `=<` | `>` | `>=`)
   val lvl4: P[Phrase] = (lvl5 ~ (comparisonOperator.! ~/ lvl5).?).map {
-    case (lhs, Some((op, rhs))) => BinaryOpPhrase(lhs, op, rhs)
+    case (lhs, Some((op, rhs))) => BinaryOpPhrase(lhs, op, rhs)(Node.extend(lhs, rhs))
     case (lhs, None)            => lhs
   }
   val lvl3: P[Phrase] = P(lvl4 ~ (`andthen` ~/ lvl3).?).map {
-    case (lhs, Some(rhs)) => ShortCircuitBinaryOpPhrase(lhs, "andthen", rhs)
+    case (lhs, Some(rhs)) => ShortCircuitBinaryOpPhrase(lhs, "andthen", rhs)(Node.extend(lhs, rhs))
     case (lhs, None)      => lhs
   }
   val lvl2: P[Phrase] = P(lvl3 ~ (`orelse` ~/ lvl2).?).map {
-    case (lhs, Some(rhs)) => ShortCircuitBinaryOpPhrase(lhs, "orelse", rhs)
+    case (lhs, Some(rhs)) => ShortCircuitBinaryOpPhrase(lhs, "orelse", rhs)(Node.extend(lhs, rhs))
     case (lhs, None)      => lhs
   }
   val lvl1: P[Phrase] = P(lvl2 ~ (("<-" | ":=").! ~/ lvl1).?).map {
-    case (BinaryOpPhrase(l, ".", r), Some((op, rhs))) => DotAssignPhrase(l, r, rhs)
-    case (lhs, Some((op, rhs)))                       => BinaryOpPhrase(lhs, op, rhs)
+    case (BinaryOpPhrase(l, ".", r), Some((op, rhs))) => DotAssignPhrase(l, r, rhs)(Node.extend(l, rhs))
+    case (lhs, Some((op, rhs)))                       => BinaryOpPhrase(lhs, op, rhs)(Node.extend(lhs, rhs))
     case (lhs, None)                                  => lhs
   }
   val lvl0: P[Phrase] = P(lvl1 ~ ("=" ~/ lvl0).?).map {
-    case (lhs, Some(rhs)) => nameBindRHS(BindPhrase(lhs, rhs))
+    case (lhs, Some(rhs)) => nameBindRHS(BindPhrase(lhs, rhs)(Node.extend(lhs, rhs)))
     case (lhs, None)      => lhs
   }
   val expression: P[Phrase] = lvl0
 
   val phrase: P[Phrase] = lvl0.rep(1).map {
     case Seq(node) => node
-    case many      => CompoundPhrase(many)
+    case many      => CompoundPhrase(many)(Node.extend(many))
   }
 
   // Declarations
 
   val inPhrase = P(phrase ~ (`in` ~/ phrase).?).map {
-    case (lhs, Some(rhs)) => RawLocalPhrase(lhs, rhs)
+    case (lhs, Some(rhs)) => RawLocalPhrase(lhs, rhs)(Node.extend(lhs, rhs))
     case (lhs, None)      => lhs
   }
 
@@ -533,72 +537,64 @@ object Parser {
       expression.map { expr => Some(expr) }
   }
 
-  val procExpression: P[Phrase] = deepPositioned {
-    P(`proc` ~/ procFlags ~ "{" ~ dollarOrExpr ~/ formalArgs ~ "}" ~/ inPhrase ~ `end`).map {
-      case (flags, name, args0, body0) =>
+  val procExpression: P[Phrase] =
+    pos4(`proc` ~/ procFlags ~ "{" ~ dollarOrExpr ~/ formalArgs ~ "}" ~/ inPhrase ~ `end`) {
+      case (flags, name, args0, body0, pos) =>
         val (args, body) = postProcessArgsAndBody(args0, body0)
-        val proc = ProcPhrase(nameOf(name), args, body, flags)
+        val proc = ProcPhrase(nameOf(name), args, body, flags)(pos)
         name match {
-          case Some(expr) => BindPhrase(expr, proc)
+          case Some(expr) => BindPhrase(expr, proc)(expr)
           case None       => proc
         }
     }
-  }
 
-  val funExpression: P[Phrase] = deepPositioned {
-    P(`fun` ~/ procFlags ~ "{" ~ dollarOrExpr ~/ formalArgs ~ "}" ~/ inPhrase ~ `end`).map {
-      case (flags, name, args0, body0) =>
+  val funExpression: P[Phrase] =
+    pos4(`fun` ~/ procFlags ~ "{" ~ dollarOrExpr ~/ formalArgs ~ "}" ~/ inPhrase ~ `end`) {
+      case (flags, name, args0, body0, pos) =>
         val (args, body) = postProcessArgsAndBody(args0, body0)
-        val fun = FunPhrase(nameOf(name), args, body, flags)
+        val fun = FunPhrase(nameOf(name), args, body, flags)(pos)
         name match {
-          case Some(expr) => BindPhrase(expr, fun)
+          case Some(expr) => BindPhrase(expr, fun)(expr)
           case None       => fun
         }
     }
-  }
 
   // Call
 
-  val callExpression = positioned {
-    P("{" ~ expression ~ actualArgs ~ "}") ^^ CallPhrase
-  }
+  val callExpression = P("{" ~ expression ~ actualArgs ~ "}") ^ CallPhrase.apply
 
   val actualArgs = P(expression.rep)
 
   // If then else end
 
-  val ifExpression: P[Phrase] = positioned {
-    P(`if` ~/ innerIfExpression ~ `end`)
-  }
+  val ifExpression: P[Phrase] = P(`if` ~/ innerIfExpression ~ `end`)
 
   val innerIfExpression: P[Phrase] =
-    P(expression ~ `then` ~/ inPhrase ~ elseExpression) ^^ IfPhrase
+    P(expression ~ `then` ~/ inPhrase ~ elseExpression) ^ IfPhrase.apply
 
-  val elseExpression: P[Phrase] = P(positioned(
+  val elseExpression: P[Phrase] = P(
     `else` ~/ inPhrase
       | `elseif` ~/ innerIfExpression
       | `elsecase` ~/ innerCaseExpression
-      | Pass ^^^ NoElsePhrase()))
+      | pos(Pass) { pos => NoElsePhrase()(pos) })
 
   // case of
 
-  val caseExpression = positioned {
-    P(`case` ~/ innerCaseExpression ~ `end`)
-  }
+  val caseExpression = P(`case` ~/ innerCaseExpression ~ `end`)
 
-  val innerCaseExpression: P[Phrase] = P(
-    expression ~ `of` ~/ caseExpressionClauses ~ elseExpression ^^ MatchPhrase)
+  val innerCaseExpression: P[Phrase] =
+    P(expression ~ `of` ~/ caseExpressionClauses ~ elseExpression) ^ MatchPhrase.apply
 
   val caseExpressionClauses: P[Seq[MatchPhraseClause]] =
     P(caseExpressionClause.rep(min = 1, sep = ("[]" | `elseof`).~/))
 
-  val caseExpressionClause: P[MatchPhraseClause] = positioned(
-    P(pattern) ~ (`andthen` ~/ expression).? ~ (`then` ~/ inPhrase) ^^ MatchPhraseClause)
+  val caseExpressionClause: P[MatchPhraseClause] =
+    (P(pattern) ~ (`andthen` ~/ expression).? ~ (`then` ~/ inPhrase)) ^ MatchPhraseClause.apply
 
   // Pattern
 
   val pattern: P[Phrase] = P(pattern1 ~ ("=" ~/ pattern).?).map {
-    case (lhs, Some(rhs)) => PatternConjunctionPhrase(Seq(lhs, rhs))
+    case (lhs, Some(rhs)) => PatternConjunctionPhrase(Seq(lhs, rhs))(Node.extend(lhs, rhs))
     case (lhs, None)      => lhs
   }
 
@@ -613,11 +609,11 @@ object Parser {
   }
 
   val pattern3: P[Phrase] = P(
-    positioned((recordLabel ~ "(" ~/ patternRecordField.rep ~ `...`.!.? ~ ")") ^^ {
-      case (label, fields, Some(openMarker)) => OpenRecordPatternPhrase(label, fields)
-      case (label, fields, None)             => RecordPhrase(label, fields)
-    })
-      | positioned("[" ~/ pattern.rep(1) ~ "]" ^^ exprListToListExpr)
+    pos3(recordLabel ~ "(" ~/ patternRecordField.rep ~ `...`.!.? ~ ")") {
+      case (label, fields, Some(openMarker), pos) => OpenRecordPatternPhrase(label, fields)(pos)
+      case (label, fields, None, pos)             => RecordPhrase(label, fields)(pos)
+    }
+      | "[" ~/ pattern.rep(1) ~ "]" ^^ exprListToListExpr
       | floatConstExpr | integerConstExpr | literalConstExpr | stringConstExpr
       | variable
       | escapedVariable
@@ -625,117 +621,105 @@ object Parser {
       | "(" ~/ pattern ~ ")")
 
   val optFeatureNoVar: P[Phrase] =
-    positioned((featureNoVar ~ `:`).? ^^ (_.getOrElse(AutoFeature())))
+    pos1((featureNoVar ~ `:`).?) { case (f, p) => f.getOrElse(AutoFeature()(p)) }
 
   val patternRecordField: P[RecordFieldPhrase] =
-    positioned(optFeatureNoVar ~ pattern ^^ RecordFieldPhrase)
+    (optFeatureNoVar ~ pattern) ^ RecordFieldPhrase.apply
 
   // Thread
 
-  val threadExpression = positioned {
-    `thread` ~/ inPhrase ~ `end` ^^ ThreadPhrase
-  }
+  val threadExpression =
+    P(`thread` ~/ inPhrase ~ `end`) ^ ThreadPhrase.apply
 
   // Lock
 
-  val lockExpression = positioned {
-    `lock` ~/ NoCut(expression ~ `then`).? ~ inPhrase ~ `end` ^^ {
-      case (Some(lock), body) => LockPhrase(lock, body)
-      case (None, body)       => LockObjectPhrase(body)
+  val lockExpression =
+    pos2(`lock` ~/ NoCut(expression ~ `then`).? ~ inPhrase ~ `end`) {
+      case (Some(lock), body, pos) => LockPhrase(lock, body)(pos)
+      case (None, body, pos)       => LockObjectPhrase(body)(pos)
     }
-  }
 
   // Try
 
-  val tryExpression = deepPositioned {
-    P(`try` ~/ inPhrase ~ (`catch` ~/ caseExpressionClauses).? ~ (`finally` ~/ inPhrase).? ~ `end`) ^^ {
-      case (body, optCatchClauses, optFinallyBody) =>
+  val tryExpression =
+    pos3(`try` ~/ inPhrase ~ (`catch` ~/ caseExpressionClauses).? ~ (`finally` ~/ inPhrase).? ~ `end`) {
+      case (body, optCatchClauses, optFinallyBody, pos) =>
         val tryCatch = optCatchClauses match {
           case None => body
           case Some(catchClauses) =>
-            val excVar = RawVariable(generateExcIdent())
+            val excVar = RawVariable(generateExcIdent())(body)
             TryPhrase(body, excVar,
-              MatchPhrase(excVar, catchClauses, RaisePhrase(excVar)))
+              MatchPhrase(excVar, catchClauses, RaisePhrase(excVar)(excVar))(Node.extend(catchClauses)))(pos)
         }
 
         optFinallyBody match {
           case None              => tryCatch
-          case Some(finallyBody) => TryFinallyPhrase(tryCatch, finallyBody)
+          case Some(finallyBody) => TryFinallyPhrase(tryCatch, finallyBody)(pos)
         }
     }
-  }
 
   // Raise
 
-  val raiseExpression = positioned {
-    `raise` ~/ inPhrase ~ `end` ^^ RaisePhrase |
-      `fail` ^^^ FailStatement()
-  }
+  val raiseExpression =
+    (`raise` ~/ inPhrase ~ `end`) ^ RaisePhrase.apply |
+      pos(`fail`) { p => FailStatement()(p) }
 
   // For loops
 
-  val forStatement = deepPositioned {
-    P(`for` ~/ formalArg ~ `in` ~/ forListGenerator ~ `do` ~/ inPhrase ~ `end`) ^^ {
-      case (arg0, listExpr, body0) =>
-        val (args, body) = postProcessArgsAndBody(Seq(arg0), body0)
-        val forProc = ProcPhrase(None, args, body, Nil)
-        listExpr match {
-          case ForPhrase(from, to, _) => ForPhrase(from, to, forProc)
-          case _                      => CallPhrase(RawVariable("ForAll"), Seq(listExpr, forProc))
-        }
-    }
-  }
-
-  val forListGenerator = deepPositioned {
-    expression ~ (`..` ~/ expression).? ^^ {
+  val forListGenerator =
+    P(expression ~ (`..` ~/ expression).?) ^^ {
       case (start, Some(end)) =>
-        ForPhrase(start, end, null)
+        ForPhrase(start, end, null)(Node.extend(start, end))
       case (expr, None) => expr
     }
-  }
+
+  val forStatement =
+    pos3(`for` ~/ formalArg ~ `in` ~/ forListGenerator ~ `do` ~/ inPhrase ~ `end`) {
+      case (arg0, listExpr, body0, pos) =>
+        val (args, body) = postProcessArgsAndBody(Seq(arg0), body0)
+        val forProc = ProcPhrase(None, args, body, Nil)(pos)
+        listExpr match {
+          case ForPhrase(from, to, _) => ForPhrase(from, to, forProc)(pos)
+          case _                      => CallPhrase(RawVariable("ForAll")(forProc), Seq(listExpr, forProc))(pos)
+        }
+    }
 
   // Functor
 
-  val functorExpression = deepPositioned {
-    P(`functor` ~/ exprOrImplDollar ~ innerFunctor ~ `end`).map {
-      case (None, functor) => functor
-      case (Some(lhs), functor) =>
-        BindPhrase(lhs, functor.copy(name = nameOf(lhs)))
+  val functorExpression =
+    pos2(P(`functor` ~/ exprOrImplDollar ~ functorClause.rep ~ `end`)) {
+      case (None, parts, pos) => buildFunctor(parts)(pos)
+      case (Some(lhs), parts, pos) =>
+        BindPhrase(lhs, buildFunctor(parts)(pos).copy(name = nameOf(lhs))(pos))(pos)
     }
-  }
 
-  val innerFunctor: P[FunctorPhrase] = P(positioned(
-    functorClause.rep ^^ {
-      _.foldLeft(partialFunctor())(mergePartialFunctors)
-    }))
+  def buildFunctor(parts: Seq[FunctorPhrase])(pos: Pos) =
+    parts.foldLeft(partialFunctor(pos = pos))(mergePartialFunctors)
 
-  val functorClause: P[FunctorPhrase] = P(positioned(
-    `require` ~/ importElem.rep ^^ (r => partialFunctor(require = r))
+  val functorClause: P[FunctorPhrase] = P(
+    (`require` ~/ importElem.rep) ^^ (r => partialFunctor(require = r))
       | `prepare` ~/ defineBody ^^ (p => partialFunctor(prepare = Some(p)))
       | `import` ~/ importElem.rep ^^ (i => partialFunctor(imports = i))
       | `define` ~/ defineBody ^^ (d => partialFunctor(define = Some(d)))
-      | `export` ~/ exportElem.rep ^^ (e => partialFunctor(exports = e))))
+      | `export` ~/ exportElem.rep ^^ (e => partialFunctor(exports = e)))
 
-  val importElem: P[FunctorImport] = positioned(
-    P(variable ~ ("(" ~/ importAlias.rep ~ ")").? ~ importLocation.?).map {
-      case (module, None, location)          => FunctorImport(module, Nil, location)
-      case (module, Some(aliases), location) => FunctorImport(module, aliases, location)
-    })
-
-  val importAlias: P[AliasedFeature] = positioned {
-    featureNoVar ~ (`:` ~/ variable).? ^^ AliasedFeature
-  }
+  val importAlias: P[AliasedFeature] =
+    (featureNoVar ~ (`:` ~/ variable).?) ^ AliasedFeature.apply
 
   val importLocation: P[String] =
     `at` ~/ atomConst ^^ (_.value)
 
-  val exportElem: P[FunctorExport] = positioned {
-    P(exportFeature ~ variable) ^^ FunctorExport
-  }
+  val importElem: P[FunctorImport] =
+    pos3(variable ~ ("(" ~/ importAlias.rep ~ ")").? ~ importLocation.?) {
+      case (module, None, location, pos)          => FunctorImport(module, Nil, location)(pos)
+      case (module, Some(aliases), location, pos) => FunctorImport(module, aliases, location)(pos)
+    }
 
-  val exportFeature: P[Expression] = positioned {
-    (featureNoVar ~ `:`).? ^^ (_ getOrElse AutoFeature())
-  }
+  val exportElem: P[FunctorExport] =
+    P(exportFeature ~ variable) ^ FunctorExport.apply
+
+  val exportFeature: P[Expression] =
+    pos1((featureNoVar ~ `:`).?) { case (f, p) => f.getOrElse(AutoFeature()(p)) }
 
   val defineBody: P[Phrase] = inPhrase
 
@@ -746,17 +730,15 @@ object Parser {
     expression.map(Some(_)) |
     Pass ^^^ None)
 
-  val classExpression: P[Phrase] = deepPositioned {
-    P(`class` ~/ exprOrImplDollar ~ classContents ~ `end`).map {
-      case (None, clazz) => clazz
-      case (Some(lhs), clazz) =>
-        BindPhrase(lhs, clazz.copy(name = nameOf(lhs)))
+  val classExpression: P[Phrase] =
+    pos2(P(`class` ~/ exprOrImplDollar ~ classContentsItem.rep ~ `end`)) {
+      case (None, parts, pos) => buildClass(parts)(pos)
+      case (Some(lhs), parts, pos) =>
+        BindPhrase(lhs, buildClass(parts)(pos).copy(name = nameOf(lhs))(pos))(pos)
     }
-  }
 
-  val classContents = P(classContentsItem.rep ^^ {
-    _.foldLeft(partialClass())(mergePartialClasses)
-  })
+  def buildClass(parts: Seq[ClassPhrase])(pos: Pos) =
+    parts.foldLeft(partialClass(pos = pos))(mergePartialClasses)
 
   val classContentsItem: P[ClassPhrase] = P(
     `from` ~/ expression.rep ^^ (p => partialClass(parents = p))
@@ -765,40 +747,37 @@ object Parser {
       | `prop` ~/ expression.rep ^^ (p => partialClass(properties = p))
       | classMethod ^^ (m => partialClass(methods = Seq(m))))
 
-  val classFeatOrAttr: P[FeatOrAttrPhrase] = positioned {
-    P(attrOrFeat ~ (`:` ~/ expression).?) ^^ FeatOrAttrPhrase
-  }
+  val classFeatOrAttr: P[FeatOrAttrPhrase] =
+    P(attrOrFeat ~ (`:` ~/ expression).?) ^ FeatOrAttrPhrase.apply
 
   val methodParamName: P[Phrase] =
     P(variable | wildcardExpr | nestingMarker)
 
-  val methodParamFeat: P[Phrase] = P(positioned {
-    (feature ~ `:`).? ^^ (x => x.getOrElse(AutoFeature()))
-  })
+  val methodParamFeat: P[Phrase] = optFeature
 
-  val methodParam: P[MethodParamPhrase] = positioned(P(
-    methodParamFeat ~ methodParamName ~ ("<=" ~/ expression).? ^^ MethodParamPhrase.tupled))
+  val methodParam: P[MethodParamPhrase] =
+    P(methodParamFeat ~ methodParamName ~ ("<=" ~/ expression).?) ^ MethodParamPhrase.apply
 
   val methodHeaderLabel: P[Phrase] = P(recordLabel | escapedVariable)
 
-  val methodHeader: P[MethodHeaderPhrase] = P(positioned(
-    (methodHeaderLabel ~ ("(" ~/ methodParam.rep ~ `...`.!.? ~ ")").?).map {
-      case (label, None)                 => MethodHeaderPhrase(label, Nil, false)
-      case (label, Some((params, open))) => MethodHeaderPhrase(label, params, open.isDefined)
-    }))
+  val methodHeader: P[MethodHeaderPhrase] = P(
+    pos2(methodHeaderLabel ~ ("(" ~/ methodParam.rep ~ `...`.!.? ~ ")").?) {
+      case (label, None, pos)                 => MethodHeaderPhrase(label, Nil, false)(pos)
+      case (label, Some((params, open)), pos) => MethodHeaderPhrase(label, params, open.isDefined)(pos)
+    })
 
   val classMethod: P[MethodDefPhrase] =
-    P(`meth` ~/ methodHeader ~ ("=" ~ variable).? ~ inPhrase ~ `end`).map {
-      case (header, msgVar, body) => MethodDefPhrase(header, msgVar, body)
+    pos3(`meth` ~/ methodHeader ~ ("=" ~ variable).? ~ inPhrase ~ `end`) {
+      case (header, msgVar, body, pos) => MethodDefPhrase(header, msgVar, body)(pos)
     }
 
   // Helpers
 
   def nameBindRHS(bind: BindPhrase) = bind match {
     case BindPhrase(lhs @ RawVariable(varName), proc @ ProcPhrase(None, args, body, flags)) =>
-      BindPhrase(lhs, proc.copy(name = Some(lhs)))
+      BindPhrase(lhs, proc.copy(name = Some(lhs))(proc))(lhs)
     case BindPhrase(lhs @ RawVariable(varName), fun @ FunPhrase(None, args, body, flags)) =>
-      BindPhrase(lhs, fun.copy(name = Some(lhs)))
+      BindPhrase(lhs, fun.copy(name = Some(lhs))(fun))(lhs)
     case _ =>
       bind
   }
@@ -807,10 +786,11 @@ object Parser {
     if (args.forall(_.isInstanceOf[RawVariable])) {
       (args.map(_.asInstanceOf[RawVariable]), body)
     } else {
+      val pos = Node.posFromSeq(args, body)
       val (newArgs, patMatValue, pattern) = postProcessArgsInner(args)
       (newArgs, MatchPhrase(patMatValue,
-        Seq(MatchPhraseClause(pattern, None, body).copyAttrs(patMatValue)),
-        NoElsePhrase()))
+        Seq(MatchPhraseClause(pattern, None, body)(patMatValue)),
+        NoElsePhrase()(pos))(pos))
     }
   }
 
@@ -825,7 +805,7 @@ object Parser {
           newArgs += v
 
         case _ =>
-          val newArg = RawVariable(generateParamIdent()).copyAttrs(arg)
+          val newArg = RawVariable(generateParamIdent())(arg)
           newArgs += newArg
           patMatValueItems += newArg
           patternItems += arg
@@ -846,8 +826,9 @@ object Parser {
                      prepare: Option[Phrase] = None,
                      imports: Seq[FunctorImport] = Nil,
                      define: Option[Phrase] = None,
-                     exports: Seq[FunctorExport] = Nil) = {
-    FunctorPhrase(name, require, prepare, imports, define, exports)
+                     exports: Seq[FunctorExport] = Nil,
+                     pos: Pos = Node.noPos) = {
+    FunctorPhrase(name, require, prepare, imports, define, exports)(pos)
   }
 
   def mergePartialFunctors(lhs: FunctorPhrase, rhs: FunctorPhrase) = {
@@ -857,16 +838,19 @@ object Parser {
     val FunctorPhrase(rhsName, rhsRequire, rhsPrepare,
       rhsImports, rhsDefine, rhsExports) = rhs
 
+    val pos = if (lhs.pos != Node.noPos) lhs else rhs
+
     FunctorPhrase(if (lhsName.isEmpty) rhsName else lhsName,
       lhsRequire ++ rhsRequire, lhsPrepare orElse rhsPrepare,
       lhsImports ++ rhsImports, lhsDefine orElse rhsDefine,
-      lhsExports ++ rhsExports)
+      lhsExports ++ rhsExports)(pos)
   }
 
   def partialClass(name: String = "", parents: Seq[Phrase] = Nil,
                    features: Seq[FeatOrAttrPhrase] = Nil, attributes: Seq[FeatOrAttrPhrase] = Nil,
-                   properties: Seq[Phrase] = Nil, methods: Seq[MethodDefPhrase] = Nil) =
-    ClassPhrase(name, parents, features, attributes, properties, methods)
+                   properties: Seq[Phrase] = Nil, methods: Seq[MethodDefPhrase] = Nil,
+                   pos: Pos = Node.noPos) =
+    ClassPhrase(name, parents, features, attributes, properties, methods)(pos)
 
   def mergePartialClasses(lhs: ClassPhrase, rhs: ClassPhrase) = {
     val ClassPhrase(lhsName, lhsParents, lhsFeatures, lhsAttributes,
@@ -875,34 +859,32 @@ object Parser {
     val ClassPhrase(rhsName, rhsParents, rhsFeatures, rhsAttributes,
       rhsProperties, rhsMethods) = rhs
 
+    val pos = if (lhs.pos != Node.noPos) lhs else rhs
+
     ClassPhrase(if (lhsName.isEmpty) rhsName else lhsName,
       lhsParents ++ rhsParents, lhsFeatures ++ rhsFeatures,
       lhsAttributes ++ rhsAttributes, lhsProperties ++ rhsProperties,
-      lhsMethods ++ rhsMethods)
+      lhsMethods ++ rhsMethods)(pos)
   }
 
   def exprListToListExpr(elems: Seq[Phrase]): Phrase = {
-    val nil: Phrase = Constant(OzAtom("nil")).copyAttrs(elems(0))
+    val nil: Phrase = Constant(OzAtom("nil"))(elems(0))
     elems.foldRight(nil)((e, tail) => cons(e, tail))
   }
 
-  def cons(head: Phrase, tail: Phrase) = atPos(head) {
-    RecordPhrase(Constant(OzAtom("|")),
-      Seq(withAutoFeature(head), withAutoFeature(tail)))
-  }
+  def cons(head: Phrase, tail: Phrase) =
+    RecordPhrase(Constant(OzAtom("|"))(),
+      Seq(withAutoFeature(head), withAutoFeature(tail)))(head)
 
   def sharp(fields: Seq[Phrase]) = {
-    if (fields.isEmpty) Constant(OzAtom("#"))
+    if (fields.isEmpty) Constant(OzAtom("#"))()
     else {
-      atPos(fields.head) {
-        RecordPhrase(Constant(OzAtom("#")), fields map withAutoFeature)
-      }
+      RecordPhrase(Constant(OzAtom("#"))(fields(0)), fields map withAutoFeature)(fields.head)
     }
   }
 
-  def withAutoFeature(expr: Phrase): RecordFieldPhrase = atPos(expr) {
-    RecordFieldPhrase(AutoFeature(), expr)
-  }
+  def withAutoFeature(expr: Phrase): RecordFieldPhrase =
+    RecordFieldPhrase(AutoFeature()(expr), expr)(expr)
 
   // MAIN
 

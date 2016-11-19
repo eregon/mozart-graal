@@ -2,10 +2,10 @@ package org.mozartoz.bootcompiler
 package ast
 
 import scala.reflect.ClassTag
-
 import oz._
 import symtab._
 import transform._
+import Node.Pos
 
 /** Mixin trait that provides a DSL to synthesize Oz ASTs */
 trait TreeDSL {
@@ -44,11 +44,15 @@ trait TreeDSL {
 
     /** Call `self` with arguments `args` as a statement */
     def call(args: Expression*) =
-      treeCopy.CallStatement(self, self, args)
+      new {
+        def at(pos: Pos) = CallStatement(self, args)(pos)
+      }
 
     /** Call `self` with arguments `args` as an expression */
     def callExpr(args: Expression*) =
-      treeCopy.CallExpression(self, self, args)
+      new {
+        def at(pos: Pos) = CallExpression(self, args)(pos)
+      }
 
     /** `==` operator */
     def =?= (rhs: Expression) =
@@ -60,20 +64,12 @@ trait TreeDSL {
   }
 
   /** Wrap an Oz value inside a Constant */
-  implicit def value2constant(value: OzValue) =
-    Constant(value)
-
-  /** Convert a Symbol into a Variable */
-  implicit def symbol2variable(symbol: Symbol) =
-    Variable(symbol)
+  implicit def value2constant(value: OzValue): Constant =
+    Constant(value)()
 
   /** Operations on Builtins */
   implicit def builtin2ops(builtin: Builtin) =
     expression2ops(OzBuiltin(builtin))
-
-  /** Apply operations on Expressions directly on Symbols */
-  implicit def symbol2ops(symbol: Symbol) =
-    expression2ops(symbol)
 
   /** Pattern matching for BindStatements
    *
@@ -124,10 +120,9 @@ trait TreeDSL {
    *  }
    *  }}}
    */
-  def PROC(name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
-      flags: Seq[String] = Nil)(body: Statement) = {
-    treeCopy.ProcExpression(body, name, args, body, flags)
-  }
+  def PROC(pos: Pos, name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
+      flags: Seq[String] = Nil)(body: Statement) =
+    ProcExpression(name, args, body, flags)(pos)
 
   /** Construct FunExpressions
    *
@@ -138,9 +133,9 @@ trait TreeDSL {
    *  }
    *  }}}
    */
-  def FUN(name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
+  def FUN(pos: Pos, name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
       flags: Seq[String] = Nil)(body: Expression) = {
-    treeCopy.FunExpression(body, name, args, body, flags)
+    FunExpression(name, args, body, flags)(pos)
   }
 
   /** Construct ThreadStatements
@@ -152,8 +147,8 @@ trait TreeDSL {
    *  }
    *  }}}
    */
-  def THREAD(body: Statement) =
-    treeCopy.ThreadStatement(body, body)
+  def THREAD(pos: Pos)(body: Statement) =
+    ThreadStatement(body)(pos)
 
   /** Construct RawLocalStatements and RawLocalExpressions
    *
@@ -202,8 +197,8 @@ trait TreeDSL {
    *
    *  In `body` you can use `temp` as a temporary variable.
    */
-  def statementWithTemp(statement: Variable => Statement) = {
-    val temp = Variable.newSynthetic()
+  def statementWithTemp(pos: Pos)(statement: Variable => Statement) = {
+    val temp = Variable.newSynthetic()(pos)
     LOCAL (temp) IN statement(temp)
   }
 
@@ -218,9 +213,9 @@ trait TreeDSL {
    *
    *  In `body` you can use `temp1` and `temp2` as a temporary variables.
    */
-  def statementWithTemps(statement: (Variable, Variable) => Statement) = {
-    val temp1 = Variable.newSynthetic()
-    val temp2 = Variable.newSynthetic()
+  def statementWithTemps(pos: Pos)(statement: (Variable, Variable) => Statement) = {
+    val temp1 = Variable.newSynthetic()(pos)
+    val temp2 = Variable.newSynthetic()(pos)
     LOCAL (temp1, temp2) IN statement(temp1, temp2)
   }
 
@@ -235,8 +230,8 @@ trait TreeDSL {
    *
    *  In `body` you can use `temp` as a temporary variable.
    */
-  def expressionWithTemp(expression: Variable => Expression) = {
-    val temp = Variable.newSynthetic()
+  def expressionWithTemp(pos: Pos)(expression: Variable => Expression) = {
+    val temp = Variable.newSynthetic()(pos)
     LOCAL (temp) IN expression(temp)
   }
 
@@ -246,7 +241,7 @@ trait TreeDSL {
       case value: A =>
         statement(value)
       case _ =>
-        statementWithTemp { temp =>
+        statementWithTemp(value) { temp =>
           (temp === value) ~ statement(temp)
         }
     }
@@ -258,7 +253,7 @@ trait TreeDSL {
       case value: A =>
         expression(value)
       case _ =>
-        expressionWithTemp { temp =>
+        expressionWithTemp(value) { temp =>
           (temp === value) ~> expression(temp)
         }
     }

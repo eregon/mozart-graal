@@ -4,6 +4,7 @@ package transform
 import scala.collection.mutable.ListBuffer
 import oz._
 import ast._
+import ast.Node.Pos
 import symtab._
 import org.mozartoz.bootcompiler.symtab.BaseDeclarations
 
@@ -35,7 +36,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
 
   /** Current environment */
   private var env: Env = Map.empty
-  private var envName: VariableOrRaw = RawVariable("")
+  private var envName: VariableOrRaw = RawVariable("")(Node.noPos)
 
   /** Computes a sub expression with a new given environment
    *
@@ -135,10 +136,8 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
         transformStat(catchBody)
       }
 
-      atPos(tryStat) {
-        LOCAL (namedExcVar) IN {
-          treeCopy.TryStatement(tryStat, newBody, namedExcVar, newCatchBody)
-        }
+      LOCAL (namedExcVar) IN {
+        treeCopy.TryStatement(tryStat, newBody, namedExcVar, newCatchBody)
       }
 
     case _ =>
@@ -212,10 +211,8 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
         transformExpr(catchBody)
       }
 
-      atPos(tryExpr) {
-        LOCAL (namedExcVar) IN {
-          treeCopy.TryExpression(tryExpr, newBody, namedExcVar, newCatchBody)
-        }
+      LOCAL (namedExcVar) IN {
+        treeCopy.TryExpression(tryExpr, newBody, namedExcVar, newCatchBody)
       }
 
     /* Input:
@@ -227,7 +224,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
      */
     case proc @ ProcExpression(name, args, body, flags) =>
       val namedFormals = nameFormals(args)
-      val resolvedName = resolveProcName(name)
+      val resolvedName = resolveProcName(name, proc)
 
       withEnvironmentFromDecls(namedFormals, resolvedName) {
         treeCopy.ProcExpression(proc,
@@ -246,7 +243,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
      */
     case fun @ FunExpression(name, args, body, flags) =>
       val namedFormals = nameFormals(args)
-      val resolvedName = resolveProcName(name)
+      val resolvedName = resolveProcName(name, fun)
 
       withEnvironmentFromDecls(namedFormals, resolvedName) {
         treeCopy.FunExpression(fun,
@@ -277,10 +274,10 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
         treeCopy.Variable(v, symbol.get)
       } else if (!program.isBaseEnvironment &&
           ((BaseDeclarations contains name) || (name == "Base"))) {
-        atPos(v)(baseEnvironment(name))
+        baseEnvironment(name)(v)
       } else {
         program.reportError("Undeclared variable "+name, v)
-        transformExpr(atPos(v)(RAWLOCAL (v) IN (v)))
+        transformExpr(RAWLOCAL (v) IN (v))
       }
 
     /* Input:
@@ -305,7 +302,7 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
 
     val (requireDecls, newRequire) = transformFunctorImports(require)
 
-    withEnvironmentFromDecls(requireDecls, RawVariable(functor.fullName)) {
+    withEnvironmentFromDecls(requireDecls, RawVariable(functor.fullName)(functor)) {
       val (prepareDecls, newPrepare) = transformFunctorDefine(prepare)
 
       withEnvironmentFromDecls(prepareDecls) {
@@ -409,9 +406,9 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
         val initNames = CompoundStatement(for {
           decl <- namedDecls
         } yield {
-          val newName = Constant(OzBuiltin(builtins.newName)).copyAttrs(decl)
-          decl === (newName callExpr ())
-        })
+          val newName = Constant(OzBuiltin(builtins.newName))(decl)
+          decl === (newName callExpr () at decl)
+        })(clazz)
 
         treeCopy.LocalExpression(clazz, namedDecls,
             initNames ~> super.transformExpr(clazz))
@@ -617,11 +614,11 @@ object Namer extends Transformer with TransformUtils with TreeDSL {
     }
   }
 
-  def resolveProcName(rawVar: Option[VariableOrRaw]): VariableOrRaw = rawVar match {
+  def resolveProcName(rawVar: Option[VariableOrRaw], pos: Pos): VariableOrRaw = rawVar match {
     case Some(RawVariable(name)) =>
-      Variable(env.get(name).get)
+      Variable(env.get(name).get)(pos)
     case _ =>
-      RawVariable("proc in " + envName.name)
+      RawVariable("proc in " + envName.name)(pos)
   }
 
   /** Names a list of raw variables */

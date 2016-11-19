@@ -1,11 +1,13 @@
 package org.mozartoz.bootcompiler
 package ast
 
+import Node.Pos
+
 /** Base class for ASTs that represent statements */
 sealed abstract class Statement extends StatOrExpr with RawDeclaration
 
 /** Sequential composition of several statements */
-case class CompoundStatement(statements: Seq[Statement]) extends Statement {
+case class CompoundStatement(statements: Seq[Statement])(val pos: Pos) extends Statement {
   def syntax(indent: String) = {
     if (statements.isEmpty) "skip"
     else {
@@ -29,7 +31,7 @@ trait LocalStatementOrRaw extends Statement
  *  }}}
  */
 case class RawLocalStatement(declarations: Seq[RawDeclaration],
-    statement: Statement) extends LocalStatementOrRaw with LocalCommon {
+    statement: Statement)(val pos: Pos) extends LocalStatementOrRaw with LocalCommon {
   protected val body = statement
 }
 
@@ -44,7 +46,7 @@ case class RawLocalStatement(declarations: Seq[RawDeclaration],
  *  }}}
  */
 case class LocalStatement(declarations: Seq[Variable],
-    statement: Statement) extends LocalStatementOrRaw with LocalCommon {
+    statement: Statement)(val pos: Pos) extends LocalStatementOrRaw with LocalCommon {
   protected val body = statement
 }
 
@@ -55,9 +57,9 @@ case class LocalStatement(declarations: Seq[Variable],
  *  }}}
  */
 case class CallStatement(callable: Expression,
-    args: Seq[Expression]) extends Statement with CallCommon
+    args: Seq[Expression])(val pos: Pos) extends Statement with CallCommon
     
-case class TailMarkerStatement(call: CallStatement) extends Statement {
+case class TailMarkerStatement(call: CallStatement)(val pos: Pos) extends Statement {
   override def syntax(indent: String) = call.syntax(indent)
 }
 
@@ -73,7 +75,7 @@ case class TailMarkerStatement(call: CallStatement) extends Statement {
  */
 case class IfStatement(condition: Expression,
     trueStatement: Statement,
-    falseStatement: Statement) extends Statement with IfCommon {
+    falseStatement: Statement)(val pos: Pos) extends Statement with IfCommon {
   protected val truePart = trueStatement
   protected val falsePart = falseStatement
 }
@@ -90,7 +92,7 @@ case class IfStatement(condition: Expression,
  */
 case class MatchStatement(value: Expression,
     clauses: Seq[MatchStatementClause],
-    elseStatement: Statement) extends Statement with MatchCommon {
+    elseStatement: Statement)(val pos: Pos) extends Statement with MatchCommon {
   protected val elsePart = elseStatement
 }
 
@@ -102,11 +104,11 @@ case class MatchStatement(value: Expression,
  *  }}}
  */
 case class MatchStatementClause(pattern: Expression, guard: Option[Expression],
-    body: Statement) extends MatchClauseCommon {
+    body: Statement)(val pos: Pos) extends MatchClauseCommon {
 }
 
 /** Special node to mark that there is no else statement */
-case class NoElseStatement() extends Statement with NoElseCommon {
+case class NoElseStatement()(val pos: Pos) extends Statement with NoElseCommon {
 }
 
 /** For statement
@@ -117,7 +119,7 @@ case class NoElseStatement() extends Statement with NoElseCommon {
  *  end
  *  }}}
  */
-case class ForStatement(from: Expression, to: Expression, proc: ProcExpression) extends Statement {
+case class ForStatement(from: Expression, to: Expression, proc: ProcExpression)(val pos: Pos) extends Statement {
   def syntax(indent: String) = {
     val variable = proc.args(0)
     val decl = "for " + variable.syntax(indent) + " in " + from.syntax(indent) + ".." + to.syntax(indent) + " do"
@@ -134,7 +136,7 @@ case class ForStatement(from: Expression, to: Expression, proc: ProcExpression) 
  *  }}}
  */
 case class ThreadStatement(
-    statement: Statement) extends Statement with ThreadCommon {
+    statement: Statement)(val pos: Pos) extends Statement with ThreadCommon {
   protected val body = statement
 }
 
@@ -144,7 +146,7 @@ case class ThreadStatement(
  *  fail
  *  }}}
  */
-case class FailStatement() extends Statement with Phrase {
+case class FailStatement()(val pos: Pos) extends Statement with Phrase {
   def syntax(indent: String) = "fail"
 }
 
@@ -157,7 +159,7 @@ case class FailStatement() extends Statement with Phrase {
  *  }}}
  */
 case class LockStatement(lock: Expression,
-    statement: Statement) extends Statement with LockCommon {
+    statement: Statement)(val pos: Pos) extends Statement with LockCommon {
   protected val body = statement
 }
 
@@ -170,7 +172,7 @@ case class LockStatement(lock: Expression,
  *  }}}
  */
 case class LockObjectStatement(
-    statement: Statement) extends Statement with LockObjectCommon {
+    statement: Statement)(val pos: Pos) extends Statement with LockObjectCommon {
   protected val body = statement
 }
 
@@ -185,7 +187,7 @@ case class LockObjectStatement(
  *  }}}
  */
 case class TryStatement(body: Statement, exceptionVar: VariableOrRaw,
-    catchBody: Statement) extends Statement with TryCommon {
+    catchBody: Statement)(val pos: Pos) extends Statement with TryCommon {
 }
 
 /** Try-finally statement
@@ -199,7 +201,7 @@ case class TryStatement(body: Statement, exceptionVar: VariableOrRaw,
  *  }}}
  */
 case class TryFinallyStatement(body: Statement,
-    finallyBody: Statement) extends Statement with TryFinallyCommon {
+    finallyBody: Statement)(val pos: Pos) extends Statement with TryFinallyCommon {
 }
 
 /** Raise statement
@@ -209,7 +211,7 @@ case class TryFinallyStatement(body: Statement,
  *  }}}
  */
 case class RaiseStatement(
-    exception: Expression) extends Statement with RaiseCommon {
+    exception: Expression)(val pos: Pos) extends Statement with RaiseCommon {
 }
 
 /** Bind statement
@@ -219,7 +221,7 @@ case class RaiseStatement(
  *  }}}
  */
 case class BindStatement(left: Expression,
-    right: Expression) extends Statement with BindCommon {
+    right: Expression)(val pos: Pos) extends Statement with BindCommon {
 }
 
 /** Binary operator statement
@@ -229,7 +231,7 @@ case class BindStatement(left: Expression,
  *  }}}
  */
 case class BinaryOpStatement(left: Expression, operator: String,
-    right: Expression) extends Statement with InfixSyntax {
+    right: Expression)(val pos: Pos) extends Statement with InfixSyntax {
   protected val opSyntax = " " + operator + " "
 }
 
@@ -240,7 +242,7 @@ case class BinaryOpStatement(left: Expression, operator: String,
  *  }}}
  */
 case class DotAssignStatement(left: Expression, center: Expression,
-    right: Expression) extends Statement with MultiInfixSyntax {
+    right: Expression)(val pos: Pos) extends Statement with MultiInfixSyntax {
   protected val operands = Seq(left, center, right)
   protected val operators = Seq(".", " := ")
 }
@@ -251,6 +253,6 @@ case class DotAssignStatement(left: Expression, center: Expression,
  *  skip
  *  }}}
  */
-case class SkipStatement() extends Statement with Phrase {
+case class SkipStatement()(val pos: Pos) extends Statement with Phrase {
   def syntax(indent: String) = "skip"
 }

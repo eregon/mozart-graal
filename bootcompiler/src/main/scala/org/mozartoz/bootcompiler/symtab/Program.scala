@@ -16,7 +16,7 @@ class Program(
     val builtins: Builtins = new Builtins) {
 
   /** Before flattening, abstract syntax tree of the whole program */
-  var rawCode: Statement = SkipStatement()
+  var rawCode: Statement = null
 
   /** Returns `true` if the program is currently represented as a full AST */
   def isRawCode = rawCode ne null
@@ -47,7 +47,7 @@ class Program(
    *  @param message error message
    *  @param pos position of the error
    */
-  def reportError(message: String, section: SourceSection = null) {
+  def reportError(message: String, section: SourceSection = Node.noPos) {
     errors += ((message, section))
   }
 
@@ -57,7 +57,7 @@ class Program(
    *  @param positional positional that holds the position of the error
    */
   def reportError(message: String, positional: Node) {
-    reportError(message, positional.section)
+    reportError(message, positional.pos)
   }
 
   /** Dumps the program on standard error */

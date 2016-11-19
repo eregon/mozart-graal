@@ -11,10 +11,6 @@ import symtab._
 object DesugarClass extends Transformer with TreeDSL {
   case class MethodInfo(symbol: Symbol, label: Expression, proc: Expression)
 
-  def ooFreeFlag = baseEnvironment("`ooFreeFlag`")
-  def ooFallback = baseEnvironment("`ooFallback`")
-  def OoExtensions = baseEnvironment("OoExtensions")
-
   var selfSymbol: Option[Symbol] = None
 
   private def withSelf[A](newSelf: Symbol)(f: => A) = {
@@ -26,12 +22,10 @@ object DesugarClass extends Transformer with TreeDSL {
 
   override def transformStat(statement: Statement) = statement match {
     case LockObjectStatement(body) if selfSymbol.isDefined =>
-      val getObjLock = OoExtensions dot OzAtom("getObjLock")
-      val lock = getObjLock callExpr (selfSymbol.get)
+      val getObjLock = baseEnvironment("OoExtensions")(statement) dot OzAtom("getObjLock")
+      val lock = getObjLock callExpr (Variable(selfSymbol.get)(statement)) at statement
       transformStat {
-        atPos(statement) {
-          LockStatement(lock, body)
-        }
+        LockStatement(lock, body)(statement)
       }
 
     case LockObjectStatement(body) if !selfSymbol.isDefined =>
@@ -40,14 +34,12 @@ object DesugarClass extends Transformer with TreeDSL {
           statement)
 
       // Some dummy statement
-      transformStat(atPos(statement)(
-          LockStatement(UnboundExpression(), body)))
+      transformStat(
+          LockStatement(UnboundExpression()(statement), body)(statement))
 
     case BinaryOpStatement(lhs, "<-", rhs) if selfSymbol.isDefined =>
       transformStat {
-        atPos(statement) {
-          builtins.attrPut call (selfSymbol.get, lhs, rhs)
-        }
+        builtins.attrPut call (Variable(selfSymbol.get)(statement), lhs, rhs) at statement
       }
 
     case BinaryOpStatement(lhs, "<-", rhs) if !selfSymbol.isDefined =>
@@ -55,21 +47,17 @@ object DesugarClass extends Transformer with TreeDSL {
           statement)
 
       // Some dummy statement
-      transformStat(atPos(statement)(BinaryOpStatement(lhs, ":=", rhs)))
+      transformStat(BinaryOpStatement(lhs, ":=", rhs)(statement))
 
     case BinaryOpStatement(lhs, ":=", rhs) if selfSymbol.isDefined =>
       transformStat {
-        atPos(statement) {
-          builtins.catAssignOO call (selfSymbol.get, lhs, rhs)
-        }
+        builtins.catAssignOO call (Variable(selfSymbol.get)(statement), lhs, rhs) at statement
       }
 
     case BinaryOpStatement(lhs, ",", rhs) if selfSymbol.isDefined =>
       transformStat {
-        atPos(statement) {
-          val applyProc = (lhs dot ooFallback dot OzAtom("apply"))
-          applyProc call (rhs, Self(), lhs)
-        }
+        val applyProc = (lhs dot baseEnvironment("`ooFallback`")(statement) dot OzAtom("apply"))
+        applyProc call (rhs, Self()(statement), lhs) at statement
       }
 
     case BinaryOpStatement(lhs, ",", rhs) if !selfSymbol.isDefined =>
@@ -77,7 +65,7 @@ object DesugarClass extends Transformer with TreeDSL {
           statement)
 
       // Some dummy statement
-      transformStat(atPos(statement)(BinaryOpStatement(lhs, ":=", rhs)))
+      transformStat(BinaryOpStatement(lhs, ":=", rhs)(statement))
 
     case _ =>
       super.transformStat(statement)
@@ -85,12 +73,10 @@ object DesugarClass extends Transformer with TreeDSL {
 
   override def transformExpr(expression: Expression) = expression match {
     case LockObjectExpression(body) if selfSymbol.isDefined =>
-      val getObjLock = OoExtensions dot OzAtom("getObjLock")
-      val lock = getObjLock callExpr (selfSymbol.get)
+      val getObjLock = baseEnvironment("OoExtensions")(expression) dot OzAtom("getObjLock")
+      val lock = getObjLock callExpr (Variable(selfSymbol.get)(expression)) at expression
       transformExpr {
-        atPos(expression) {
-          LockExpression(lock, body)
-        }
+        LockExpression(lock, body)(expression)
       }
 
     case LockObjectExpression(body) if !selfSymbol.isDefined =>
@@ -98,36 +84,36 @@ object DesugarClass extends Transformer with TreeDSL {
           "Illegal use of lock-object outside of class definition",
           expression)
 
-      // Some dummy statement
-      transformExpr(atPos(expression)(
-          LockExpression(UnboundExpression(), body)))
+      // Some dummy expression
+      transformExpr(
+          LockExpression(UnboundExpression()(expression), body)(expression))
 
     case clazz @ ClassExpression(name, parents, features, attributes,
         properties, methods) =>
       val methodsInfo = makeMethods(name, methods)
 
-      transformExpr(atPos(clazz) {
-        LOCAL ((methodsInfo map (info => Variable(info.symbol))):_*) IN {
+      transformExpr {
+        LOCAL ((methodsInfo map (info => Variable(info.symbol)(info.label))):_*) IN {
           val createMethodProcs = CompoundStatement(for {
             MethodInfo(symbol, _, proc) <- methodsInfo
           } yield {
-            symbol === proc
-          })
+            Variable(symbol)(proc) === proc
+          })(clazz)
 
-          val newName = Constant(OzAtom(name))
+          val newName = Constant(OzAtom(name))(clazz)
           val newParents = transformParents(parents)
-          val newFeatures = transformFeatOrAttr("feat", features)
-          val newAttributes = transformFeatOrAttr("attr", attributes)
+          val newFeatures = transformFeatOrAttr(clazz, "feat", features)
+          val newAttributes = transformFeatOrAttr(clazz, "attr", attributes)
           val newProperties = transformProperties(properties)
           val newMethods = transformMethods(methodsInfo)
 
-          val newFullClass = OoExtensions dot OzAtom("class")
+          val newFullClass = baseEnvironment("OoExtensions")(clazz) dot OzAtom("class")
 
           createMethodProcs ~>
-          newFullClass.callExpr(newParents, newMethods, newAttributes,
-              newFeatures, newProperties, newName)
+          newFullClass callExpr (newParents, newMethods, newAttributes,
+              newFeatures, newProperties, newName) at clazz
         }
-      })
+      }
 
     case Self() if selfSymbol.isDefined =>
       treeCopy.Variable(expression, selfSymbol.get)
@@ -141,16 +127,12 @@ object DesugarClass extends Transformer with TreeDSL {
 
     case UnaryOp("@", rhs) if selfSymbol.isDefined =>
       transformExpr {
-        atPos(expression) {
-          builtins.catAccessOO callExpr (selfSymbol.get, rhs)
-        }
+        builtins.catAccessOO callExpr (Variable(selfSymbol.get)(expression), rhs) at expression
       }
 
     case BinaryOp(lhs, "<-", rhs) if selfSymbol.isDefined =>
       transformExpr {
-        atPos(expression) {
-          builtins.attrExchangeFun callExpr (selfSymbol.get, lhs, rhs)
-        }
+        builtins.attrExchangeFun callExpr (Variable(selfSymbol.get)(expression), lhs, rhs) at expression
       }
 
     case BinaryOp(lhs, "<-", rhs) if !selfSymbol.isDefined =>
@@ -158,24 +140,18 @@ object DesugarClass extends Transformer with TreeDSL {
           expression)
 
       transformExpr {
-        atPos(expression) {
-          BinaryOp(lhs, ":=", rhs)
-        }
+        BinaryOp(lhs, ":=", rhs)(expression)
       }
 
     case BinaryOp(lhs, ":=", rhs) if selfSymbol.isDefined =>
       transformExpr {
-        atPos(expression) {
-          builtins.catExchangeOO callExpr (selfSymbol.get, lhs, rhs)
-        }
+        builtins.catExchangeOO callExpr (Variable(selfSymbol.get)(expression), lhs, rhs) at expression
       }
 
     case BinaryOp(lhs, ",", rhs) if selfSymbol.isDefined =>
       transformExpr {
-        atPos(expression) {
-          val applyProc = (lhs dot ooFallback dot OzAtom("apply"))
-          applyProc callExpr (rhs, Self(), lhs)
-        }
+        val applyProc = (lhs dot baseEnvironment("`ooFallback`")(expression) dot OzAtom("apply"))
+        applyProc callExpr (rhs, Self()(expression), lhs) at expression
       }
 
     case BinaryOp(lhs, ",", rhs) if !selfSymbol.isDefined =>
@@ -183,7 +159,7 @@ object DesugarClass extends Transformer with TreeDSL {
           expression)
 
       // Some dummy expression
-      transformExpr(atPos(expression)(BinaryOp(lhs, ":=", rhs)))
+      transformExpr(BinaryOp(lhs, ":=", rhs)(expression))
 
     case _ =>
       super.transformExpr(expression)
@@ -193,16 +169,16 @@ object DesugarClass extends Transformer with TreeDSL {
     exprListToListExpr(parents)
   }
 
-  def transformFeatOrAttr(label: String,
+  def transformFeatOrAttr(clazz: ClassExpression, label: String,
       featOrAttrs: Seq[FeatOrAttr]): Expression = {
     val specs = for {
       featOrAttr @ FeatOrAttr(name, value) <- featOrAttrs
     } yield {
-      val newValue = value getOrElse ooFreeFlag
+      val newValue = value getOrElse baseEnvironment("`ooFreeFlag`")(featOrAttr)
       treeCopy.RecordField(featOrAttr, name, newValue)
     }
 
-    Record(OzAtom(label), specs)
+    Record(Constant(OzAtom(label))(clazz), specs)(Node.posFromSeq(specs, clazz))
   }
 
   def transformProperties(properties: Seq[Expression]) = {
@@ -211,9 +187,9 @@ object DesugarClass extends Transformer with TreeDSL {
 
   def transformMethods(methods: Seq[MethodInfo]): Expression = {
     val newMethods = for {
-      MethodInfo(symbol, name, _) <- methods
+      MethodInfo(symbol, name, label) <- methods
     } yield {
-      sharp(Seq(name, symbol))
+      sharp(Seq(name, Variable(symbol)(label)))
     }
 
     sharp(newMethods)
@@ -240,8 +216,8 @@ object DesugarClass extends Transformer with TreeDSL {
   def makeProcForMethod(name: Symbol, method: MethodDef): Expression = {
     val MethodDef(MethodHeader(_, params, open), messageVar, body) = method
 
-    val selfParam = new Symbol("self", formal = true)
-    val msgParam = new Symbol("<M>", formal = true)
+    val selfParam = Variable(new Symbol("self", formal = true))(method.header)
+    val msgParam = Variable(new Symbol("<M>", formal = true))(method.header)
 
     val paramVars = new ListBuffer[Variable]
     var resultVar: Option[Variable] = None
@@ -270,7 +246,7 @@ object DesugarClass extends Transformer with TreeDSL {
             program.reportError("Duplicate nesting marker", name)
             None
           } else {
-            val resVar = Variable.newSynthetic("<Result>").copyAttrs(name)
+            val resVar = Variable.newSynthetic("<Result>")(name)
             resultVar = Some(resVar)
             paramVars += resVar
             Some(resVar)
@@ -286,7 +262,7 @@ object DesugarClass extends Transformer with TreeDSL {
         fetchParamStats += {
           if (default.isEmpty) getIt
           else {
-            IF (builtins.hasFeature callExpr (msgParam, actualFeature)) THEN {
+            IF (builtins.hasFeature callExpr (msgParam, actualFeature) at msgParam) THEN {
               getIt
             } ELSE {
               paramVar.get === default.get
@@ -303,17 +279,15 @@ object DesugarClass extends Transformer with TreeDSL {
       }
     }
 
-    atPos(method) {
-      PROC (Some(Variable(name)), Seq(selfParam, msgParam)) {
-        LOCAL (paramVars:_*) IN {
-          withSelf(selfParam) {
-            transformStat {
-              CompoundStatement(fetchParamStats) ~ {
-                if (resultVar.isDefined) {
-                  resultVar.get === body.asInstanceOf[Expression]
-                } else {
-                  body.asInstanceOf[Statement]
-                }
+    PROC (method, Some(Variable(name)(method)), Seq(selfParam, msgParam)) {
+      LOCAL (paramVars:_*) IN {
+        withSelf(selfParam.symbol) {
+          transformStat {
+            CompoundStatement(fetchParamStats)(method) ~ {
+              if (resultVar.isDefined) {
+                resultVar.get === body.asInstanceOf[Expression]
+              } else {
+                body.asInstanceOf[Statement]
               }
             }
           }

@@ -4,10 +4,11 @@ package transform
 import ast._
 import oz._
 import symtab._
+import ast.Node.Pos
 
 object Desugar extends Transformer with TreeDSL {
 
-  var procName: VariableOrRaw = RawVariable("")
+  var procName: VariableOrRaw = RawVariable("")(Node.noPos)
 
   private def withProcName[A](name: Option[VariableOrRaw])(f: => A) = {
     val oldName = procName
@@ -16,16 +17,16 @@ object Desugar extends Transformer with TreeDSL {
     finally procName = oldName
   }
 
-  private def genProcName(kind: String) =
-    Some(RawVariable(kind + " in " + procName.name))
+  private def genProcName(kind: String, pos: Pos) =
+    Some(RawVariable(kind + " in " + procName.name)(pos))
 
   override def transformStat(statement: Statement) = statement match {
     case assign @ BinaryOpStatement(lhs, ":=", rhs) =>
-      builtins.catAssign call (transformExpr(lhs), transformExpr(rhs))
+      builtins.catAssign call (transformExpr(lhs), transformExpr(rhs)) at statement
 
     case DotAssignStatement(left, center, right) =>
       builtins.dotAssign call (transformExpr(left), transformExpr(center),
-          transformExpr(right))
+          transformExpr(right)) at statement
 
     case ifStat @ IfStatement(cond, trueStat, falseStat:NoElseStatement) =>
       transformStat {
@@ -34,40 +35,34 @@ object Desugar extends Transformer with TreeDSL {
       }
 
     case thread @ ThreadStatement(body) =>
-      atPos(thread) {
-        val proc = PROC(genProcName("thread"), Nil) {
-          transformStat(body)
-        }
-
-        builtins.createThread call (proc)
+      val proc = PROC(thread, genProcName("thread", thread), Nil) {
+        transformStat(body)
       }
+
+      builtins.createThread call (proc) at thread
 
     case lockStat @ LockStatement(lock, body) =>
-      atPos(lockStat) {
-        val proc = PROC(genProcName("lock"), Nil) {
-          transformStat(body)
-        }
-
-        baseEnvironment("LockIn") call (transformExpr(lock), proc)
+      val proc = PROC(lockStat, genProcName("lock", lock), Nil) {
+        transformStat(body)
       }
+
+      baseEnvironment("LockIn")(lockStat) call (transformExpr(lock), proc) at lockStat
 
     case TryFinallyStatement(body, finallyBody) =>
       transformStat {
-        atPos(statement) {
-          statementWithTemp { tempX =>
-            val tempY = Variable.newSynthetic(capture = true)
+        statementWithTemp(statement) { tempX =>
+          val tempY = Variable.newSynthetic(capture = true)(statement)
 
-            (LOCAL (tempY) IN {
-              (tempX === TryExpression(body ~> UnitVal(),
-                  tempY, Tuple(OzAtom("ex"), Seq(tempY))))
-            }) ~
-            finallyBody ~
-            (IF (tempX =?= UnitVal()) THEN {
-              SkipStatement()
-            } ELSE {
-              RaiseStatement(tempX dot OzInt(1))
-            })
-          }
+          (LOCAL (tempY) IN {
+            (tempX === TryExpression(body ~> UnitVal(),
+                tempY, Tuple(OzAtom("ex"), Seq(tempY)))(body))
+          }) ~
+          finallyBody ~
+          (IF (tempX =?= UnitVal()) THEN {
+            SkipStatement()(finallyBody)
+          } ELSE {
+            RaiseStatement(tempX dot OzInt(1))(finallyBody)
+          })
         }
       }
 
@@ -77,31 +72,29 @@ object Desugar extends Transformer with TreeDSL {
 
   override def transformExpr(expression: Expression) = expression match {
     case fun @ FunExpression(name, args, body, flags) =>
-      val result = Variable.newSynthetic("<Result>", formal = true).copyAttrs(fun)
+      val result = Variable.newSynthetic("<Result>", formal = true)(fun)
 
       val isLazy = flags contains "lazy"
       val newFlags =
         if (isLazy) flags filterNot "lazy".==
         else flags
 
-      atPos(fun) {
-        PROC(name, args :+ result, newFlags) {
-          withProcName(name) {
-            val newBody =  transformExpr(body)
-            if (isLazy) {
-              val result2 = Variable.newSynthetic("<Result2>").copyAttrs(fun)
-              transformStat {
-                LOCAL (result2) IN {
-                  THREAD {
-                    (builtins.waitNeeded call (result2)) ~
-                    exprToBindStatement(result2, newBody)
-                  } ~
-                  (builtins.unaryOpToBuiltin("!!") call (result2, result))
-                }
+      PROC(fun, name, args :+ result, newFlags) {
+        withProcName(name) {
+          val newBody =  transformExpr(body)
+          if (isLazy) {
+            val result2 = Variable.newSynthetic("<Result2>")(fun)
+            transformStat {
+              LOCAL (result2) IN {
+                THREAD(fun) {
+                  (builtins.waitNeeded call (result2) at fun) ~
+                  exprToBindStatement(result2, newBody)
+                } ~
+                (builtins.unaryOpToBuiltin("!!") call (result2, result) at fun)
               }
-            } else {
-              exprToBindStatement(result, newBody)
             }
+          } else {
+            exprToBindStatement(result, newBody)
           }
         }
       }
@@ -112,49 +105,47 @@ object Desugar extends Transformer with TreeDSL {
       }
 
     case thread @ ThreadExpression(body) =>
-      expressionWithTemp { temp =>
-        transformStat(atPos(thread) {
-          THREAD (temp === body)
-        }) ~> temp
+      expressionWithTemp(thread) { temp =>
+        transformStat(
+          THREAD(thread)(temp === body)
+        ) ~> temp
       }
 
     case lockExpr @ LockExpression(lock, body) =>
-      expressionWithTemp { temp =>
-        transformStat(atPos(lockExpr) {
-          LockStatement(lock, temp === body)
-        }) ~> temp
+      expressionWithTemp(lockExpr) { temp =>
+        transformStat(
+          LockStatement(lock, temp === body)(lockExpr)
+        ) ~> temp
       }
 
     case TryFinallyExpression(body, finallyBody) =>
       transformExpr {
-        atPos(expression) {
-          expressionWithTemp { tempX =>
-            val tempY = Variable.newSynthetic(capture = true)
+        expressionWithTemp(expression) { tempX =>
+          val tempY = Variable.newSynthetic(capture = true)(expression)
 
-            (LOCAL (tempY) IN {
-              (tempX === TryExpression(
-                  Tuple(OzAtom("ok"), Seq(body)),
-                  tempY, Tuple(OzAtom("ex"), Seq(tempY))))
-            }) ~
-            finallyBody ~>
-            (IF ((builtins.label callExpr (tempX)) =?= OzAtom("ok")) THEN {
-              tempX dot OzInt(1)
-            } ELSE {
-              RaiseExpression(tempX dot OzInt(1))
-            })
-          }
+          (LOCAL (tempY) IN {
+            (tempX === TryExpression(
+                Tuple(OzAtom("ok"), Seq(body)),
+                tempY, Tuple(OzAtom("ex"), Seq(tempY)))(body))
+          }) ~
+          finallyBody ~>
+          (IF ((builtins.label callExpr (tempX) at finallyBody) =?= OzAtom("ok")) THEN {
+            tempX dot OzInt(1)
+          } ELSE {
+            RaiseExpression(tempX dot OzInt(1))(finallyBody)
+          })
         }
       }
 
     case DotAssignExpression(left, center, right) =>
-      transformExpr(builtins.dotExchange callExpr (left, center, right))
+      transformExpr(builtins.dotExchange callExpr (left, center, right) at expression)
 
     case UnaryOp(op, arg) =>
-      transformExpr(builtins.unaryOpToBuiltin(op) callExpr (arg))
+      transformExpr(builtins.unaryOpToBuiltin(op) callExpr (arg) at expression)
 
     case BinaryOp(module @ Variable(sym), ".", rhs) if !program.eagerLoad && sym.isImport =>
       transformExpr(
-        baseEnvironment("ByNeedDot").copyAttrs(expression) callExpr (module, rhs))
+        baseEnvironment("ByNeedDot")(expression) callExpr (module, rhs) at expression)
 
     case Record(label, fields) =>
       val fieldsNoAuto = fillAutoFeatures(fields)
@@ -201,7 +192,7 @@ object Desugar extends Transformer with TreeDSL {
     case Record(label, fields) =>
       var tailExpression: Option[(Variable, Expression)] = None
       def defer(expr: Expression) = {
-        val newVar = Variable.newSynthetic("RecordTailCall")
+        val newVar = Variable.newSynthetic("RecordTailCall")(expr)
         tailExpression = Some((newVar, expr))
         newVar
       }
@@ -217,7 +208,7 @@ object Desugar extends Transformer with TreeDSL {
         return result === expr
       val (newVar, value) = tailExpression.get
       LOCAL (newVar) IN treeCopy.CompoundStatement(expr, Seq(
-          result === Record(label, newFields),
+          result === Record(label, newFields)(expr),
           exprToBindStatement(newVar, value)))
       
     case _ =>

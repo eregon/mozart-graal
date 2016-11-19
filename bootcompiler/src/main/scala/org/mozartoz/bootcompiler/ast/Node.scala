@@ -1,7 +1,35 @@
 package org.mozartoz.bootcompiler
 package ast
 
+import com.oracle.truffle.api.source.Source
 import com.oracle.truffle.api.source.SourceSection
+
+object Node {
+  type Pos = SourceSection
+
+  val noPos: Pos = null
+
+  def extend(left: Pos, right: Pos) = {
+    if (left.getSource == right.getSource) {
+      val len = right.getCharEndIndex - left.getCharIndex
+      left.getSource.createSection(left.getCharIndex, len)
+    } else {
+      left
+    }
+  }
+
+  def extend[T <: Node](seq: Seq[T]): Pos = extend(seq(0), seq.last)
+
+  def posFromSeq[T <: Node](seq: Seq[T], ifEmpty: Node): Pos = {
+    if (seq.isEmpty) {
+      ifEmpty
+    } else {
+      extend(seq(0), seq.last)
+    }
+  }
+
+  implicit def node2pos(node: Node): Pos = node.pos
+}
 
 /**
  * Node of an Oz AST
@@ -12,28 +40,9 @@ import com.oracle.truffle.api.source.SourceSection
  */
 abstract class Node extends Product {
 
-  var section: SourceSection = null
+  val pos: Node.Pos
 
-  def setSourceSection(sourceSection: SourceSection): this.type = {
-    this.section = sourceSection
-    this
-  }
-
-  def posFrom(left: Node, right: Node): this.type = {
-    val leftSection = left.section
-    val rightSection = right.section
-    if (leftSection != null && rightSection != null && leftSection.getSource == rightSection.getSource) {
-      val len = rightSection.getCharEndIndex - leftSection.getCharIndex
-      section = leftSection.getSource.createSection(leftSection.getCharIndex, len)
-    }
-    this
-  }
-
-  /** Copy the attributes of a node into this `Node`. */
-  private[bootcompiler] def copyAttrs(tree: Node): this.type = {
-    section = tree.section
-    this
-  }
+  def section = pos
 
   /**
    * Returns a pretty-printed representation of this `Node`

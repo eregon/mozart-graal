@@ -20,7 +20,7 @@ object Unnester extends Transformer with TreeDSL {
       transformBindVarToExpression(bind, v, lhs)
 
     case lhs === rhs =>
-      statementWithTemp { temp =>
+      statementWithTemp(statement) { temp =>
         transformStat {
           (temp === lhs) ~ (temp === rhs)
         }
@@ -39,7 +39,7 @@ object Unnester extends Transformer with TreeDSL {
 
     case CallExpression(callable, args) =>
       transformExpr {
-        expressionWithTemp { result =>
+        expressionWithTemp(expression) { result =>
           val newArgs = putVarInArgs(args, result)
           treeCopy.CallStatement(expression, callable, newArgs) ~> result
         }
@@ -102,7 +102,7 @@ object Unnester extends Transformer with TreeDSL {
       transformStat((v === lhs2) ~ (v === rhs2))
 
     case record @ Record(label, fields) =>
-      withSimplifiedArgs(fields map (_.value)) { newValues =>
+      withSimplifiedArgs(record, fields map (_.value)) { newValues =>
         val newFields = for {
           (field @ RecordField(feature, _), newValue) <- fields zip newValues
         } yield {
@@ -112,8 +112,8 @@ object Unnester extends Transformer with TreeDSL {
         v === treeCopy.Record(record, label, newFields)
       }
 
-    case ListExpression(elements) =>
-      withSimplifiedArgs(elements) { newElements =>
+    case list @ ListExpression(elements) =>
+      withSimplifiedArgs(list, elements) { newElements =>
         v === treeCopy.ListExpression(rhs, newElements)
       }
 
@@ -132,12 +132,12 @@ object Unnester extends Transformer with TreeDSL {
           "illegal tree in Unnester.transformBindVarToExpression\n" + rhs)
   }
 
-  private def withSimplifiedArgs(args: Seq[Expression])(
+  private def withSimplifiedArgs(expr: Expression, args: Seq[Expression])(
       makeStatement: Seq[Expression] => Statement) = {
     val argsAndTheirTemps =
       for (arg <- args) yield arg match {
         case v:VarOrConst => v -> v
-        case _ => arg -> Variable.newSynthetic()
+        case _ => arg -> Variable.newSynthetic()(arg)
       }
 
     val argsNeedingTempsAndTheirTemps = for {
@@ -159,7 +159,7 @@ object Unnester extends Transformer with TreeDSL {
         val temps = argsAndTheirTemps map (_._2)
         val newStatement = makeStatement(temps)
 
-        CompoundStatement(computeTemps) ~ newStatement
+        CompoundStatement(computeTemps)(expr) ~ newStatement
       }
     }
   }
@@ -201,7 +201,7 @@ object Unnester extends Transformer with TreeDSL {
   private def assignMatchValue(matchStat: MatchStatement) = {
     matchStat match {
       case MatchStatement(value, clauses, elseStat) =>
-        statementWithTemp { temp =>
+        statementWithTemp(matchStat) { temp =>
           transformStat(temp === value) ~
             treeCopy.MatchStatement(matchStat, temp, clauses, elseStat)
         }
@@ -211,7 +211,7 @@ object Unnester extends Transformer with TreeDSL {
   private def assignMatchValue(matchExpr: MatchExpression) = {
     matchExpr match {
       case MatchExpression(value, clauses, elseStat) =>
-        expressionWithTemp { temp =>
+        expressionWithTemp(matchExpr) { temp =>
           transformStat(temp === value) ~>
             treeCopy.MatchExpression(matchExpr, temp, clauses, elseStat)
         }

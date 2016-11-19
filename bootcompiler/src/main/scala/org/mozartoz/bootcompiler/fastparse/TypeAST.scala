@@ -17,7 +17,8 @@ object TypeAST {
         case Seq(statement, expression) =>
           treeCopy.StatAndExpression(p, stat(statement), expr(expression))
         case _ =>
-          treeCopy.StatAndExpression(p, stat(CompoundPhrase(parts.slice(0, parts.size - 1))), expr(parts.last))
+          val stats = parts.slice(0, parts.size - 1)
+          treeCopy.StatAndExpression(p, stat(CompoundPhrase(stats)(Node.extend(stats))), expr(parts.last))
       }
     case RecordPhrase(label, fields) =>
       treeCopy.Record(p, expr(label), fields.map(_.toExpr))

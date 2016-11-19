@@ -1,6 +1,7 @@
 package org.mozartoz.bootcompiler
 
 import oz._
+import ast.Node.Pos
 
 /** Classes representing the AST of Oz code
  *
@@ -19,59 +20,25 @@ package object ast {
     result.toString
   }
 
-  /** Gives a position to a subtree
-   *
-   *  The position of `tree` is given to `node` and all its subtrees that do not
-   *  yet have a position. If a subtree has a position, its children are not
-   *  explored.
-   *
-   *  This method is mostly useful for synthesized AST subtrees, as in
-   *  {{{
-   *  val synthesized = atPos(oldTree.pos) {
-   *    buildTheTree()
-   *  }
-   *  }}}
-   *
-   *  @tparam A type of node
-   *  @param tree node to get the position from
-   *  @param node root of the subtree to give a position to
-   *  @return the node `node`
-   */
-  def atPos[A <: Node](tree: Node)(node: A): A = {
-    node walkBreak { subNode =>
-      if (subNode.section != null) {
-        false
-      } else {
-        subNode.copyAttrs(tree)
-        true
-      }
-    }
-    node
-  }
-
   /** Builds an Oz List expression from a list of expressions */
   def exprListToListExpr(elems: Seq[Expression]): Expression = {
-    elems.foldRight(Constant(OzAtom("nil")): Expression)((e, tail) => cons(e, tail))
+    elems.foldRight(Constant(OzAtom("nil"))(Node.noPos): Expression)((e, tail) => cons(e, tail))
   }
 
   /** Builds an Oz Cons pair */
-  def cons(head: Expression, tail: Expression) = atPos(head) {
-    Record(Constant(OzAtom("|")),
-        Seq(withAutoFeature(head), withAutoFeature(tail)))
-  }
+  def cons(head: Expression, tail: Expression) =
+    Record(Constant(OzAtom("|"))(head),
+        Seq(withAutoFeature(head), withAutoFeature(tail)))(head)
 
   /** Builds an Oz #-tuple */
   def sharp(fields: Seq[Expression]) = {
-    if (fields.isEmpty) Constant(OzAtom("#"))
+    if (fields.isEmpty) Constant(OzAtom("#"))(Node.noPos)
     else {
-      atPos(fields.head) {
-        Record(Constant(OzAtom("#")), fields map withAutoFeature)
-      }
+      Record(Constant(OzAtom("#"))(fields(0)), fields map withAutoFeature)(fields.head)
     }
   }
 
   /** Equips an expression with an AutoFeature */
-  def withAutoFeature(expr: Expression): RecordField = atPos(expr) {
-    RecordField(AutoFeature(), expr)
-  }
+  def withAutoFeature(expr: Expression): RecordField =
+    RecordField(AutoFeature()(expr), expr)(expr)
 }

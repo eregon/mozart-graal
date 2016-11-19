@@ -25,30 +25,26 @@ object DesugarFunctor extends Transformer with TreeDSL {
           val LocalStatement(prepareDecls, prepareStat) = prepare.get
           val LocalStatement(defineDecls, defineStat) = define.get
           Some(LocalStatement(prepareDecls ++ defineDecls,
-              prepareStat ~ defineStat))
+              prepareStat ~ defineStat)(Node.extend(prepare.get, define.get)))
         }
       }
 
       transformExpr {
-        atPos(functor) {
-          FunctorExpression(name, Nil, None, mergedRequireImport,
-              mergedPrepareDefine, exports)
-        }
+        FunctorExpression(name, Nil, None, mergedRequireImport,
+            mergedPrepareDefine, exports)(functor)
       }
 
     case functor @ FunctorExpression(name, Nil, None,
         imports, define, exports) =>
 
-      val importsRec = makeImportsRec(imports)
-      val exportsRec = makeExportsRec(exports)
+      val importsRec = makeImportsRec(functor, imports)
+      val exportsRec = makeExportsRec(functor, exports)
       val applyFun = makeApplyFun(functor, define, imports, exports)
 
-      val functorRec = atPos(functor) {
-        Record(OzAtom("functor"), Seq(
-            RecordField(OzAtom("import"), importsRec),
-            RecordField(OzAtom("export"), exportsRec),
-            RecordField(OzAtom("apply"), applyFun)))
-      }
+      val functorRec = Record(OzAtom("functor"), Seq(
+        RecordField(OzAtom("import"), importsRec)(importsRec),
+        RecordField(OzAtom("export"), exportsRec)(exportsRec),
+        RecordField(OzAtom("apply"), applyFun)(applyFun)))(functor)
 
       transformExpr(functorRec)
 
@@ -56,9 +52,9 @@ object DesugarFunctor extends Transformer with TreeDSL {
       super.transformExpr(expression)
   }
 
-  def makeImportsRec(imports: Seq[FunctorImport]): Expression = {
+  def makeImportsRec(functor: FunctorExpression, imports: Seq[FunctorImport]): Expression = {
     val resultFields = for {
-      FunctorImport(Variable(module), aliases, location) <- imports
+      fimport @ FunctorImport(Variable(module), aliases, location) <- imports
     } yield {
       val modName = module.name
 
@@ -67,7 +63,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
           for (AliasedFeature(feat, _) <- aliases)
             yield feat.value
 
-        RecordField(OzAtom("type"), OzList(requiredFeatures))
+        RecordField(OzAtom("type"), OzList(requiredFeatures))(fimport)
       }
 
       val fromField = {
@@ -76,65 +72,65 @@ object DesugarFunctor extends Transformer with TreeDSL {
           else if (!SystemModules.isSystemModule(modName)) modName + ".ozf"
           else "x-oz://system/" + modName + ".ozf"
         }
-        RecordField(OzAtom("from"), OzAtom(loc))
+        RecordField(OzAtom("from"), OzAtom(loc))(fimport)
       }
 
-      val info = Record(OzAtom("info"), Seq(typeField, fromField))
+      val info = Record(OzAtom("info"), Seq(typeField, fromField))(fimport)
 
-      RecordField(OzAtom(modName), info)
+      RecordField(OzAtom(modName), info)(info)
     }
 
-    Record(OzAtom("import"), resultFields)
+    Record(OzAtom("import"), resultFields)(Node.posFromSeq(resultFields, functor))
   }
 
-  def makeExportsRec(exports: Seq[FunctorExport]): Expression = {
+  def makeExportsRec(functor: FunctorExpression, exports: Seq[FunctorExport]): Expression = {
     val resultFields = for {
-      FunctorExport(Constant(feature:OzFeature), _) <- exports
+      export @ FunctorExport(Constant(feature:OzFeature), _) <- exports
     } yield {
-      RecordField(feature, OzAtom("value"))
+      RecordField(feature, OzAtom("value"))(export)
     }
 
-    Record(OzAtom("export"), resultFields)
+    Record(OzAtom("export"), resultFields)(Node.posFromSeq(resultFields, functor))
   }
 
   def makeApplyFun(functor: FunctorExpression,
       define: Option[LocalStatementOrRaw],
       imports: Seq[FunctorImport],
       exports: Seq[FunctorExport]): Expression = {
-    val importsParam = Variable.newSynthetic("<Imports>", formal = true)
+    val importsParam = Variable.newSynthetic("<Imports>", formal = true)(functor)
 
     val importedDecls = extractAllImportedDecls(imports)
 
     val (definedDecls, defineStat) = (define: @unchecked) match {
       case Some(LocalStatement(decls, stat)) => (decls, stat)
-      case None => (Nil, SkipStatement())
+      case None => (Nil, SkipStatement()(functor))
     }
 
     val (utilsDecls, importsDot) = {
       if (program.eagerLoad) {
-        val regularDot = Constant(OzBuiltin(builtins.binaryOpToBuiltin(".")))
+        val regularDot = Constant(OzBuiltin(builtins.binaryOpToBuiltin(".")))(functor)
         (None, regularDot)
       } else {
-        val byNeedDot = Variable.newSynthetic("ByNeedDot")
+        val byNeedDot = Variable.newSynthetic("ByNeedDot")(functor)
         (Some(byNeedDot), byNeedDot)
       }
     }
 
     val allDecls = importedDecls ++ definedDecls ++ utilsDecls
 
-    FUN(Some(RawVariable(functor.fullName)), Seq(importsParam)) {
+    FUN(functor, Some(RawVariable(functor.fullName)(functor)), Seq(importsParam)) {
       LOCAL (allDecls:_*) IN {
         val statements = new ListBuffer[Statement]
         def exec(statement: Statement) = statements += statement
 
         if (!program.eagerLoad)
-          exec(importsDot === baseEnvironment("ByNeedDot"))
+          exec(importsDot === baseEnvironment("ByNeedDot")(functor))
 
         for (FunctorImport(module:Variable, aliases, _) <- imports) {
           exec(module === (importsParam dot OzAtom(module.symbol.name)))
 
           for (AliasedFeature(feature, Some(variable:Variable)) <- aliases) {
-            exec(variable === (importsDot callExpr (module, feature)))
+            exec(variable === (importsDot callExpr (module, feature) at functor))
           }
         }
 
@@ -143,15 +139,15 @@ object DesugarFunctor extends Transformer with TreeDSL {
 
         // Now compute the export record
         val exportFields = for {
-          FunctorExport(feature, value) <- exports
+          export @ FunctorExport(feature, value) <- exports
         } yield {
-          RecordField(feature, value)
+          RecordField(feature, value)(export)
         }
 
-        val exportRec = Record(OzAtom("export"), exportFields)
+        val exportRec = Record(OzAtom("export"), exportFields)(functor)
 
         // Final body
-        CompoundStatement(statements) ~>
+        CompoundStatement(statements)(functor) ~>
         exportRec
       }
     }

@@ -3,6 +3,7 @@ package ast
 
 import oz._
 import symtab._
+import Node.Pos
 
 /** Base class for ASTs that represent expressions */
 sealed abstract class Expression extends StatOrExpr
@@ -19,9 +20,7 @@ sealed abstract class Expression extends StatOrExpr
  *  after execution of the `statement`.
  */
 case class StatAndExpression(statement: Statement,
-    expression: Expression) extends Expression {
-  posFrom(statement, expression)
-
+    expression: Expression)(val pos: Pos) extends Expression {
   def syntax(indent: String) = {
     statement.syntax(indent) + "\n" + indent + expression.syntax(indent)
   }
@@ -38,7 +37,7 @@ case class StatAndExpression(statement: Statement,
  *  }}}
  */
 case class RawLocalExpression(declarations: Seq[RawDeclaration],
-    expression: Expression) extends Expression with LocalCommon {
+    expression: Expression)(val pos: Pos) extends Expression with LocalCommon {
   protected val body = expression
 }
 
@@ -53,7 +52,7 @@ case class RawLocalExpression(declarations: Seq[RawDeclaration],
  *  }}}
  */
 case class LocalExpression(declarations: Seq[Variable],
-    expression: Expression) extends Expression with LocalCommon {
+    expression: Expression)(val pos: Pos) extends Expression with LocalCommon {
   protected val body = expression
 }
 
@@ -68,7 +67,7 @@ case class LocalExpression(declarations: Seq[Variable],
  *  }}}
  */
 case class ProcExpression(name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
-    body: Statement, flags: Seq[String]) extends Expression
+    body: Statement, flags: Seq[String])(val pos: Pos) extends Expression
     with ProcFunExpression {
   protected val keyword = "proc"
 }
@@ -82,7 +81,7 @@ case class ProcExpression(name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
  *  }}}
  */
 case class FunExpression(name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
-    body: Expression, flags: Seq[String]) extends Expression
+    body: Expression, flags: Seq[String])(val pos: Pos) extends Expression
     with ProcFunExpression {
   protected val keyword = "fun"
 }
@@ -94,7 +93,7 @@ case class FunExpression(name: Option[VariableOrRaw], args: Seq[VariableOrRaw],
  *  }}}
  */
 case class CallExpression(callable: Expression,
-    args: Seq[Expression]) extends Expression with CallCommon
+    args: Seq[Expression])(val pos: Pos) extends Expression with CallCommon
 
 /** If expression
  *
@@ -108,7 +107,7 @@ case class CallExpression(callable: Expression,
  */
 case class IfExpression(condition: Expression,
     trueExpression: Expression,
-    falseExpression: Expression) extends Expression with IfCommon {
+    falseExpression: Expression)(val pos: Pos) extends Expression with IfCommon {
   protected val truePart = trueExpression
   protected val falsePart = falseExpression
 }
@@ -125,7 +124,7 @@ case class IfExpression(condition: Expression,
  */
 case class MatchExpression(value: Expression,
     clauses: Seq[MatchExpressionClause],
-    elseExpression: Expression) extends Expression with MatchCommon {
+    elseExpression: Expression)(val pos: Pos) extends Expression with MatchCommon {
   protected val elsePart = elseExpression
 }
 
@@ -137,11 +136,11 @@ case class MatchExpression(value: Expression,
  *  }}}
  */
 case class MatchExpressionClause(pattern: Expression, guard: Option[Expression],
-    body: Expression) extends MatchClauseCommon {
+    body: Expression)(val pos: Pos) extends MatchClauseCommon {
 }
 
 /** Special node to mark that there is no else expression */
-case class NoElseExpression() extends Expression with NoElseCommon {
+case class NoElseExpression()(val pos: Pos) extends Expression with NoElseCommon {
 }
 
 /** Thread expression
@@ -153,7 +152,7 @@ case class NoElseExpression() extends Expression with NoElseCommon {
  *  }}}
  */
 case class ThreadExpression(
-    expression: Expression) extends Expression with ThreadCommon {
+    expression: Expression)(val pos: Pos) extends Expression with ThreadCommon {
   protected val body = expression
 }
 
@@ -166,7 +165,7 @@ case class ThreadExpression(
  *  }}}
  */
 case class LockExpression(lock: Expression,
-    expression: Expression) extends Expression with LockCommon {
+    expression: Expression)(val pos: Pos) extends Expression with LockCommon {
   protected val body = expression
 }
 
@@ -179,7 +178,7 @@ case class LockExpression(lock: Expression,
  *  }}}
  */
 case class LockObjectExpression(
-    expression: Expression) extends Expression with LockObjectCommon {
+    expression: Expression)(val pos: Pos) extends Expression with LockObjectCommon {
   protected val body = expression
 }
 
@@ -194,7 +193,7 @@ case class LockObjectExpression(
  *  }}}
  */
 case class TryExpression(body: Expression, exceptionVar: VariableOrRaw,
-    catchBody: Expression) extends Expression with TryCommon {
+    catchBody: Expression)(val pos: Pos) extends Expression with TryCommon {
 }
 
 /** Try-finally expression
@@ -208,7 +207,7 @@ case class TryExpression(body: Expression, exceptionVar: VariableOrRaw,
  *  }}}
  */
 case class TryFinallyExpression(body: Expression,
-    finallyBody: Statement) extends Expression with TryFinallyCommon {
+    finallyBody: Statement)(val pos: Pos) extends Expression with TryFinallyCommon {
 }
 
 /** Raise expression
@@ -218,7 +217,7 @@ case class TryFinallyExpression(body: Expression,
  *  }}}
  */
 case class RaiseExpression(
-    exception: Expression) extends Expression with RaiseCommon {
+    exception: Expression)(val pos: Pos) extends Expression with RaiseCommon {
 }
 
 /** Bind expression
@@ -228,7 +227,7 @@ case class RaiseExpression(
  *  }}}
  */
 case class BindExpression(left: Expression,
-    right: Expression) extends Expression with BindCommon {
+    right: Expression)(val pos: Pos) extends Expression with BindCommon {
 }
 
 /** Dot-assign expression
@@ -238,7 +237,7 @@ case class BindExpression(left: Expression,
  *  }}}
  */
 case class DotAssignExpression(left: Expression, center: Expression,
-    right: Expression) extends Expression with MultiInfixSyntax {
+    right: Expression)(val pos: Pos) extends Expression with MultiInfixSyntax {
   protected val operands = Seq(left, center, right)
   protected val operators = Seq(".", " := ")
 }
@@ -247,7 +246,7 @@ case class DotAssignExpression(left: Expression, center: Expression,
 
 /** Feature of an imported functor, with an optional import alias */
 case class AliasedFeature(feature: Constant,
-    alias: Option[VariableOrRaw]) extends Node {
+    alias: Option[VariableOrRaw])(val pos: Pos) extends Node {
   def syntax(indent: String) = {
     feature.syntax() + (alias map (":" + _.syntax()) getOrElse (""))
   }
@@ -261,7 +260,7 @@ case class AliasedFeature(feature: Constant,
  *  }}}
  */
 case class FunctorImport(module: VariableOrRaw, aliases: Seq[AliasedFeature],
-    location: Option[String]) extends Node {
+    location: Option[String])(val pos: Pos) extends Node {
   def syntax(indent: String) = {
     val aliasesSyntax = aliases map (_.syntax(indent)) mkString " "
     val locationSyntax = location map (" at '"+_+"'") getOrElse ("")
@@ -277,7 +276,7 @@ case class FunctorImport(module: VariableOrRaw, aliases: Seq[AliasedFeature],
  *  }}}
  */
 case class FunctorExport(feature: Expression,
-    value: Expression) extends Node {
+    value: Expression)(val pos: Pos) extends Node {
   def syntax(indent: String) = {
     feature.syntax(indent) + ":" + value.syntax(indent)
   }
@@ -303,7 +302,7 @@ case class FunctorExport(feature: Expression,
 case class FunctorExpression(name: String,
     require: Seq[FunctorImport], prepare: Option[LocalStatementOrRaw],
     imports: Seq[FunctorImport], define: Option[LocalStatementOrRaw],
-    exports: Seq[FunctorExport]) extends Expression {
+    exports: Seq[FunctorExport])(val pos: Pos) extends Expression {
 
   def fullName = if (name.isEmpty) "functor" else "functor " + name
 
@@ -333,20 +332,20 @@ case class FunctorExpression(name: String,
 // Operations
 
 /** Unary operation */
-case class UnaryOp(operator: String, operand: Expression) extends Expression {
+case class UnaryOp(operator: String, operand: Expression)(val pos: Pos) extends Expression {
   def syntax(indent: String) =
     operator + operand.syntax(indent + " "*operator.length)
 }
 
 /** Binary operation */
 case class BinaryOp(left: Expression, operator: String,
-    right: Expression) extends Expression with InfixSyntax {
+    right: Expression)(val pos: Pos) extends Expression with InfixSyntax {
   protected val opSyntax = " " + operator + " "
 }
 
 /** Boolean binary operation with short-circuit semantics */
 case class ShortCircuitBinaryOp(left: Expression, operator: String,
-    right: Expression) extends Expression with InfixSyntax {
+    right: Expression)(val pos: Pos) extends Expression with InfixSyntax {
   protected val opSyntax = " " + operator + " "
 }
 
@@ -361,13 +360,13 @@ trait VariableOrRaw extends Expression {
 }
 
 /** Raw variable (unnamed) */
-case class RawVariable(name: String) extends VariableOrRaw with RawDeclaration with Phrase {
+case class RawVariable(name: String)(val pos: Pos) extends VariableOrRaw with RawDeclaration with Phrase {
   def syntax(indent: String) =
     name
 }
 
 /** Variable */
-case class Variable(symbol: Symbol) extends VarOrConst with VariableOrRaw with Phrase
+case class Variable(symbol: Symbol)(val pos: Pos) extends VarOrConst with VariableOrRaw with Phrase
     with RawDeclarationOrVar {
   def name = symbol.name
 
@@ -376,42 +375,40 @@ case class Variable(symbol: Symbol) extends VarOrConst with VariableOrRaw with P
 }
 
 /** Factory for Variable */
-object Variable extends (Symbol => Variable) {
-  /** Returns a Variable for a new synthetic Symbol */
+object Variable {
   def newSynthetic(name: String = "", formal: Boolean = false,
-      capture: Boolean = false) = {
-    Variable(new Symbol(name,
-        formal = formal, capture = capture, synthetic = true))
+      capture: Boolean = false)(pos: Pos) = {
+    Variable(new Symbol(name, formal = formal, capture = capture, synthetic = true))(pos)
   }
 }
 
 /** Escaped variable (that is not declared when in an lhs) */
-case class EscapedVariable(variable: RawVariable) extends Expression with Phrase {
+case class EscapedVariable(variable: RawVariable)(val pos: Pos) extends Expression with Phrase {
   def syntax(indent: String) = "!" + variable.syntax(indent+"  ")
 }
 
 /** Wildcard `_` */
-case class UnboundExpression() extends Expression with Phrase {
+case class UnboundExpression()(val pos: Pos) extends Expression with Phrase {
   def syntax(indent: String) = "_"
 }
 
 /** Constant value */
-case class Constant(value: OzValue) extends VarOrConst with Phrase {
+case class Constant(value: OzValue)(val pos: Pos = Node.noPos) extends VarOrConst with Phrase {
   def syntax(indent: String) = value.syntax()
 }
 
 /** Dummy placeholder for an implicit feature of a record field */
-case class AutoFeature() extends Expression with Phrase {
+case class AutoFeature()(val pos: Pos) extends Expression with Phrase {
   def syntax(indent: String) = ""
 }
 
 /** Nexting marker $ */
-case class NestingMarker() extends Expression with Phrase {
+case class NestingMarker()(val pos: Pos) extends Expression with Phrase {
   def syntax(indent: String) = "$"
 }
 
 /** self */
-case class Self() extends Expression with Phrase {
+case class Self()(val pos: Pos) extends Expression with Phrase {
   def syntax(indent: String) = "self"
 }
 
@@ -426,7 +423,7 @@ case class Self() extends Expression with Phrase {
  *  `feature` can be an [[org.mozartoz.bootcompiler.ast.AutoFeature]], in which
  *  case it is implicit.
  */
-case class RecordField(feature: Expression, value: Expression) extends Node {
+case class RecordField(feature: Expression, value: Expression)(val pos: Pos) extends Node {
   def syntax(indent: String) = {
     val featSyntax = feature.syntax(indent)
     featSyntax + ":" + value.syntax(indent + " " + " "*featSyntax.length())
@@ -510,7 +507,7 @@ abstract sealed class BaseRecord extends Expression {
  *  }}}
  */
 case class Record(label: Expression,
-    fields: Seq[RecordField]) extends BaseRecord {
+    fields: Seq[RecordField])(val pos: Pos) extends BaseRecord {
   val isOpen = false
 
   /** Returns true if this record should be optimized as a tuple */
@@ -544,7 +541,7 @@ case class Record(label: Expression,
  *  }}}
  */
 case class OpenRecordPattern(label: Expression,
-    fields: Seq[RecordField]) extends BaseRecord {
+    fields: Seq[RecordField])(val pos: Pos) extends BaseRecord {
   val isOpen = true
 
   /** Returns true if this pattern is a compile-time constant */
@@ -565,7 +562,7 @@ case class OpenRecordPattern(label: Expression,
   }
 }
 
-case class ListExpression(elements: Seq[Expression]) extends Expression {
+case class ListExpression(elements: Seq[Expression])(val pos: Pos) extends Expression {
   def syntax(indent: String) = {
     indent + "[" + elements.map(_.syntax()).mkString(" ") + "]"
   }
@@ -587,8 +584,8 @@ object Tuple extends ((Expression, Seq[Expression]) => Record) {
   def apply(label: Expression, fields: Seq[Expression]) = {
     val recordFields =
       for ((value, index) <- fields.zipWithIndex)
-        yield RecordField(Constant(OzInt(index+1)), value)
-    Record(label, recordFields)
+        yield RecordField(Constant(OzInt(index+1))(value), value)(value)
+    Record(label, recordFields)(label)
   }
 
   def unapply(record: Record) = {
@@ -600,7 +597,7 @@ object Tuple extends ((Expression, Seq[Expression]) => Record) {
 /** Factory and pattern-matching against Cons-like records */
 object Cons extends ((Expression, Expression) => Record) {
   def apply(head: Expression, tail: Expression) =
-    Tuple(Constant(OzAtom("|")), Seq(head, tail))
+    Tuple(Constant(OzAtom("|"))(head), Seq(head, tail))
 
   def unapply(record: Record) = {
     if (record.isCons) Some((record.fields(0).value, record.fields(1).value))
@@ -614,7 +611,7 @@ object Cons extends ((Expression, Expression) => Record) {
  *  <left> = <right>
  *  }}}
  */
-case class PatternConjunction(parts: Seq[Expression]) extends Expression {
+case class PatternConjunction(parts: Seq[Expression])(val pos: Pos) extends Expression {
   def syntax(indent: String) = {
     parts.tail.foldLeft(parts.head.syntax(indent)) {
       (prev, part) => prev + " = " + part.syntax(indent)
@@ -625,9 +622,9 @@ case class PatternConjunction(parts: Seq[Expression]) extends Expression {
 // Classes
 
 case class FeatOrAttr(name: Expression,
-    value: Option[Expression]) extends Node with InfixSyntax {
+    value: Option[Expression])(val pos: Pos) extends Node with InfixSyntax {
   protected val left = name
-  protected val right = value getOrElse AutoFeature()
+  protected val right = value getOrElse AutoFeature()(this)
   protected val opSyntax = ":"
 
   override def syntax(indent: String) = {
@@ -637,7 +634,7 @@ case class FeatOrAttr(name: Expression,
 }
 
 case class MethodParam(feature: Expression, name: Expression,
-    default: Option[Expression]) extends Node {
+    default: Option[Expression])(val pos: Pos) extends Node {
   def syntax(indent: String) = {
     feature.syntax(indent) + ":" + name.syntax(indent) + (
         if (default.isEmpty) ""
@@ -647,7 +644,7 @@ case class MethodParam(feature: Expression, name: Expression,
 }
 
 case class MethodHeader(name: Expression, params: Seq[MethodParam],
-    open: Boolean) extends Node {
+    open: Boolean)(val pos: Pos) extends Node {
   def syntax(indent: String) = {
     name.syntax(indent) + "(" + (
         params map (_.syntax(indent)) mkString " "
@@ -656,7 +653,7 @@ case class MethodHeader(name: Expression, params: Seq[MethodParam],
 }
 
 case class MethodDef(header: MethodHeader, messageVar: Option[VariableOrRaw],
-    body: StatOrExpr) extends Node {
+    body: StatOrExpr)(val pos: Pos) extends Node {
   def syntax(indent: String) = {
     val untilHeader = "meth " + header.syntax(indent+"     ")
     val firstLine =
@@ -670,7 +667,7 @@ case class MethodDef(header: MethodHeader, messageVar: Option[VariableOrRaw],
 case class ClassExpression(name: String, parents: Seq[Expression],
     features: Seq[FeatOrAttr], attributes: Seq[FeatOrAttr],
     properties: Seq[Expression],
-    methods: Seq[MethodDef]) extends Expression {
+    methods: Seq[MethodDef])(val pos: Pos) extends Expression {
 
   def syntax(indent: String) = {
     val subIndent = indent + "   "

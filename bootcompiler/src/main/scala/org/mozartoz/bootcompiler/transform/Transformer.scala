@@ -2,6 +2,7 @@ package org.mozartoz.bootcompiler
 package transform
 
 import ast._
+import ast.Node.Pos
 import oz._
 import symtab._
 
@@ -13,13 +14,13 @@ abstract class Transformer extends (Program => Unit) {
   /** Builtin manager of the program */
   def builtins = program.builtins
 
-  protected def baseEnvironment(name: String): Expression = {
+  protected def baseEnvironment(name: String)(pos: Pos): Expression = {
     if (program.isBaseEnvironment) {
-      Variable(program.baseSymbols(name))
+      Variable(program.baseSymbols(name))(pos)
     } else if (name == "Base") {
-      Variable(program.baseEnvSymbol)
+      Variable(program.baseEnvSymbol)(pos)
     } else {
-      Constant(OzBaseValue(name))
+      Constant(OzBaseValue(name))(pos)
     }
   }
 
