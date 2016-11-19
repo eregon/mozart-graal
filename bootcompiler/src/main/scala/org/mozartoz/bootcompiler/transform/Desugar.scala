@@ -55,7 +55,7 @@ object Desugar extends Transformer with TreeDSL {
 
           (LOCAL (tempY) IN {
             (tempX === TryExpression(body ~> UnitVal(),
-                tempY, Tuple(OzAtom("ex"), Seq(tempY)))(body))
+                tempY, Tuple(Constant(OzAtom("ex"))(body), Seq(tempY)))(body))
           }) ~
           finallyBody ~
           (IF (tempX =?= UnitVal()) THEN {
@@ -125,8 +125,8 @@ object Desugar extends Transformer with TreeDSL {
 
           (LOCAL (tempY) IN {
             (tempX === TryExpression(
-                Tuple(OzAtom("ok"), Seq(body)),
-                tempY, Tuple(OzAtom("ex"), Seq(tempY)))(body))
+                Tuple(Constant(OzAtom("ok"))(body), Seq(body)),
+                tempY, Tuple(Constant(OzAtom("ex"))(body), Seq(tempY)))(body))
           }) ~
           finallyBody ~>
           (IF ((builtins.label callExpr (tempX) at finallyBody) =?= OzAtom("ok")) THEN {
