@@ -80,7 +80,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
       RecordField(OzAtom(modName), info)(info)
     }
 
-    Record(OzAtom("import"), resultFields)(Node.posFromSeq(resultFields, functor))
+    Record(OzAtom("import"), resultFields)(functor)
   }
 
   def makeExportsRec(functor: FunctorExpression, exports: Seq[FunctorExport]): Expression = {
