@@ -26,7 +26,6 @@ public abstract class OzNode extends Node {
 	private @CompilationFinal SourceSection sourceSection;
 
 	public void setSourceSection(SourceSection sourceSection) {
-		assert this.sourceSection == null;
 		CompilerDirectives.transferToInterpreterAndInvalidate();
 		this.sourceSection = sourceSection;
 	}

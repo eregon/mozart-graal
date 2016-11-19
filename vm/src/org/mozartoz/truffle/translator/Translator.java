@@ -202,34 +202,34 @@ public class Translator {
 			// Literal expressions
 			if (node instanceof Constant) {
 				Constant constant = (Constant) node;
-				return translateConstantNode(constant.value());
+				return t(node, translateConstantNode(constant.value()));
 			} else if (node instanceof Record) {
 				Record record = (Record) node;
 				List<RecordField> fields = new ArrayList<>(toJava(record.fields()));
 				if (record.isCons()) {
-					return buildCons(translate(fields.get(0).value()), translate(fields.get(1).value()));
+					return t(node, buildCons(translate(fields.get(0).value()), translate(fields.get(1).value())));
 				} else if (record.hasConstantArity()) {
 					Arity arity = buildArity(record.getConstantArity());
 					if (fields.isEmpty()) {
-						return new LiteralNode(arity.getLabel());
+						return t(node, new LiteralNode(arity.getLabel()));
 					}
 					OzNode[] values = new OzNode[fields.size()];
 					for (int i = 0; i < values.length; i++) {
 						values[i] = translate(fields.get(i).value());
 					}
-					return new RecordLiteralNode(arity, values);
+					return t(node, new RecordLiteralNode(arity, values));
 				} else if (record.fields().size() == 0) {
-					return new EnsureOzLiteralNode(translate(record.label()));
+					return t(node, new EnsureOzLiteralNode(translate(record.label())));
 				} else {
 					OzNode label = translate(record.label());
 					OzNode[] features = map(record.fields(), field -> translate(field.feature()));
 					OzNode[] values = map(record.fields(), field -> translate(field.value()));
-					return new MakeDynamicRecordNode(label, features, values);
+					return t(node, new MakeDynamicRecordNode(label, features, values));
 				}
 			} else if (node instanceof ListExpression) {
 				ListExpression list = (ListExpression) node;
 				OzNode[] elements = map(list.elements(), this::translate);
-				return new ListLiteralNode(elements);
+				return t(node, new ListLiteralNode(elements));
 			} else if (node instanceof Variable) {
 				Variable variable = (Variable) node;
 				return t(node, findVariable(variable.symbol()).createReadNode());
@@ -237,14 +237,14 @@ public class Translator {
 				return t(node, new UnboundLiteralNode());
 			} else if (node instanceof BinaryOp) {
 				BinaryOp binaryOp = (BinaryOp) node;
-				return translateBinaryOp(binaryOp.operator(),
+				return t(node, translateBinaryOp(binaryOp.operator(),
 						translate(binaryOp.left()),
-						translate(binaryOp.right()));
+						translate(binaryOp.right())));
 			} else if (node instanceof ShortCircuitBinaryOp) {
 				ShortCircuitBinaryOp binaryOp = (ShortCircuitBinaryOp) node;
-				return translateShortCircuitBinaryOp(binaryOp.operator(),
+				return t(node, translateShortCircuitBinaryOp(binaryOp.operator(),
 						translate(binaryOp.left()),
-						translate(binaryOp.right()));
+						translate(binaryOp.right())));
 			} else if (node instanceof ProcExpression) { // proc/fun literal
 				return translateProc((ProcExpression) node);
 			}
@@ -253,10 +253,10 @@ public class Translator {
 		// Structural nodes
 		if (node instanceof CompoundStatement) {
 			CompoundStatement compound = (CompoundStatement) node;
-			return SequenceNode.sequence(map(compound.statements(), this::translate));
+			return t(node, SequenceNode.sequence(map(compound.statements(), this::translate)));
 		} else if (node instanceof StatAndExpression) {
 			StatAndExpression statAndExpr = (StatAndExpression) node;
-			return SequenceNode.sequence(translate(statAndExpr.statement()), translate(statAndExpr.expression()));
+			return t(node, SequenceNode.sequence(translate(statAndExpr.statement()), translate(statAndExpr.expression())));
 		} else if (node instanceof LocalCommon) {
 			LocalCommon local = (LocalCommon) node;
 			List<OzNode> decls = new ArrayList<>(local.declarations().size());
@@ -268,13 +268,13 @@ public class Translator {
 					decls.add(t(variable, new InitializeVarNode(slot)));
 				}
 			}
-			return SequenceNode.sequence(decls.toArray(new OzNode[decls.size()]), translate(local.body()));
+			return t(node, SequenceNode.sequence(decls.toArray(new OzNode[decls.size()]), translate(local.body())));
 		} else if (node instanceof CallCommon) {
 			return translateCall((CallCommon) node);
 		} else if (node instanceof TailMarkerStatement) {
 			return translateTailCall(((TailMarkerStatement) node).call());
 		} else if (node instanceof SkipStatement) {
-			return new SkipNode();
+			return t(node, new SkipNode());
 		} else if (node instanceof BindCommon) {
 			BindCommon bind = (BindCommon) node;
 			Expression left = bind.left();
@@ -282,27 +282,27 @@ public class Translator {
 			return t(node, BindNodeGen.create(translate(left), translate(right)));
 		} else if (node instanceof IfCommon) {
 			IfCommon ifNode = (IfCommon) node;
-			return new IfNode(translate(ifNode.condition()),
+			return t(node, new IfNode(translate(ifNode.condition()),
 					translate(ifNode.truePart()),
-					translate(ifNode.falsePart()));
+					translate(ifNode.falsePart())));
 		} else if (node instanceof MatchCommon) {
 			return translateMatch((MatchCommon) node);
 		} else if (node instanceof ForStatement) {
 			ForStatement forNode = (ForStatement) node;
-			return new ForNode(translate(forNode.from()), translate(forNode.to()),
-					translate(forNode.proc()));
+			return t(node, new ForNode(translate(forNode.from()), translate(forNode.to()),
+					translate(forNode.proc())));
 		} else if (node instanceof TryCommon) {
 			TryCommon tryNode = (TryCommon) node;
 			FrameSlotAndDepth exceptionVarSlot = findVariable(((Variable) tryNode.exceptionVar()).symbol());
-			return new TryNode(
+			return t(node, new TryNode(
 					exceptionVarSlot.createWriteNode(),
 					translate(tryNode.body()),
-					translate(tryNode.catchBody()));
+					translate(tryNode.catchBody())));
 		} else if (node instanceof RaiseCommon) {
 			RaiseCommon raiseNode = (RaiseCommon) node;
-			return RaiseNodeFactory.create(translate(raiseNode.exception()));
+			return t(node, RaiseNodeFactory.create(translate(raiseNode.exception())));
 		} else if (node instanceof FailStatement) {
-			return FailNodeFactory.create();
+			return t(node, FailNodeFactory.create());
 		}
 
 		throw unknown("expression or statement", node);
@@ -336,7 +336,7 @@ public class Translator {
 
 			OzNode procBody = SequenceNode.sequence(nodes);
 			OzRootNode rootNode = new OzRootNode(sourceSection, identifier, environment.frameDescriptor, procBody, arity);
-			return new ProcDeclarationNode(rootNode.toCallTarget());
+			return t(procExpression, new ProcDeclarationNode(rootNode.toCallTarget()));
 		} finally {
 			popEnvironment();
 		}
@@ -383,7 +383,8 @@ public class Translator {
 	private OzNode translateMatchClause(OzNode valueNode, OzNode elseNode, MatchClauseCommon clause) {
 		List<OzNode> checks = new ArrayList<>();
 		List<OzNode> bindings = new ArrayList<>();
-		translateMatcher(clause.pattern(), valueNode, checks, bindings);
+		Expression pattern = clause.pattern();
+		translateMatcher(pattern, valueNode, checks, bindings);
 		OzNode body = translate(clause.body());
 		final IfNode matchNode;
 		if (clause.hasGuard()) {
@@ -391,10 +392,11 @@ public class Translator {
 			// First the checks, then the bindings and then the guard (possibly using the bindings)
 			bindings.add(guard);
 			checks.add(SequenceNode.sequence(bindings.toArray(new OzNode[bindings.size()])));
-			matchNode = new IfNode(new AndNode(checks.toArray(new OzNode[checks.size()])), body, elseNode);
+			OzNode condition = t(pattern, new AndNode(checks.toArray(new OzNode[checks.size()])));
+			matchNode = new IfNode(condition, body, elseNode);
 		} else {
 			matchNode = new IfNode(
-					new AndNode(checks.toArray(new OzNode[checks.size()])),
+					t(pattern, new AndNode(checks.toArray(new OzNode[checks.size()]))),
 					SequenceNode.sequence(bindings.toArray(new OzNode[bindings.size()]), body),
 					elseNode);
 		}
@@ -644,6 +646,7 @@ public class Translator {
 	}
 
 	private SourceSection t(Node node) {
+		assert node instanceof Constant || node.section() != null;
 		if (node.section() != null) {
 			return node.section();
 		} else {

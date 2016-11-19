@@ -13,7 +13,6 @@ public class ProcDeclarationNode extends OzNode {
 	private final int arity;
 
 	public ProcDeclarationNode(RootCallTarget callTarget) {
-		setSourceSection(callTarget.getRootNode().getSourceSection());
 		this.callTarget = callTarget;
 		this.arity = ((OzRootNode) callTarget.getRootNode()).getArity();
 	}
