@@ -389,6 +389,28 @@ public class OzSerializer implements AutoCloseable {
 		}
 	}
 
+	private static class SourceSectionSerializer extends Serializer<SourceSection> {
+		private final Class<? extends Source> sourceClass;
+
+		public SourceSectionSerializer(Class<? extends Source> sourceClass) {
+			this.sourceClass = sourceClass;
+		}
+
+		public void write(Kryo kryo, Output output, SourceSection section) {
+			assert section.isAvailable();
+			kryo.writeObject(output, section.getSource());
+			output.writeInt(section.getCharIndex());
+			output.writeInt(section.getCharLength());
+		}
+
+		public SourceSection read(Kryo kryo, Input input, Class<SourceSection> type) {
+			Source source = kryo.readObject(input, sourceClass);
+			int charIndex = input.readInt();
+			int charLength = input.readInt();
+			return source.createSection(charIndex, charLength);
+		}
+	}
+
 	private static Object underef(Object value) {
 		if (value instanceof DerefNode) {
 			return ((DerefNode) value).getValue();
@@ -715,7 +737,7 @@ public class OzSerializer implements AutoCloseable {
 		// sources
 		Source fileSource = Loader.createSource(Loader.INIT_FUNCTOR);
 		kryo.register(fileSource.getClass(), new FileSourceSerializer());
-		kryo.register(SourceSection.class);
+		kryo.register(SourceSection.class, new SourceSectionSerializer(fileSource.getClass()));
 		kryo.register(String[].class);
 
 		// frames
