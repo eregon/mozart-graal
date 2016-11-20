@@ -222,13 +222,13 @@ public class Translator {
 					return t(node, new EnsureOzLiteralNode(translate(record.label())));
 				} else {
 					OzNode label = translate(record.label());
-					OzNode[] features = map(record.fields(), field -> translate(field.feature()));
-					OzNode[] values = map(record.fields(), field -> translate(field.value()));
+					OzNode[] features = translate(record.features());
+					OzNode[] values = translate(record.values());
 					return t(node, new MakeDynamicRecordNode(label, features, values));
 				}
 			} else if (node instanceof ListExpression) {
 				ListExpression list = (ListExpression) node;
-				OzNode[] elements = map(list.elements(), this::translate);
+				OzNode[] elements = translate(list.elements());
 				return t(node, new ListLiteralNode(elements));
 			} else if (node instanceof Variable) {
 				Variable variable = (Variable) node;
@@ -253,7 +253,7 @@ public class Translator {
 		// Structural nodes
 		if (node instanceof CompoundStatement) {
 			CompoundStatement compound = (CompoundStatement) node;
-			return t(node, SequenceNode.sequence(map(compound.statements(), this::translate)));
+			return t(node, SequenceNode.sequence(translate(compound.statements())));
 		} else if (node instanceof StatAndExpression) {
 			StatAndExpression statAndExpr = (StatAndExpression) node;
 			return t(node, SequenceNode.sequence(translate(statAndExpr.statement()), translate(statAndExpr.expression())));
@@ -344,7 +344,7 @@ public class Translator {
 
 	private OzNode translateCall(CallCommon call) {
 		OzNode receiver = translate(call.callable());
-		OzNode[] argsNodes = map(call.args(), this::translate);
+		OzNode[] argsNodes = translate(call.args());
 		return t(call, CallNode.create(receiver, new ExecuteValuesNode(argsNodes)));
 	}
 
@@ -353,7 +353,7 @@ public class Translator {
 			return translateCall(call);
 		}
 		OzNode receiver = translate(call.callable());
-		OzNode[] argsNodes = map(call.args(), this::translate);
+		OzNode[] argsNodes = translate(call.args());
 		return t(call, new TailCallThrowerNode(receiver, new ExecuteValuesNode(argsNodes)));
 	}
 
@@ -611,12 +611,12 @@ public class Translator {
 		return JavaConversions.asJavaCollection(scalaIterable);
 	}
 
-	private static <E> OzNode[] map(scala.collection.Iterable<E> scalaIterable, Function<E, OzNode> apply) {
+	private <E extends StatOrExpr> OzNode[] translate(scala.collection.Iterable<E> scalaIterable) {
 		Collection<E> collection = toJava(scalaIterable);
 		OzNode[] result = new OzNode[collection.size()];
 		int i = 0;
 		for (E element : collection) {
-			result[i++] = apply.apply(element);
+			result[i++] = translate(element);
 		}
 		return result;
 	}
