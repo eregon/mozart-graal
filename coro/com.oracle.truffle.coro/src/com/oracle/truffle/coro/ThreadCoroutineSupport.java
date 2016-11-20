@@ -25,10 +25,8 @@
 
 package com.oracle.truffle.coro;
 
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -37,16 +35,12 @@ class ThreadCoroutineSupport extends CoroutineSupport {
     private static final long ALIVE = 1;
     private static final long DEAD = 0;
 
-    static class ResumeMessage {
-        static final ResumeMessage INSTANCE = new ResumeMessage();
-    }
-
     static class ThreadCoroutine implements Runnable {
 
         final ThreadCoroutineSupport support;
         final CoroutineBase coroutine;
 
-        final BlockingQueue<ResumeMessage> queue = new SynchronousQueue<>();
+        boolean run = false;
 
         public ThreadCoroutine(ThreadCoroutineSupport support, CoroutineBase coroutine) {
             this.support = support;
@@ -73,19 +67,23 @@ class ThreadCoroutineSupport extends CoroutineSupport {
         }
 
         void waitForResume() {
-            try {
-                queue.take();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            synchronized (this) {
+                while (!run) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                run = false;
             }
-
         }
 
         void resume() {
-            try {
-                queue.put(ResumeMessage.INSTANCE);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            synchronized (this) {
+                assert !run;
+                run = true;
+                notify();
             }
         }
 
