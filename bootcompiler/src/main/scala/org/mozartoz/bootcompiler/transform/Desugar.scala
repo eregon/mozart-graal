@@ -22,10 +22,10 @@ object Desugar extends Transformer with TreeDSL {
 
   override def transformStat(statement: Statement) = statement match {
     case assign @ BinaryOpStatement(lhs, ":=", rhs) =>
-      builtins.catAssign call (transformExpr(lhs), transformExpr(rhs)) at statement
+      builtins.catAssign(assign) call (transformExpr(lhs), transformExpr(rhs)) at statement
 
     case DotAssignStatement(left, center, right) =>
-      builtins.dotAssign call (transformExpr(left), transformExpr(center),
+      builtins.dotAssign(statement) call (transformExpr(left), transformExpr(center),
           transformExpr(right)) at statement
 
     case ifStat @ IfStatement(cond, trueStat, falseStat:NoElseStatement) =>
@@ -39,7 +39,7 @@ object Desugar extends Transformer with TreeDSL {
         transformStat(body)
       }
 
-      builtins.createThread call (proc) at thread
+      builtins.createThread(thread) call (proc) at thread
 
     case lockStat @ LockStatement(lock, body) =>
       val proc = PROC(lockStat, genProcName("lock", lock), Nil) {
@@ -54,14 +54,14 @@ object Desugar extends Transformer with TreeDSL {
           val tempY = Variable.newSynthetic(capture = true)(statement)
 
           (LOCAL (tempY) IN {
-            (tempX === TryExpression(body ~> UnitVal(),
+            (tempX === TryExpression(body ~> UnitVal().at(body),
                 tempY, Tuple(Constant(OzAtom("ex"))(body), Seq(tempY)))(body))
           }) ~
           finallyBody ~
-          (IF (tempX =?= UnitVal()) THEN {
+          (IF (tempX =?= UnitVal().at(finallyBody)) THEN {
             SkipStatement()(finallyBody)
           } ELSE {
-            RaiseStatement(tempX dot OzInt(1))(finallyBody)
+            RaiseStatement(tempX dot OzInt(1).at(finallyBody))(finallyBody)
           })
         }
       }
@@ -87,10 +87,10 @@ object Desugar extends Transformer with TreeDSL {
             transformStat {
               LOCAL (result2) IN {
                 THREAD(fun) {
-                  (builtins.waitNeeded call (result2) at fun) ~
+                  (builtins.waitNeeded(fun) call (result2) at fun) ~
                   exprToBindStatement(result2, newBody)
                 } ~
-                (builtins.unaryOpToBuiltin("!!") call (result2, result) at fun)
+                (builtins.unaryOpToBuiltin("!!")(fun) call (result2, result) at fun)
               }
             }
           } else {
@@ -129,19 +129,19 @@ object Desugar extends Transformer with TreeDSL {
                 tempY, Tuple(Constant(OzAtom("ex"))(body), Seq(tempY)))(body))
           }) ~
           finallyBody ~>
-          (IF ((builtins.label callExpr (tempX) at finallyBody) =?= OzAtom("ok")) THEN {
-            tempX dot OzInt(1)
+          (IF ((builtins.label(finallyBody) callExpr (tempX) at finallyBody) =?= OzAtom("ok").at(finallyBody)) THEN {
+            tempX dot OzInt(1).at(finallyBody)
           } ELSE {
-            RaiseExpression(tempX dot OzInt(1))(finallyBody)
+            RaiseExpression(tempX dot OzInt(1).at(finallyBody))(finallyBody)
           })
         }
       }
 
     case DotAssignExpression(left, center, right) =>
-      transformExpr(builtins.dotExchange callExpr (left, center, right) at expression)
+      transformExpr(builtins.dotExchange(expression) callExpr (left, center, right) at expression)
 
     case UnaryOp(op, arg) =>
-      transformExpr(builtins.unaryOpToBuiltin(op) callExpr (arg) at expression)
+      transformExpr(builtins.unaryOpToBuiltin(op)(expression) callExpr (arg) at expression)
 
     case BinaryOp(module @ Variable(sym), ".", rhs) if !program.eagerLoad && sym.isImport =>
       transformExpr(
@@ -167,10 +167,10 @@ object Desugar extends Transformer with TreeDSL {
       treeCopy.CompoundStatement(expr, Seq(statement, exprToBindStatement(result, expression)))
       
     case ShortCircuitBinaryOp(left, "andthen", right) =>
-      treeCopy.IfStatement(expr, left, exprToBindStatement(result, right), result === False())
+      treeCopy.IfStatement(expr, left, exprToBindStatement(result, right), result === False().at(right))
       
     case ShortCircuitBinaryOp(left, "orelse", right) =>
-      treeCopy.IfStatement(expr, left, result === True(), exprToBindStatement(result, right))
+      treeCopy.IfStatement(expr, left, result === True().at(left), exprToBindStatement(result, right))
       
     case LocalExpression(declarations, expression) =>
       treeCopy.LocalStatement(expr, declarations, exprToBindStatement(result, expression))
@@ -236,7 +236,7 @@ object Desugar extends Transformer with TreeDSL {
     } else if (fields forall (_.hasAutoFeature)) {
       // Next-to-trivial case: all features are auto
       for ((field, index) <- fields.zipWithIndex)
-        yield treeCopy.RecordField(field, OzInt(index+1), field.value)
+        yield treeCopy.RecordField(field, OzInt(index+1).at(field), field.value)
     } else {
       // Complex case: mix of auto and non-auto features
 

@@ -21,8 +21,8 @@ package object ast {
   }
 
   /** Builds an Oz List expression from a list of expressions */
-  def exprListToListExpr(elems: Seq[Expression]): Expression = {
-    elems.foldRight(Constant(OzAtom("nil"))(Node.noPos): Expression)((e, tail) => cons(e, tail))
+  def exprListToListExpr(elems: Seq[Expression])(pos: Pos): Expression = {
+    elems.foldRight(Constant(OzAtom("nil"))(pos): Expression)((e, tail) => cons(e, tail))
   }
 
   /** Builds an Oz Cons pair */
@@ -31,8 +31,8 @@ package object ast {
         Seq(withAutoFeature(head), withAutoFeature(tail)))(head)
 
   /** Builds an Oz #-tuple */
-  def sharp(fields: Seq[Expression]) = {
-    if (fields.isEmpty) Constant(OzAtom("#"))(Node.noPos)
+  def sharp(fields: Seq[Expression])(pos: Pos) = {
+    if (fields.isEmpty) Constant(OzAtom("#"))(pos)
     else {
       Record(Constant(OzAtom("#"))(fields(0)), fields map withAutoFeature)(fields.head)
     }

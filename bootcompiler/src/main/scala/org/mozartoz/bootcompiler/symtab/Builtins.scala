@@ -2,6 +2,8 @@ package org.mozartoz.bootcompiler
 package symtab
 
 import oz._
+import ast.Constant
+import ast.Node.Pos
 
 import scala.collection.mutable.HashMap
 
@@ -21,7 +23,7 @@ class Builtins {
 
   /** Lookups a builtin by its module name and name */
   private def builtinByName(moduleName: String, name: String) =
-    builtins((moduleName, name))
+    (pos: Pos) => Constant(OzBuiltin(builtins((moduleName, name))))(pos)
 
   /** Maps the symbol representation of a unary operator to its builtin */
   lazy val unaryOpToBuiltin = Map(

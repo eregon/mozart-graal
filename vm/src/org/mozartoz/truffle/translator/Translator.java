@@ -646,12 +646,8 @@ public class Translator {
 	}
 
 	private SourceSection t(Node node) {
-		assert node instanceof Constant || node.section() != null;
-		if (node.section() != null) {
-			return node.section();
-		} else {
-			return null;
-		}
+		assert node.section() != null;
+		return node.section();
 	}
 
 }

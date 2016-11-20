@@ -64,12 +64,9 @@ trait TreeDSL {
   }
 
   /** Wrap an Oz value inside a Constant */
-  implicit def value2constant(value: OzValue): Constant =
-    Constant(value)()
-
-  /** Operations on Builtins */
-  implicit def builtin2ops(builtin: Builtin) =
-    expression2ops(OzBuiltin(builtin))
+  implicit def value2constant(value: OzValue) = new {
+    def at(pos: Pos): Constant = Constant(value)(pos)
+  }
 
   /** Pattern matching for BindStatements
    *

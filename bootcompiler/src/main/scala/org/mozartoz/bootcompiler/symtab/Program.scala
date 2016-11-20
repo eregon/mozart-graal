@@ -47,7 +47,7 @@ class Program(
    *  @param message error message
    *  @param pos position of the error
    */
-  def reportError(message: String, section: SourceSection = Node.noPos) {
+  def reportError(message: String, section: SourceSection) {
     errors += ((message, section))
   }
 

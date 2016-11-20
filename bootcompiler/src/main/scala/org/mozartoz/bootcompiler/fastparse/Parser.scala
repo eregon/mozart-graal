@@ -873,14 +873,12 @@ object Parser {
   }
 
   def cons(head: Phrase, tail: Phrase) =
-    RecordPhrase(Constant(OzAtom("|"))(),
+    RecordPhrase(Constant(OzAtom("|"))(head),
       Seq(withAutoFeature(head), withAutoFeature(tail)))(head)
 
   def sharp(fields: Seq[Phrase]) = {
-    if (fields.isEmpty) Constant(OzAtom("#"))()
-    else {
-      RecordPhrase(Constant(OzAtom("#"))(fields(0)), fields map withAutoFeature)(fields.head)
-    }
+    assert(!fields.isEmpty)
+    RecordPhrase(Constant(OzAtom("#"))(fields(0)), fields map withAutoFeature)(fields.head)
   }
 
   def withAutoFeature(expr: Phrase): RecordFieldPhrase =

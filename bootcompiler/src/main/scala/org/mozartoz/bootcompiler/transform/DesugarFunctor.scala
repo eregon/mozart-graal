@@ -41,10 +41,10 @@ object DesugarFunctor extends Transformer with TreeDSL {
       val exportsRec = makeExportsRec(functor, exports)
       val applyFun = makeApplyFun(functor, define, imports, exports)
 
-      val functorRec = Record(OzAtom("functor"), Seq(
-        RecordField(OzAtom("import"), importsRec)(importsRec),
-        RecordField(OzAtom("export"), exportsRec)(exportsRec),
-        RecordField(OzAtom("apply"), applyFun)(applyFun)))(functor)
+      val functorRec = Record(OzAtom("functor") at functor, Seq(
+        RecordField(OzAtom("import") at importsRec, importsRec)(importsRec),
+        RecordField(OzAtom("export") at exportsRec, exportsRec)(exportsRec),
+        RecordField(OzAtom("apply") at applyFun, applyFun)(applyFun)))(functor)
 
       transformExpr(functorRec)
 
@@ -54,7 +54,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
 
   def makeImportsRec(functor: FunctorExpression, imports: Seq[FunctorImport]): Expression = {
     val resultFields = for {
-      fimport @ FunctorImport(Variable(module), aliases, location) <- imports
+      pos @ FunctorImport(Variable(module), aliases, location) <- imports
     } yield {
       val modName = module.name
 
@@ -63,7 +63,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
           for (AliasedFeature(feat, _) <- aliases)
             yield feat.value
 
-        RecordField(OzAtom("type"), OzList(requiredFeatures))(fimport)
+        RecordField(OzAtom("type") at pos, OzList(requiredFeatures) at pos)(pos)
       }
 
       val fromField = {
@@ -72,25 +72,25 @@ object DesugarFunctor extends Transformer with TreeDSL {
           else if (!SystemModules.isSystemModule(modName)) modName + ".ozf"
           else "x-oz://system/" + modName + ".ozf"
         }
-        RecordField(OzAtom("from"), OzAtom(loc))(fimport)
+        RecordField(OzAtom("from") at pos, OzAtom(loc) at pos)(pos)
       }
 
-      val info = Record(OzAtom("info"), Seq(typeField, fromField))(fimport)
+      val info = Record(OzAtom("info") at pos, Seq(typeField, fromField))(pos)
 
-      RecordField(OzAtom(modName), info)(info)
+      RecordField(OzAtom(modName) at pos, info)(pos)
     }
 
-    Record(OzAtom("import"), resultFields)(functor)
+    Record(OzAtom("import") at functor, resultFields)(functor)
   }
 
   def makeExportsRec(functor: FunctorExpression, exports: Seq[FunctorExport]): Expression = {
     val resultFields = for {
-      export @ FunctorExport(Constant(feature:OzFeature), _) <- exports
+      pos @ FunctorExport(f @ Constant(feature:OzFeature), _) <- exports
     } yield {
-      RecordField(feature, OzAtom("value"))(export)
+      RecordField(f, OzAtom("value") at pos)(pos)
     }
 
-    Record(OzAtom("export"), resultFields)(Node.posFromSeq(resultFields, functor))
+    Record(OzAtom("export") at functor, resultFields)(functor)
   }
 
   def makeApplyFun(functor: FunctorExpression,
@@ -108,7 +108,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
 
     val (utilsDecls, importsDot) = {
       if (program.eagerLoad) {
-        val regularDot = Constant(OzBuiltin(builtins.binaryOpToBuiltin(".")))(functor)
+        val regularDot = builtins.binaryOpToBuiltin(".")(functor)
         (None, regularDot)
       } else {
         val byNeedDot = Variable.newSynthetic("ByNeedDot")(functor)
@@ -127,7 +127,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
           exec(importsDot === baseEnvironment("ByNeedDot")(functor))
 
         for (FunctorImport(module:Variable, aliases, _) <- imports) {
-          exec(module === (importsParam dot OzAtom(module.symbol.name)))
+          exec(module === (importsParam dot OzAtom(module.symbol.name).at(module)))
 
           for (AliasedFeature(feature, Some(variable:Variable)) <- aliases) {
             exec(variable === (importsDot callExpr (module, feature) at functor))
@@ -144,7 +144,7 @@ object DesugarFunctor extends Transformer with TreeDSL {
           RecordField(feature, value)(export)
         }
 
-        val exportRec = Record(OzAtom("export"), exportFields)(functor)
+        val exportRec = Record(OzAtom("export") at functor, exportFields)(functor)
 
         // Final body
         CompoundStatement(statements)(functor) ~>

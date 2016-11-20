@@ -54,7 +54,7 @@ object ConstantFolding extends Transformer with TreeDSL {
         transformOpenRecordPattern(record)
 
       case list: ListExpression if list.isConstant =>
-        list.getAsConstant
+        list.getAsConstant at list
 
       case conj @ PatternConjunction(parts)
       if parts.forall(_.isInstanceOf[Constant]) =>
@@ -93,7 +93,7 @@ object ConstantFolding extends Transformer with TreeDSL {
     } else {
       val newRecord = treeCopy.Record(record, label, sortRecordFields(record))
 
-      if (newRecord.isConstant) newRecord.getAsConstant
+      if (newRecord.isConstant) newRecord.getAsConstant at newRecord
       else newRecord
     }
   }
@@ -108,7 +108,7 @@ object ConstantFolding extends Transformer with TreeDSL {
       val newRecord = treeCopy.OpenRecordPattern(record,
           label, sortRecordFields(record))
 
-      if (newRecord.isConstant) newRecord.getAsConstant
+      if (newRecord.isConstant) newRecord.getAsConstant at newRecord
       else newRecord
     }
   }

@@ -393,7 +393,7 @@ case class UnboundExpression()(val pos: Pos) extends Expression with Phrase {
 }
 
 /** Constant value */
-case class Constant(value: OzValue)(val pos: Pos = Node.noPos) extends VarOrConst with Phrase {
+case class Constant(value: OzValue)(val pos: Pos) extends VarOrConst with Phrase {
   def syntax(indent: String) = value.syntax()
 }
 
