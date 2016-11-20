@@ -206,8 +206,8 @@ public class Loader {
 		tick("start loading Main");
 		final OzProc main;
 		if (Options.SERIALIZER && new File(MAIN_IMAGE).exists()) {
-			try {
-				main = OzSerializer.deserialize(MAIN_IMAGE, OzProc.class);
+			try (OzSerializer serializer = new OzSerializer()) {
+				main = serializer.deserialize(MAIN_IMAGE, OzProc.class);
 			} catch (Throwable t) {
 				System.err.println("Got " + t.getClass().getSimpleName() + " while deserializing, removing Main.image");
 				new File(MAIN_IMAGE).delete();
@@ -224,7 +224,9 @@ public class Loader {
 				Object applied = execute(InitFunctor.apply(initFunctor));
 				main = (OzProc) ((DynamicObject) applied).get("main");
 				if (Options.SERIALIZER) {
-					OzSerializer.serialize(main, MAIN_IMAGE);
+					try (OzSerializer serializer = new OzSerializer()) {
+						serializer.serialize(main, MAIN_IMAGE);
+					}
 				}
 			} finally {
 				eagerLoad = false;

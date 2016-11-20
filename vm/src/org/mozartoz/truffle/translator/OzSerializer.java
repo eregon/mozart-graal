@@ -117,7 +117,7 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class OzSerializer {
+public class OzSerializer implements AutoCloseable {
 
 	private static class StringSerializer extends Serializer<String> {
 		public void write(Kryo kryo, Output output, String str) {
@@ -613,10 +613,10 @@ public class OzSerializer {
 	private static final Class<? extends Shape> SHAPE = Arity.EMPTY.getClass();
 	private static final Class<? extends DynamicObject> DYNAMIC_OBJECT = Arity.EMPTY.newInstance().getClass();
 
-	private static final Kryo KRYO = getKryo();
+	private final Kryo kryo;
 
-	private static Kryo getKryo() {
-		Kryo kryo = new Kryo();
+	public OzSerializer() {
+		kryo = new Kryo();
 		kryo.setRegistrationRequired(true);
 		kryo.setReferences(true);
 		kryo.setInstantiatorStrategy(new DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
@@ -742,13 +742,15 @@ public class OzSerializer {
 		// I/O
 		kryo.register(PrintStream.class, new PrintStreamSerializer());
 		kryo.register(System.in.getClass(), new InputStreamSerializer());
-
-		return kryo;
 	}
 
-	public static void serialize(Object object, String path) {
+	@Override
+	public void close() {
+	}
+
+	public void serialize(Object object, String path) {
 		try (Output output = new Output(new FileOutputStream(path))) {
-			KRYO.writeClassAndObject(output, object);
+			kryo.writeClassAndObject(output, object);
 		} catch (FileNotFoundException e) {
 			throw new Error(e);
 		} catch (Throwable e) {
@@ -757,9 +759,9 @@ public class OzSerializer {
 		}
 	}
 
-	public static <T> T deserialize(String path, Class<T> klass) {
+	public <T> T deserialize(String path, Class<T> klass) {
 		try (Input input = new Input(new FileInputStream(path))) {
-			Object value = KRYO.readClassAndObject(input);
+			Object value = kryo.readClassAndObject(input);
 			return klass.cast(value);
 		} catch (IOException e) {
 			throw new Error(e);
