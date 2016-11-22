@@ -174,7 +174,7 @@ prepare
    %% Int
    %%
    IsInt              = Boot_Int.is
-   IntToFloat         % Defined in Int.oz
+   IntToFloat         = Boot_Int.toFloat
    IntToCompactString % Defined in Int.oz
    IntToString        % Defined in Int.oz
 

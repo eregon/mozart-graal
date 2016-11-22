@@ -34,10 +34,6 @@ fun {IsEven X} X mod 2 == 0 end
 %%
 %% Module
 %%
-fun {IntToFloat I}
-   {StringToFloat {IntToCompactString I}}
-end
-
 fun {IntToCompactString I}
    if {IsInt I} then
       {VirtualString.toCompactString I}
