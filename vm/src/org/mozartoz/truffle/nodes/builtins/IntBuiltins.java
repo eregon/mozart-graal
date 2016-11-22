@@ -35,6 +35,23 @@ public abstract class IntBuiltins {
 
 	}
 
+	@Builtin(name = "toFloat", deref = ALL)
+	@GenerateNodeFactory
+	@NodeChild("value")
+	public static abstract class ToFloatNode extends OzNode {
+
+		@Specialization
+		double toFloat(long value) {
+			return (double) value;
+		}
+
+		@Specialization
+		double toFloat(BigInteger value) {
+			return value.doubleValue();
+		}
+
+	}
+
 	@Builtin(deref = ALL)
 	@GenerateNodeFactory
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
