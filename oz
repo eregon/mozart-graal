@@ -26,6 +26,11 @@ args = ARGV.drop_while { |arg|
   end
 }
 
+if vm_options.delete('--help')
+  java_opts << "-Dgraal.PrintFlags=true"
+  vm_options << "--graal"
+end
+
 if vm_options.delete('--graal')
   jvmci_home = (GRAAL / "mx.graal-core/env").read.scan(/^JAVA_HOME=(.+)/)[0][0]
   java = File.expand_path("#{jvmci_home}/bin/java")
