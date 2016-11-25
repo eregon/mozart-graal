@@ -1,13 +1,25 @@
 package org.mozartoz.truffle.nodes.call;
 
+import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.OzBacktrace;
 import org.mozartoz.truffle.runtime.TailCallException;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.frame.FrameUtil;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 
 public class TailCallCatcherNode extends CallableNode {
 
 	@Child CallNode callNode;
+	@Child LoopNode loopNode;
 
 	private final BranchProfile tailCallProfile = BranchProfile.create();
 
@@ -37,13 +49,65 @@ public class TailCallCatcherNode extends CallableNode {
 	}
 
 	private Object tailCallLoop(VirtualFrame frame, TailCallException tailCall) {
-		while (true) {
+		if (loopNode == null) {
+			CompilerDirectives.transferToInterpreterAndInvalidate();
+			this.loopNode = insert(Truffle.getRuntime().createLoopNode(new TailCallLoopNode(frame.getFrameDescriptor())));
+		}
+
+		TailCallLoopNode tailCallLoop = (TailCallLoopNode) loopNode.getRepeatingNode();
+		tailCallLoop.setTailCallException(frame, tailCall);
+		loopNode.executeLoop(frame);
+		return tailCallLoop.getResult(frame);
+	}
+
+	public static class TailCallLoopNode extends OzNode implements RepeatingNode {
+
+		private final FrameSlot tailCallSlot;
+		private final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
+		private final BranchProfile exceptionProfile = BranchProfile.create();
+
+		@Child CallNode callNode = CallNodeGen.create(null, null);
+
+		public TailCallLoopNode(FrameDescriptor frameDescriptor) {
+			this.tailCallSlot = frameDescriptor.findOrAddFrameSlot("<OSRtailCall>", FrameSlotKind.Object);
+		}
+
+		public void setTailCallException(VirtualFrame frame, TailCallException tailCall) {
+			frame.setObject(tailCallSlot, tailCall);
+		}
+
+		public Object getResult(VirtualFrame frame) {
+			setTailCallException(frame, null);
+			return unit;
+		}
+
+		@Override
+		public boolean executeRepeating(VirtualFrame frame) {
+			return loopProfile.profile(loopBody(frame));
+		}
+
+		private boolean loopBody(VirtualFrame frame) {
+			TailCallException tailCall = (TailCallException) FrameUtil.getObjectSafe(frame, tailCallSlot);
 			try {
-				return callNode.executeCall(frame, tailCall.receiver, tailCall.arguments);
+				callNode.executeCall(frame, tailCall.receiver, tailCall.arguments);
+				return false;
 			} catch (TailCallException exception) {
-				tailCall = exception;
+				exceptionProfile.enter();
+				setTailCallException(frame, exception);
+				return true;
 			}
 		}
+
+		@Override
+		public Object execute(VirtualFrame frame) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String toString() {
+			return OzBacktrace.formatNode(this);
+		}
+
 	}
 
 }
