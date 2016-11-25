@@ -23,9 +23,11 @@ import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
+import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzProc;
+import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.PropertyRegistry;
 import org.mozartoz.truffle.runtime.StacktraceThread;
@@ -128,7 +130,8 @@ public class Loader {
 			tick("translated Base");
 			Object baseFunctor = execute(baseFunctorTarget);
 
-			RootCallTarget applyBase = BaseFunctor.apply(baseFunctor);
+			Object imports = BuiltinsManager.getBootModulesRecord();
+			RootCallTarget applyBase = ApplyFunctor.apply(baseFunctor, imports, "Base.apply");
 			Object result = execute(applyBase);
 			assert result instanceof DynamicObject;
 
@@ -221,7 +224,7 @@ public class Loader {
 				// The first execution of code needs to go through PolyglotEngine
 				// to initialize it for instrumentation purposes.
 				Object initFunctor = engine.eval(createSource(INIT_FUNCTOR)).get();
-				Object applied = execute(InitFunctor.apply(initFunctor));
+				Object applied = applyInitFunctor(initFunctor);
 				main = (OzProc) ((DynamicObject) applied).get("main");
 				if (Options.SERIALIZER) {
 					try (OzSerializer serializer = new OzSerializer()) {
@@ -252,6 +255,13 @@ public class Loader {
 		if (Options.STACKTRACE_ON_INTERRUPT) {
 			Runtime.getRuntime().removeShutdownHook(shutdownHook);
 		}
+	}
+
+	private Object applyInitFunctor(Object initFunctor) {
+		Object imports = OzRecord.buildRecord(
+				Arity.build("import", "Boot"),
+				BuiltinsManager.getBootModule("Boot_Boot"));
+		return execute(ApplyFunctor.apply(initFunctor, imports, "Init.apply"));
 	}
 
 	private DynamicObject getBaseFromMain(OzProc main) {
