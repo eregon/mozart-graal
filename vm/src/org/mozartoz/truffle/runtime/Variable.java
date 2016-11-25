@@ -2,7 +2,6 @@ package org.mozartoz.truffle.runtime;
 
 import org.mozartoz.truffle.nodes.OzNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.SourceSection;
@@ -23,10 +22,7 @@ public abstract class Variable {
 
 	public Object getBoundValue(OzNode currentNode) {
 		final Object value = this.value;
-		if (value == null) {
-			CompilerDirectives.transferToInterpreterAndInvalidate();
-			throw new OzException(currentNode, "unbound var");
-		}
+		assert value != null : "unbound var";
 		return value;
 	}
 
