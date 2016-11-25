@@ -19,6 +19,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChildren({ @NodeChild("object"), @NodeChild("arguments") })
 public abstract class CallMethodNode extends OzNode {
@@ -36,7 +37,8 @@ public abstract class CallMethodNode extends OzNode {
 	protected Object callObject(VirtualFrame frame, OzObject self, Object[] args,
 			@Cached("create()") IndirectCallNode callNode,
 			@Cached("create()") DerefNode derefNode,
-			@Cached("create()") LabelNode labelNode) {
+			@Cached("create()") LabelNode labelNode,
+			@Cached("createBinaryProfile()") ConditionProfile otherwise) {
 		assert args.length == 1;
 		Object message = derefNode.executeDeref(args[0]);
 
@@ -44,7 +46,7 @@ public abstract class CallMethodNode extends OzNode {
 		assert OzGuards.isLiteral(name);
 
 		OzProc method = getMethod(self, name);
-		if (method == null) { // redirect to otherwise
+		if (otherwise.profile(method == null)) { // redirect to otherwise
 			method = getMethod(self, "otherwise");
 			message = OTHERWISE_MESSAGE_FACTORY.newRecord(message);
 		}
