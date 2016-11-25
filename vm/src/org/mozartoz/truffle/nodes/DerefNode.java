@@ -8,6 +8,7 @@ import org.mozartoz.truffle.runtime.OzVar;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 @NodeChild("value")
 public abstract class DerefNode extends OzNode {
@@ -51,27 +52,32 @@ public abstract class DerefNode extends OzNode {
 	}
 
 	@Specialization(guards = "isBound(var)")
-	Object deref(OzVar var) {
-		return check(var.getBoundValue(this));
+	Object deref(OzVar var,
+			@Cached("create()") BranchProfile failedValueProfile) {
+		return check(var.getBoundValue(this), failedValueProfile);
 	}
 
 	@Specialization(guards = "!isBound(var)")
-	Object derefUnbound(OzVar var) {
-		return check(var.waitValue(this));
+	Object derefUnbound(OzVar var,
+			@Cached("create()") BranchProfile failedValueProfile) {
+		return check(var.waitValue(this), failedValueProfile);
 	}
 
 	@Specialization(guards = "isBound(future)")
-	Object deref(OzFuture future) {
-		return check(future.getBoundValue(this));
+	Object deref(OzFuture future,
+			@Cached("create()") BranchProfile failedValueProfile) {
+		return check(future.getBoundValue(this), failedValueProfile);
 	}
 
 	@Specialization(guards = "!isBound(future)")
-	Object derefUnbound(OzFuture future) {
-		return check(future.waitValue(this));
+	Object derefUnbound(OzFuture future,
+			@Cached("create()") BranchProfile failedValueProfile) {
+		return check(future.waitValue(this), failedValueProfile);
 	}
 
-	private Object check(Object value) {
+	private Object check(Object value, BranchProfile failedValueProfile) {
 		if (value instanceof OzFailedValue) {
+			failedValueProfile.enter();
 			throw new OzException(this, ((OzFailedValue) value).getData());
 		}
 		return value;
