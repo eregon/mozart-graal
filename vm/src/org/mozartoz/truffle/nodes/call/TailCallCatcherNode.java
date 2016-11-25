@@ -21,6 +21,7 @@ public class TailCallCatcherNode extends CallableNode {
 	@Child CallNode callNode;
 	@Child LoopNode loopNode;
 
+	private final BranchProfile normalCallProfile = BranchProfile.create();
 	private final BranchProfile tailCallProfile = BranchProfile.create();
 
 	public TailCallCatcherNode(CallNode callNode) {
@@ -29,7 +30,9 @@ public class TailCallCatcherNode extends CallableNode {
 
 	public Object execute(VirtualFrame frame) {
 		try {
-			return callNode.execute(frame);
+			callNode.execute(frame);
+			normalCallProfile.enter();
+			return unit;
 		} catch (TailCallException tailCall) {
 			tailCallProfile.enter();
 			return tailCallLoop(frame, tailCall);
@@ -39,7 +42,9 @@ public class TailCallCatcherNode extends CallableNode {
 	@Override
 	public Object executeCall(VirtualFrame frame, Object receiver, Object[] arguments) {
 		try {
-			return callNode.executeCall(frame, receiver, arguments);
+			callNode.executeCall(frame, receiver, arguments);
+			normalCallProfile.enter();
+			return unit;
 		} catch (TailCallException tailCall) {
 			tailCallProfile.enter();
 			receiver = null;
