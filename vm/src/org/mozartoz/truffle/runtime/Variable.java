@@ -23,7 +23,7 @@ public abstract class Variable {
 
 	public Object getBoundValue(OzNode currentNode) {
 		final Object value = this.value;
-		if (!isBound()) {
+		if (value == null) {
 			CompilerDirectives.transferToInterpreterAndInvalidate();
 			throw new OzException(currentNode, "unbound var");
 		}
