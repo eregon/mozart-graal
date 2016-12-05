@@ -53,6 +53,12 @@ if vm_options.delete('--igv')
   java_opts << "-Dgraal.TruffleBackgroundCompilation=false"
 end
 
+if vm_options.delete('--igvcfg')
+  java_opts << "-Dgraal.Dump="
+  java_opts << "-Dgraal.PrintBackendCFG=true"
+  java_opts << "-Dgraal.TruffleBackgroundCompilation=false"
+end
+
 if vm_options.delete('--infopoints')
   java_opts << "-XX:+UnlockDiagnosticVMOptions" << "-XX:+DebugNonSafepoints"
   java_opts << "-Dgraal.TruffleEnableInfopoints=true"
