@@ -27,6 +27,10 @@ public class OzGuards {
 		return value instanceof BigInteger;
 	}
 
+	public static boolean isInteger(Object value) {
+		return value instanceof Long || value instanceof BigInteger;
+	}
+
 	public static boolean isFloat(Object value) {
 		return value instanceof Double;
 	}
