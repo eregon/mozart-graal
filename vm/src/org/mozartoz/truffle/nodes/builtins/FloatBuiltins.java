@@ -42,18 +42,6 @@ public abstract class FloatBuiltins {
 
 	@Builtin(deref = ALL)
 	@GenerateNodeFactory
-	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
-	public static abstract class PowNode extends OzNode {
-
-		@Specialization
-		double pow(double left, double right) {
-			return Math.pow(left, right);
-		}
-
-	}
-
-	@Builtin(deref = ALL)
-	@GenerateNodeFactory
 	@NodeChild("value")
 	public static abstract class ToIntNode extends OzNode {
 
