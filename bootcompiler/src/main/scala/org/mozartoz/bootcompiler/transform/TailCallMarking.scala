@@ -6,9 +6,23 @@ import oz._
 import symtab._
 
 object TailCallMarking extends Transformer {
+  
+  var procExpr: ProcExpression = null
+
+  private def withProc[A](proc: ProcExpression)(f: => A) = {
+    val oldProc = procExpr
+    procExpr = proc
+    try f
+    finally procExpr = oldProc
+  }
+  
   def markTailCalls(statement: Statement): Statement = statement match {
     case call @ CallStatement(callable, args) =>
-      TailMarkerStatement(call)(call)
+      if (Some(callable) == procExpr.name) {
+        SelfTailCallMarker(call)(call)
+      } else {
+        TailCallMarker(call)(call)
+      }
 
     case CompoundStatement(stats) =>
       val last = markTailCalls(stats.last)
@@ -34,8 +48,10 @@ object TailCallMarking extends Transformer {
     treeCopy.MatchStatementClause(clause, clause.pattern, clause.guard, markTailCalls(clause.body))
   
   override def transformExpr(expression: Expression) = expression match {
-    case ProcExpression(name, args, body, flags) =>
-      treeCopy.ProcExpression(expression, name, args, markTailCalls(transformStat(body)), flags)
+    case proc @ ProcExpression(name, args, body, flags) =>
+      withProc(proc) {
+        treeCopy.ProcExpression(expression, name, args, markTailCalls(transformStat(body)), flags)
+      }
     
     case _ => super.transformExpr(expression)
   }
