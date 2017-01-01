@@ -27,12 +27,13 @@ import org.mozartoz.bootcompiler.ast.RaiseCommon;
 import org.mozartoz.bootcompiler.ast.RawDeclarationOrVar;
 import org.mozartoz.bootcompiler.ast.Record;
 import org.mozartoz.bootcompiler.ast.RecordField;
+import org.mozartoz.bootcompiler.ast.SelfTailCallMarker;
 import org.mozartoz.bootcompiler.ast.ShortCircuitBinaryOp;
 import org.mozartoz.bootcompiler.ast.SkipStatement;
 import org.mozartoz.bootcompiler.ast.StatAndExpression;
 import org.mozartoz.bootcompiler.ast.StatOrExpr;
 import org.mozartoz.bootcompiler.ast.Statement;
-import org.mozartoz.bootcompiler.ast.TailMarkerStatement;
+import org.mozartoz.bootcompiler.ast.TailCallMarker;
 import org.mozartoz.bootcompiler.ast.TryCommon;
 import org.mozartoz.bootcompiler.ast.UnboundExpression;
 import org.mozartoz.bootcompiler.ast.Variable;
@@ -85,6 +86,8 @@ import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanNodeFa
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.LesserThanOrEqualNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.NotEqualNodeFactory;
 import org.mozartoz.truffle.nodes.call.CallNode;
+import org.mozartoz.truffle.nodes.call.SelfTailCallCatcherNode;
+import org.mozartoz.truffle.nodes.call.SelfTailCallThrowerNode;
 import org.mozartoz.truffle.nodes.call.TailCallThrowerNode;
 import org.mozartoz.truffle.nodes.control.AndNode;
 import org.mozartoz.truffle.nodes.control.AndThenNode;
@@ -118,8 +121,6 @@ import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.Unit;
 
-import scala.collection.JavaConversions;
-
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -127,6 +128,8 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
+
+import scala.collection.JavaConversions;
 
 public class Translator {
 
@@ -155,6 +158,8 @@ public class Translator {
 	private Environment environment = new Environment(null, new FrameDescriptor());
 	private final Environment rootEnvironment = environment;
 	private final DynamicObject base;
+
+	private boolean isSelfTailRec = false;
 
 	public Translator(DynamicObject base) {
 		this.base = base;
@@ -271,8 +276,10 @@ public class Translator {
 			return t(node, SequenceNode.sequence(decls.toArray(new OzNode[decls.size()]), translate(local.body())));
 		} else if (node instanceof CallCommon) {
 			return translateCall((CallCommon) node);
-		} else if (node instanceof TailMarkerStatement) {
-			return translateTailCall(((TailMarkerStatement) node).call());
+		} else if (node instanceof SelfTailCallMarker) {
+			return translateSelfTailCall(((SelfTailCallMarker) node).call());
+		} else if (node instanceof TailCallMarker) {
+			return translateTailCall(((TailCallMarker) node).call());
 		} else if (node instanceof SkipStatement) {
 			return t(node, new SkipNode());
 		} else if (node instanceof BindCommon) {
@@ -318,6 +325,8 @@ public class Translator {
 			System.out.println(procExpression);
 		}
 		pushEnvironment(new FrameDescriptor(), identifier);
+		boolean isSelfTailRecOld = this.isSelfTailRec;
+		this.isSelfTailRec = false;
 		try {
 			int arity = procExpression.args().size();
 			OzNode[] nodes = new OzNode[arity + 1];
@@ -331,14 +340,17 @@ public class Translator {
 					throw unknown("variable", variable);
 				}
 			}
-
 			nodes[i] = translate(procExpression.body());
 
 			OzNode procBody = SequenceNode.sequence(nodes);
+			if (this.isSelfTailRec) { // Side-affected by translation of some SelfTailCallMarker
+				procBody = SelfTailCallCatcherNode.create(procBody);
+			}
 			OzRootNode rootNode = new OzRootNode(sourceSection, identifier, environment.frameDescriptor, procBody, arity);
 			return t(procExpression, new ProcDeclarationNode(rootNode.toCallTarget()));
 		} finally {
 			popEnvironment();
+			this.isSelfTailRec = isSelfTailRecOld;
 		}
 	}
 
@@ -355,6 +367,15 @@ public class Translator {
 		OzNode receiver = translate(call.callable());
 		OzNode[] argsNodes = translate(call.args());
 		return t(call, new TailCallThrowerNode(receiver, new ExecuteValuesNode(argsNodes)));
+	}
+
+	private OzNode translateSelfTailCall(CallStatement call) {
+		if (!Options.SELF_TAIL_CALLS) {
+			return translateTailCall(call);
+		}
+		this.isSelfTailRec = true;
+		OzNode[] argsNodes = translate(call.args());
+		return t(call, new SelfTailCallThrowerNode(argsNodes));
 	}
 
 	private OzNode translateMatch(MatchCommon match) {

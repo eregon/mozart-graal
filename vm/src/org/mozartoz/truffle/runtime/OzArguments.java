@@ -25,6 +25,10 @@ public class OzArguments {
 		return frame.getArguments()[ARGUMENTS_INDEX + index];
 	}
 
+	public static void setArgument(Frame frame, int index, Object value) {
+		frame.getArguments()[ARGUMENTS_INDEX + index] = value;
+	}
+
 	public static int getArgumentCount(Frame frame) {
 		return frame.getArguments().length - ARGUMENTS_INDEX;
 	}
