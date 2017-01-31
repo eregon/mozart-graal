@@ -121,6 +121,8 @@ import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.Unit;
 
+import scala.collection.JavaConversions;
+
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -128,8 +130,6 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
-
-import scala.collection.JavaConversions;
 
 public class Translator {
 
@@ -325,8 +325,8 @@ public class Translator {
 			System.out.println(procExpression);
 		}
 		pushEnvironment(new FrameDescriptor(), identifier);
-		boolean isSelfTailRecOld = this.isSelfTailRec;
-		this.isSelfTailRec = false;
+		boolean isSelfTailRecOld = isSelfTailRec;
+		isSelfTailRec = false;
 		try {
 			int arity = procExpression.args().size();
 			OzNode[] nodes = new OzNode[arity + 1];
@@ -343,14 +343,14 @@ public class Translator {
 			nodes[i] = translate(procExpression.body());
 
 			OzNode procBody = SequenceNode.sequence(nodes);
-			if (this.isSelfTailRec) { // Side-affected by translation of some SelfTailCallMarker
+			if (isSelfTailRec) { // Set when translating SelfTailCallMarker
 				procBody = SelfTailCallCatcherNode.create(procBody);
 			}
 			OzRootNode rootNode = new OzRootNode(sourceSection, identifier, environment.frameDescriptor, procBody, arity);
 			return t(procExpression, new ProcDeclarationNode(rootNode.toCallTarget()));
 		} finally {
 			popEnvironment();
-			this.isSelfTailRec = isSelfTailRecOld;
+			isSelfTailRec = isSelfTailRecOld;
 		}
 	}
 
@@ -373,7 +373,7 @@ public class Translator {
 		if (!Options.SELF_TAIL_CALLS) {
 			return translateTailCall(call);
 		}
-		this.isSelfTailRec = true;
+		isSelfTailRec = true;
 		OzNode[] argsNodes = translate(call.args());
 		return t(call, new SelfTailCallThrowerNode(argsNodes));
 	}

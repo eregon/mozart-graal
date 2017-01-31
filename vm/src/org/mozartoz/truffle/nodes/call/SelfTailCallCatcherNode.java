@@ -22,7 +22,7 @@ public class SelfTailCallCatcherNode extends OzNode {
 
 	public static OzNode create(OzNode body) {
 		if (!Options.SELF_TAIL_CALLS_OSR) {
-			return new SelfTailCallCatcherNode.SelfTailCallCatcherNoOSRNode(body);
+			return new SelfTailCallCatcherNoOSRNode(body);
 		}
 		return new SelfTailCallCatcherNode(body);
 	}
@@ -33,7 +33,7 @@ public class SelfTailCallCatcherNode extends OzNode {
 		return unit;
 	}
 
-	public static class SelfTailCallLoopNode extends OzNode implements RepeatingNode {
+	private static class SelfTailCallLoopNode extends OzNode implements RepeatingNode {
 
 		@Child OzNode body;
 
