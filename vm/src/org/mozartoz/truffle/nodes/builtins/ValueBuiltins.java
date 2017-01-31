@@ -137,6 +137,11 @@ public abstract class ValueBuiltins {
 			return false;
 		}
 
+		@Specialization(guards = { "!isVariable(a)", "!isAtom(a)" })
+		protected boolean equal(Object a, String b) {
+			return false;
+		}
+
 		@Specialization
 		protected boolean equal(OzName a, OzName b) {
 			return a == b;
