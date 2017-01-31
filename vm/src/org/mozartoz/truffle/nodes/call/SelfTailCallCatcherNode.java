@@ -10,6 +10,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 
 public class SelfTailCallCatcherNode extends OzNode {
 
@@ -38,16 +39,26 @@ public class SelfTailCallCatcherNode extends OzNode {
 
 		@Child OzNode body;
 
+		final BranchProfile returnProfile = BranchProfile.create();
+		final BranchProfile tailCallProfile = BranchProfile.create();
+		final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
+
 		public SelfTailCallLoopNode(OzNode body) {
 			this.body = body;
 		}
 
 		@Override
 		public boolean executeRepeating(VirtualFrame frame) {
+			return loopProfile.profile(loopBody(frame));
+		}
+
+		private boolean loopBody(VirtualFrame frame) {
 			try {
 				body.execute(frame);
+				returnProfile.enter();
 				return false;
 			} catch (SelfTailCallException e) {
+				tailCallProfile.enter();
 				return true;
 			}
 		}
