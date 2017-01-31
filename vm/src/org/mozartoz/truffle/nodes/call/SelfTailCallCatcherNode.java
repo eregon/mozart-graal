@@ -90,9 +90,9 @@ public class SelfTailCallCatcherNode extends OzNode {
 		public Object execute(VirtualFrame frame) {
 			while (true) {
 				try {
-					Object value = body.execute(frame);
+					body.execute(frame);
 					returnProfile.enter();
-					return value;
+					return unit;
 				} catch (SelfTailCallException tailCall) {
 					tailCallProfile.enter();
 				}
