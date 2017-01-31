@@ -81,6 +81,7 @@ public class SelfTailCallCatcherNode extends OzNode {
 
 		final BranchProfile returnProfile = BranchProfile.create();
 		final BranchProfile tailCallProfile = BranchProfile.create();
+		final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
 
 		public SelfTailCallCatcherNoOSRNode(OzNode body) {
 			this.body = body;
@@ -88,14 +89,19 @@ public class SelfTailCallCatcherNode extends OzNode {
 
 		@Override
 		public Object execute(VirtualFrame frame) {
-			while (true) {
-				try {
-					body.execute(frame);
-					returnProfile.enter();
-					return unit;
-				} catch (SelfTailCallException tailCall) {
-					tailCallProfile.enter();
-				}
+			while (loopProfile.profile(loopBody(frame))) {
+			}
+			return unit;
+		}
+
+		private boolean loopBody(VirtualFrame frame) {
+			try {
+				body.execute(frame);
+				returnProfile.enter();
+				return false;
+			} catch (SelfTailCallException e) {
+				tailCallProfile.enter();
+				return true;
 			}
 		}
 
