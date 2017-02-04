@@ -27,6 +27,10 @@ public class OzGuards {
 		return value instanceof BigInteger;
 	}
 
+	public static boolean isBigIntegerClass(Class<?> klass) {
+		return BigInteger.class.isAssignableFrom(klass);
+	}
+
 	public static boolean isInteger(Object value) {
 		return value instanceof Long || value instanceof BigInteger;
 	}
@@ -42,6 +46,10 @@ public class OzGuards {
 	public static boolean isAtom(Object value) {
 		assert !(value instanceof String) || isInterned((String) value);
 		return value instanceof String;
+	}
+
+	public static boolean isAtomClass(Class<?> klass) {
+		return String.class.isAssignableFrom(klass);
 	}
 
 	public static boolean isBool(Object value) {
@@ -76,8 +84,16 @@ public class OzGuards {
 		return value instanceof OzCons;
 	}
 
+	public static boolean isConsClass(Class<?> klass) {
+		return OzCons.class.isAssignableFrom(klass);
+	}
+
 	public static boolean isRecord(Object value) {
 		return value instanceof DynamicObject;
+	}
+
+	public static boolean isRecordClass(Class<?> klass) {
+		return DynamicObject.class.isAssignableFrom(klass);
 	}
 
 	public static boolean isProc(Object value) {
@@ -124,6 +140,21 @@ public class OzGuards {
 
 	public static boolean isBound(Variable variable) {
 		return variable.isBound();
+	}
+
+	// Equality guards
+
+	public static boolean hasValueEquality(Object value) {
+		return isBool(value) || isLong(value) || isBigInteger(value) || isFloat(value);
+	}
+
+	public static boolean hasStructuralEquality(Object value) {
+		return isCons(value) || isRecord(value) || isProc(value);
+	}
+
+	public static boolean hasReferenceEquality(Object value) {
+		return !isBool(value) && !isLong(value) && !isBigInteger(value) && !isFloat(value)
+				&& !isCons(value) && !isRecord(value) && !isProc(value);
 	}
 
 }
