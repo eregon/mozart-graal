@@ -1,6 +1,7 @@
 package org.mozartoz.truffle.nodes.pattern;
 
 import org.mozartoz.truffle.nodes.DerefNode;
+import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.EqualNode;
 
@@ -20,13 +21,21 @@ public abstract class PatternMatchEqualNode extends OzNode {
 		return DerefNode.create(value);
 	}
 
+	public static OzNode create(Object constant, OzNode value) {
+		if (OzGuards.hasReferenceEquality(constant)) {
+			return PatternMatchIdentityNodeGen.create(constant, value);
+		} else {
+			return PatternMatchEqualNodeGen.create(constant, value);
+		}
+	}
+
 	public PatternMatchEqualNode(Object constant) {
 		this.constant = constant;
 	}
 
 	@Specialization
 	boolean patternMatch(Object value) {
-		return equalNode.executeEqual(value, constant);
+		return equalNode.executeEqual(constant, value);
 	}
 
 }

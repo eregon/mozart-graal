@@ -79,6 +79,7 @@ import org.mozartoz.truffle.nodes.local.WriteCapturedVariableNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNodeGen;
+import org.mozartoz.truffle.nodes.pattern.PatternMatchIdentityNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchOpenRecordNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
@@ -711,6 +712,7 @@ public class OzSerializer implements AutoCloseable {
 
 		kryo.register(BindNodeGen.class);
 		kryo.register(PatternMatchEqualNodeGen.class);
+		kryo.register(PatternMatchIdentityNodeGen.class);
 		kryo.register(PatternMatchConsNodeGen.class);
 		kryo.register(PatternMatchRecordNodeGen.class);
 		kryo.register(PatternMatchOpenRecordNodeGen.class);

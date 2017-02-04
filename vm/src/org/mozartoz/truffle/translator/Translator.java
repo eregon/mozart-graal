@@ -114,7 +114,7 @@ import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchDynamicArityNodeGen;
-import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNodeGen;
+import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchOpenRecordNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
@@ -444,7 +444,7 @@ public class Translator {
 			}
 		} else if (matcher instanceof OzFeature) {
 			Object feature = translateFeature((OzFeature) matcher);
-			checks.add(PatternMatchEqualNodeGen.create(feature, copy(valueNode)));
+			checks.add(PatternMatchEqualNode.create(feature, copy(valueNode)));
 		} else if (matcher instanceof OzRecord) {
 			OzRecord record = (OzRecord) matcher;
 			if (record.isCons()) {
