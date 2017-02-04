@@ -13,6 +13,7 @@ public class Main {
 
 	private static final String[] PASSING_TESTS = {
 			BASE_TESTS + "int.oz",
+			BASE_TESTS + "proc.oz",
 			BASE_TESTS + "dictionary.oz",
 			BASE_TESTS + "record.oz",
 			BASE_TESTS + "state.oz",
