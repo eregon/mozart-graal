@@ -344,7 +344,7 @@ public class Translator {
 
 			OzNode procBody = SequenceNode.sequence(nodes);
 			if (isSelfTailRec) { // Set when translating SelfTailCallMarker
-				procBody = SelfTailCallCatcherNode.create(procBody);
+				procBody = SelfTailCallCatcherNode.create(procBody, environment.frameDescriptor);
 			}
 			OzRootNode rootNode = new OzRootNode(sourceSection, identifier, environment.frameDescriptor, procBody, arity);
 			return t(procExpression, new ProcDeclarationNode(rootNode.toCallTarget()));

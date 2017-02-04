@@ -6,6 +6,7 @@ import org.mozartoz.truffle.runtime.OzBacktrace;
 import org.mozartoz.truffle.runtime.SelfTailCallException;
 
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.RepeatingNode;
@@ -14,19 +15,23 @@ import com.oracle.truffle.api.profiles.LoopConditionProfile;
 
 public class SelfTailCallCatcherNode extends OzNode {
 
-	OzNode body; // For serialization compliance
+	// For serialization compliance
+	final OzNode body;
+	final FrameDescriptor frameDescriptor;
+
 	@Child LoopNode loopNode;
 
-	public SelfTailCallCatcherNode(OzNode body) {
+	public SelfTailCallCatcherNode(OzNode body, FrameDescriptor frameDescriptor) {
 		this.body = body;
-		this.loopNode = Truffle.getRuntime().createLoopNode(new SelfTailCallLoopNode(body));
+		this.frameDescriptor = frameDescriptor;
+		this.loopNode = Truffle.getRuntime().createLoopNode(new SelfTailCallLoopNode(body, frameDescriptor));
 	}
 
-	public static OzNode create(OzNode body) {
+	public static OzNode create(OzNode body, FrameDescriptor frameDescriptor) {
 		if (!Options.SELF_TAIL_CALLS_OSR) {
-			return new SelfTailCallCatcherNoOSRNode(body);
+			return new SelfTailCallCatcherNoOSRNode(body, frameDescriptor);
 		}
-		return new SelfTailCallCatcherNode(body);
+		return new SelfTailCallCatcherNode(body, frameDescriptor);
 	}
 
 	@Override
@@ -39,11 +44,13 @@ public class SelfTailCallCatcherNode extends OzNode {
 
 		@Child OzNode body;
 
+		final FrameDescriptor frameDescriptor;
 		final BranchProfile returnProfile = BranchProfile.create();
 		final BranchProfile tailCallProfile = BranchProfile.create();
 		final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
 
-		public SelfTailCallLoopNode(OzNode body) {
+		public SelfTailCallLoopNode(OzNode body, FrameDescriptor frameDescriptor) {
+			this.frameDescriptor = frameDescriptor;
 			this.body = body;
 		}
 
@@ -54,7 +61,7 @@ public class SelfTailCallCatcherNode extends OzNode {
 
 		private boolean loopBody(VirtualFrame frame) {
 			try {
-				body.execute(frame);
+				body.execute(Truffle.getRuntime().createVirtualFrame(frame.getArguments(), frameDescriptor));
 				returnProfile.enter();
 				return false;
 			} catch (SelfTailCallException e) {
@@ -79,12 +86,14 @@ public class SelfTailCallCatcherNode extends OzNode {
 
 		@Child OzNode body;
 
+		final FrameDescriptor frameDescriptor;
 		final BranchProfile returnProfile = BranchProfile.create();
 		final BranchProfile tailCallProfile = BranchProfile.create();
 		final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
 
-		public SelfTailCallCatcherNoOSRNode(OzNode body) {
+		public SelfTailCallCatcherNoOSRNode(OzNode body, FrameDescriptor frameDescriptor) {
 			this.body = body;
+			this.frameDescriptor = frameDescriptor;
 		}
 
 		@Override
@@ -96,7 +105,7 @@ public class SelfTailCallCatcherNode extends OzNode {
 
 		private boolean loopBody(VirtualFrame frame) {
 			try {
-				body.execute(frame);
+				body.execute(Truffle.getRuntime().createVirtualFrame(frame.getArguments(), frameDescriptor));
 				returnProfile.enter();
 				return false;
 			} catch (SelfTailCallException e) {

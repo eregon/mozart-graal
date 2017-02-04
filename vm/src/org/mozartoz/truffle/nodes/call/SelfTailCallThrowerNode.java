@@ -22,6 +22,8 @@ public class SelfTailCallThrowerNode extends OzNode {
 
 	@ExplodeLoop
 	public void replaceArguments(VirtualFrame frame) {
+		// It's OK to override user arguments here, as when the frame is
+		// captured they will have been copied to the frame slots.
 		for (int i = 0; i < arguments.length; i++) {
 			OzArguments.setArgument(frame, i, arguments[i].execute(frame));
 		}
