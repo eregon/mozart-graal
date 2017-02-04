@@ -48,7 +48,7 @@ if vm_options.delete('--fg')
 end
 
 if vm_options.delete('--igv')
-  java_opts << "-Dgraal.Dump=TruffleTree,PartialEscape"
+  java_opts << "-Dgraal.Dump=TruffleTree,PartialEscape,RemoveValueProxy"
   java_opts << "-Dgraal.PrintBackendCFG=false"
   java_opts << "-Dgraal.TruffleBackgroundCompilation=false"
 end
