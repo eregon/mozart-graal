@@ -9,6 +9,11 @@ public class RecordObjectType extends ObjectType {
 	public static final RecordObjectType INSTANCE = new RecordObjectType();
 
 	@Override
+	public boolean equals(DynamicObject object, Object other) {
+		throw new UnsupportedOperationException("Record and DynamicObject have structural equality");
+	}
+
+	@Override
 	public String toString(DynamicObject record) {
 		Object label = Arity.LABEL_LOCATION.get(record);
 		StringBuilder builder = new StringBuilder();

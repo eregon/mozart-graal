@@ -34,6 +34,11 @@ public class OzCons {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		throw new UnsupportedOperationException("OzCons has structural equality");
+	}
+
+	@Override
 	public String toString() {
 		return head + "|" + tail;
 	}
