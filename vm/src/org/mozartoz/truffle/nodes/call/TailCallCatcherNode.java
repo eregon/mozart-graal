@@ -69,6 +69,7 @@ public class TailCallCatcherNode extends CallableNode {
 
 		private final FrameSlot tailCallSlot;
 		private final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
+		private final BranchProfile normalCallProfile = BranchProfile.create();
 		private final BranchProfile exceptionProfile = BranchProfile.create();
 
 		@Child CallNode callNode = CallNodeGen.create(null, null);
@@ -95,6 +96,7 @@ public class TailCallCatcherNode extends CallableNode {
 			TailCallException tailCall = (TailCallException) FrameUtil.getObjectSafe(frame, tailCallSlot);
 			try {
 				callNode.executeCall(frame, tailCall.receiver, tailCall.arguments);
+				normalCallProfile.enter();
 				return false;
 			} catch (TailCallException exception) {
 				exceptionProfile.enter();
