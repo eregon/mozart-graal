@@ -4,10 +4,12 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
 import org.mozartoz.truffle.nodes.OzNode;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class FloatBuiltins {
 
@@ -45,9 +47,45 @@ public abstract class FloatBuiltins {
 	@NodeChild("value")
 	public static abstract class ToIntNode extends OzNode {
 
+		// round-to-even
 		@Specialization
-		long toInt(double value) {
-			return Math.round(value);
+		long toInt(double value,
+				@Cached("createBinaryProfile()") ConditionProfile positive,
+				@Cached("createBinaryProfile()") ConditionProfile roundPosUp,
+				@Cached("createBinaryProfile()") ConditionProfile roundPosDown,
+				@Cached("createBinaryProfile()") ConditionProfile roundPosEven,
+				@Cached("createBinaryProfile()") ConditionProfile roundNegUp,
+				@Cached("createBinaryProfile()") ConditionProfile roundNegDown,
+				@Cached("createBinaryProfile()") ConditionProfile roundNegEven) {
+			long floor = (long) value; // rounds towards 0: -3.9 => -3
+			double error = value - floor;
+			assert error > -1.0 && error < 1.0;
+
+			if (positive.profile(value >= 0.0)) {
+				if (roundPosDown.profile(error < 0.5)) {
+					return floor;
+				} else if (roundPosUp.profile(error > 0.5)) {
+					return floor + 1;
+				} else {
+					if (roundPosEven.profile((floor & 1) == 0)) {
+						return floor;
+					} else {
+						return floor + 1;
+					}
+				}
+			} else {
+				if (roundNegUp.profile(error > -0.5)) {
+					return floor;
+				} else if (roundNegDown.profile(error < -0.5)) {
+					return floor - 1;
+				} else {
+					if (roundNegEven.profile((floor & 1) == 0)) {
+						return floor;
+					} else {
+						return floor - 1;
+					}
+				}
+			}
 		}
 
 	}
