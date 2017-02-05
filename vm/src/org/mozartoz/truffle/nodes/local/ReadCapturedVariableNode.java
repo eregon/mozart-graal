@@ -9,12 +9,12 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class ReadCapturedVariableNode extends OzNode implements FrameSlotNode {
 
-	@Child ReadFrameSlotNode readFrameSlotNode;
+	@Child CachingReadFrameSlotNode readFrameSlotNode;
 
 	final int depth;
 
 	public ReadCapturedVariableNode(FrameSlot slot, int depth) {
-		this.readFrameSlotNode = ReadFrameSlotNodeGen.create(slot);
+		this.readFrameSlotNode = CachingReadFrameSlotNodeGen.create(slot);
 		this.depth = depth;
 	}
 
