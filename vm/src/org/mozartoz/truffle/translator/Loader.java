@@ -123,6 +123,10 @@ public class Loader {
 		return engine;
 	}
 
+	public boolean isLoadingBase() {
+		return base == null;
+	}
+
 	public DynamicObject loadBase() {
 		if (base == null) {
 			tick("start loading Base");

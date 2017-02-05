@@ -1,10 +1,12 @@
 package org.mozartoz.truffle.nodes.call;
 
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzProc;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -26,14 +28,14 @@ public abstract class CallProcNode extends OzNode {
 	@Specialization(guards = "proc == cachedProc", limit = "1")
 	protected Object callProcIdentity(VirtualFrame frame, OzProc proc, Object[] arguments,
 			@Cached("proc") OzProc cachedProc,
-			@Cached("create(cachedProc.callTarget)") DirectCallNode callNode) {
+			@Cached("createDirectCallNode(cachedProc.callTarget)") DirectCallNode callNode) {
 		return callNode.call(frame, OzArguments.pack(cachedProc.declarationFrame, arguments));
 	}
 
 	@Specialization(guards = "proc.callTarget == cachedCallTarget", contains = "callProcIdentity")
 	protected Object callDirect(VirtualFrame frame, OzProc proc, Object[] arguments,
 			@Cached("proc.callTarget") RootCallTarget cachedCallTarget,
-			@Cached("create(cachedCallTarget)") DirectCallNode callNode) {
+			@Cached("createDirectCallNode(cachedCallTarget)") DirectCallNode callNode) {
 		return callNode.call(frame, OzArguments.pack(proc.declarationFrame, arguments));
 	}
 
@@ -41,6 +43,17 @@ public abstract class CallProcNode extends OzNode {
 	protected Object callIndirect(VirtualFrame frame, OzProc proc, Object[] arguments,
 			@Cached("create()") IndirectCallNode callNode) {
 		return callNode.call(frame, proc.callTarget, OzArguments.pack(proc.declarationFrame, arguments));
+	}
+
+	protected DirectCallNode createDirectCallNode(RootCallTarget callTarget) {
+		DirectCallNode callNode = DirectCallNode.create(callTarget);
+		OzRootNode rootNode = (OzRootNode) callTarget.getRootNode();
+		if (rootNode.isForceSplitting()) {
+			boolean cloned = callNode.cloneCallTarget();
+			callNode.forceInlining();
+			assert Truffle.getRuntime().getName().startsWith("Default") || cloned;
+		}
+		return callNode;
 	}
 
 }

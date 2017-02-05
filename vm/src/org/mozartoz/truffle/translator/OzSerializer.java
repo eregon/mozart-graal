@@ -256,6 +256,7 @@ public class OzSerializer implements AutoCloseable {
 			kryo.writeObject(output, rootNode.getFrameDescriptor());
 			kryo.writeClassAndObject(output, rootNode.getBody());
 			output.writeInt(rootNode.getArity());
+			output.writeBoolean(rootNode.isForceSplitting());
 		}
 
 		public OzRootNode read(Kryo kryo, Input input, Class<OzRootNode> type) {
@@ -264,7 +265,8 @@ public class OzSerializer implements AutoCloseable {
 			FrameDescriptor frameDescriptor = kryo.readObject(input, FrameDescriptor.class);
 			OzNode body = (OzNode) kryo.readClassAndObject(input);
 			int arity = input.readInt();
-			return new OzRootNode(sourceSection, name, frameDescriptor, body, arity);
+			boolean forceSplitting = input.readBoolean();
+			return new OzRootNode(sourceSection, name, frameDescriptor, body, arity, forceSplitting);
 		}
 	}
 

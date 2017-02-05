@@ -36,7 +36,7 @@ public class OzLanguage extends TruffleLanguage<Object> {
 		RunCallTargetNode runOzTarget = new RunCallTargetNode(ozTarget);
 		String name = ozTarget.getRootNode().getName();
 		FrameDescriptor frameDescriptor = new FrameDescriptor();
-		OzRootNode rootNode = new OzRootNode(Loader.MAIN_SOURCE_SECTION, name, frameDescriptor, runOzTarget, -OzArguments.IMPLICIT_ARGUMENTS);
+		OzRootNode rootNode = new OzRootNode(Loader.MAIN_SOURCE_SECTION, name, frameDescriptor, runOzTarget, -OzArguments.IMPLICIT_ARGUMENTS, false);
 		return rootNode.toCallTarget();
 	}
 

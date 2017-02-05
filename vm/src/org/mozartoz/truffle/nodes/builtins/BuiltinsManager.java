@@ -160,7 +160,7 @@ public abstract class BuiltinsManager {
 			String name = module + "." + builtinName;
 
 			SourceSection sourceSection = builtinSourceSection(builtinName);
-			OzRootNode rootNode = new OzRootNode(sourceSection, name, new FrameDescriptor(), node, arity);
+			OzRootNode rootNode = new OzRootNode(sourceSection, name, new FrameDescriptor(), node, arity, true);
 			OzProc function = new OzProc(rootNode.toCallTarget(), null, arity);
 
 			assert !BUILTINS.containsKey(name) : name;

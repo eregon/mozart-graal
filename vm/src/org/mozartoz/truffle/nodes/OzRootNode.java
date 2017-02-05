@@ -18,19 +18,22 @@ public class OzRootNode extends RootNode {
 
 	public static OzRootNode createTopRootNode(String name, OzNode body) {
 		final TopLevelHandlerNode handler = new TopLevelHandlerNode(body);
-		return new OzRootNode(Loader.MAIN_SOURCE_SECTION, name, new FrameDescriptor(), handler, 0);
+		return new OzRootNode(Loader.MAIN_SOURCE_SECTION, name, new FrameDescriptor(), handler, 0, false);
 	}
 
 	private final String name;
 	private final int arity;
+	private final boolean forceSplitting;
+
 	@Child OzNode body;
 
-	public OzRootNode(SourceSection sourceSection, String name, FrameDescriptor frameDescriptor, OzNode body, int arity) {
+	public OzRootNode(SourceSection sourceSection, String name, FrameDescriptor frameDescriptor, OzNode body, int arity, boolean forceSplitting) {
 		super(OzLanguage.class, sourceSection, frameDescriptor);
 		assert sourceSection != null;
 		this.name = name;
 		this.body = body;
 		this.arity = arity;
+		this.forceSplitting = forceSplitting;
 
 		// Mark the body with the RootTag and make it has a source section
 		body.hasRootTag = true;
@@ -55,6 +58,10 @@ public class OzRootNode extends RootNode {
 
 	public OzNode getBody() {
 		return body;
+	}
+
+	public boolean isForceSplitting() {
+		return forceSplitting;
 	}
 
 	public RootCallTarget toCallTarget() {

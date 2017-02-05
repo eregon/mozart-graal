@@ -198,7 +198,7 @@ public class Translator {
 		OzNode wrapped = wrap.apply(translated);
 		OzNode handler = new TopLevelHandlerNode(wrapped);
 
-		OzRootNode rootNode = new OzRootNode(Loader.MAIN_SOURCE_SECTION, description, environment.frameDescriptor, handler, 0);
+		OzRootNode rootNode = new OzRootNode(Loader.MAIN_SOURCE_SECTION, description, environment.frameDescriptor, handler, 0, false);
 		return rootNode.toCallTarget();
 	}
 
@@ -346,7 +346,8 @@ public class Translator {
 			if (isSelfTailRec) { // Set when translating SelfTailCallMarker
 				procBody = SelfTailCallCatcherNode.create(procBody, environment.frameDescriptor);
 			}
-			OzRootNode rootNode = new OzRootNode(sourceSection, identifier, environment.frameDescriptor, procBody, arity);
+			boolean forceSplitting = Loader.getInstance().isLoadingBase();
+			OzRootNode rootNode = new OzRootNode(sourceSection, identifier, environment.frameDescriptor, procBody, arity, forceSplitting);
 			return t(procExpression, new ProcDeclarationNode(rootNode.toCallTarget()));
 		} finally {
 			popEnvironment();
