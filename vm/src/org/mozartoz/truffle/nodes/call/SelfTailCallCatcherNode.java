@@ -29,7 +29,7 @@ public class SelfTailCallCatcherNode extends OzNode {
 
 	public static OzNode create(OzNode body, FrameDescriptor frameDescriptor) {
 		if (!Options.SELF_TAIL_CALLS_OSR) {
-			return new SelfTailCallCatcherNoOSRNode(body, frameDescriptor);
+			return new SelfTailCallLoopNode(body, frameDescriptor);
 		}
 		return new SelfTailCallCatcherNode(body, frameDescriptor);
 	}
@@ -54,6 +54,15 @@ public class SelfTailCallCatcherNode extends OzNode {
 			this.body = body;
 		}
 
+		// normal
+		@Override
+		public Object execute(VirtualFrame frame) {
+			while (loopProfile.profile(loopBody(frame))) {
+			}
+			return unit;
+		}
+
+		// OSR
 		@Override
 		public boolean executeRepeating(VirtualFrame frame) {
 			return loopProfile.profile(loopBody(frame));
@@ -70,48 +79,10 @@ public class SelfTailCallCatcherNode extends OzNode {
 			}
 		}
 
-		@Override
-		public Object execute(VirtualFrame frame) {
-			throw new UnsupportedOperationException();
-		}
-
+		// OSR
 		@Override
 		public String toString() {
 			return OzBacktrace.formatNode(this);
-		}
-
-	}
-
-	public static class SelfTailCallCatcherNoOSRNode extends OzNode {
-
-		@Child OzNode body;
-
-		final FrameDescriptor frameDescriptor;
-		final BranchProfile returnProfile = BranchProfile.create();
-		final BranchProfile tailCallProfile = BranchProfile.create();
-		final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
-
-		public SelfTailCallCatcherNoOSRNode(OzNode body, FrameDescriptor frameDescriptor) {
-			this.body = body;
-			this.frameDescriptor = frameDescriptor;
-		}
-
-		@Override
-		public Object execute(VirtualFrame frame) {
-			while (loopProfile.profile(loopBody(frame))) {
-			}
-			return unit;
-		}
-
-		private boolean loopBody(VirtualFrame frame) {
-			try {
-				body.execute(Truffle.getRuntime().createVirtualFrame(frame.getArguments(), frameDescriptor));
-				returnProfile.enter();
-				return false;
-			} catch (SelfTailCallException e) {
-				tailCallProfile.enter();
-				return true;
-			}
 		}
 
 	}

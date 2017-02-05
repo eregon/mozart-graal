@@ -46,7 +46,6 @@ import org.mozartoz.truffle.nodes.call.CallNodeGen;
 import org.mozartoz.truffle.nodes.call.CallProcNodeGen;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.call.SelfTailCallCatcherNode;
-import org.mozartoz.truffle.nodes.call.SelfTailCallCatcherNode.SelfTailCallCatcherNoOSRNode;
 import org.mozartoz.truffle.nodes.call.SelfTailCallThrowerNode;
 import org.mozartoz.truffle.nodes.call.TailCallCatcherNode;
 import org.mozartoz.truffle.nodes.call.TailCallThrowerNode;
@@ -688,7 +687,6 @@ public class OzSerializer implements AutoCloseable {
 		kryo.register(TailCallCatcherNode.class);
 		kryo.register(TailCallThrowerNode.class);
 		kryo.register(SelfTailCallCatcherNode.class);
-		kryo.register(SelfTailCallCatcherNoOSRNode.class);
 		kryo.register(SelfTailCallThrowerNode.class);
 
 		kryo.register(ReadLocalVariableNode.class);
