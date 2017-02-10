@@ -8,6 +8,7 @@ import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.Registration;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -22,6 +23,7 @@ import com.oracle.truffle.api.source.Source;
 public class OzLanguage extends TruffleLanguage<Object> {
 
 	public static final String MIME_TYPE = "application/x-oz";
+	public static final boolean ON_GRAAL = Truffle.getRuntime().getName().startsWith("Graal");
 
 	public static final OzLanguage INSTANCE = new OzLanguage();
 
