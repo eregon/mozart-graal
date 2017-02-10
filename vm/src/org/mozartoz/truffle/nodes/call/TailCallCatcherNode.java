@@ -67,7 +67,8 @@ public class TailCallCatcherNode extends CallableNode {
 
 	public static class TailCallLoopNode extends OzNode implements RepeatingNode {
 
-		private final FrameSlot tailCallSlot;
+		private final FrameSlot receiverSlot;
+		private final FrameSlot argumentsSlot;
 		private final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
 		private final BranchProfile normalCallProfile = BranchProfile.create();
 		private final BranchProfile exceptionProfile = BranchProfile.create();
@@ -75,15 +76,19 @@ public class TailCallCatcherNode extends CallableNode {
 		@Child CallNode callNode = CallNodeGen.create(null, null);
 
 		public TailCallLoopNode(FrameDescriptor frameDescriptor) {
-			this.tailCallSlot = frameDescriptor.findOrAddFrameSlot("<OSRtailCall>", FrameSlotKind.Object);
+			this.receiverSlot = frameDescriptor.findOrAddFrameSlot("<OSRtailCallReceiver>", FrameSlotKind.Object);
+			this.argumentsSlot = frameDescriptor.findOrAddFrameSlot("<OSRtailCallArgs>", FrameSlotKind.Object);
+			loopProfile.profile(false);
 		}
 
 		public void setTailCallException(VirtualFrame frame, TailCallException tailCall) {
-			frame.setObject(tailCallSlot, tailCall);
+			frame.setObject(receiverSlot, tailCall.receiver);
+			frame.setObject(argumentsSlot, tailCall.arguments);
 		}
 
 		public Object getResult(VirtualFrame frame) {
-			setTailCallException(frame, null);
+			frame.setObject(receiverSlot, null);
+			frame.setObject(argumentsSlot, null);
 			return unit;
 		}
 
@@ -93,9 +98,10 @@ public class TailCallCatcherNode extends CallableNode {
 		}
 
 		private boolean loopBody(VirtualFrame frame) {
-			TailCallException tailCall = (TailCallException) FrameUtil.getObjectSafe(frame, tailCallSlot);
+			Object receiver = FrameUtil.getObjectSafe(frame, receiverSlot);
+			Object[] arguments = (Object[]) FrameUtil.getObjectSafe(frame, argumentsSlot);
 			try {
-				callNode.executeCall(frame, tailCall.receiver, tailCall.arguments);
+				callNode.executeCall(frame, receiver, arguments);
 				normalCallProfile.enter();
 				return false;
 			} catch (TailCallException exception) {
