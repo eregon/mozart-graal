@@ -2,6 +2,7 @@
 /vm/.classpath
 /vm/.factorypath
 /vm/bin/
+/vm/jvmci/jdk-8u92-linux-x64.tar.gz
 
 /wish/ozwish
 
