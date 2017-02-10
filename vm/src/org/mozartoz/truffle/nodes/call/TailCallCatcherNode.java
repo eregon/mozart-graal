@@ -1,7 +1,12 @@
 package org.mozartoz.truffle.nodes.call;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzBacktrace;
+import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.TailCallException;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -56,7 +61,7 @@ public class TailCallCatcherNode extends CallableNode {
 	private Object tailCallLoop(VirtualFrame frame, TailCallException tailCall) {
 		if (loopNode == null) {
 			CompilerDirectives.transferToInterpreterAndInvalidate();
-			this.loopNode = insert(Truffle.getRuntime().createLoopNode(new TailCallLoopNode(frame.getFrameDescriptor())));
+			this.loopNode = insert(TailCallLoopNode.createOptimizedLoopNode(frame.getFrameDescriptor()));
 		}
 
 		TailCallLoopNode tailCallLoop = (TailCallLoopNode) loopNode.getRepeatingNode();
@@ -119,6 +124,27 @@ public class TailCallCatcherNode extends CallableNode {
 		@Override
 		public String toString() {
 			return OzBacktrace.formatNode(this);
+		}
+
+		static LoopNode createOptimizedLoopNode(FrameDescriptor frameDescriptor) {
+			TailCallLoopNode repeatingNode = new TailCallLoopNode(frameDescriptor);
+			LoopNode loopNode = Truffle.getRuntime().createLoopNode(repeatingNode);
+			if (!OzLanguage.ON_GRAAL) {
+				return loopNode;
+			}
+			try {
+				Method createOSRLoop = loopNode.getClass().getMethod("createOSRLoop", new Class[] {
+						RepeatingNode.class, int.class, int.class, FrameSlot[].class, FrameSlot[].class });
+				FrameSlot[] slots = new FrameSlot[] { repeatingNode.receiverSlot, repeatingNode.argumentsSlot };
+				return (LoopNode) createOSRLoop.invoke(null,
+						repeatingNode,
+						Options.TruffleOSRCompilationThreshold,
+						Options.TruffleInvalidationReprofileCount,
+						slots,
+						slots);
+			} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+				throw new Error(e);
+			}
 		}
 
 	}

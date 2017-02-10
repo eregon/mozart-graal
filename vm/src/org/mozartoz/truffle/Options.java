@@ -17,8 +17,16 @@ public abstract class Options {
 
 	public static final boolean STACKTRACE_ON_INTERRUPT = System.getProperty("oz.stacktrace.on_interrupt") != null;
 
+	// Truffle options
+	public static final int TruffleInvalidationReprofileCount = integer("graal.TruffleInvalidationReprofileCount", 3);
+	public static final int TruffleOSRCompilationThreshold = integer("graal.TruffleOSRCompilationThreshold", 100_000);
+
 	private static boolean bool(String property, boolean defaultValue) {
 		return Boolean.valueOf(System.getProperty(property, Boolean.toString(defaultValue)));
+	}
+
+	private static int integer(String property, int defaultValue) {
+		return Integer.valueOf(System.getProperty(property, Integer.toString(defaultValue)));
 	}
 
 }
