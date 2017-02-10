@@ -85,7 +85,7 @@ namespace :build do
   end
 
   file GRAAL => TRUFFLE do
-    sh "git clone https://github.com/eregon/graal-core.git #{GRAAL}"
+    sh "git clone https://github.com/eregon/graal-core.git #{GRAAL}" unless GRAAL.directory?
     sh "cd #{GRAAL} && git checkout coro"
   end
 
