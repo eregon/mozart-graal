@@ -2,6 +2,7 @@ To build JVMCI on Linux, you most likely need an older compiler.
 The easiest way to do this is via Docker.
 
 First, download the `Java SE Development Kit 8u92` from [the archive](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html#jdk-8u92-oth-JPR).
+
 Move the downloaded file `jdk-8u92-linux-x64.tar.gz` to this directory next to the `Dockerfile`.
 
 Start Docker if it is not already started:
