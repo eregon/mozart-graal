@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
+import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -57,7 +58,9 @@ public abstract class Variable {
 		assert !(value instanceof Variable);
 		assert !(this instanceof OzFuture) || from instanceof OzFuture;
 		this.value = value;
-		this.next = null; // Set to null or to this?
+		if (Options.FREE_LINKS) {
+			this.next = null; // Set to null or to this?
+		}
 	}
 
 	public void bind(Object value) {
