@@ -18,6 +18,8 @@ public abstract class Options {
 	public static final boolean STACKTRACE_ON_INTERRUPT = System.getProperty("oz.stacktrace.on_interrupt") != null;
 	public static final String PRINT_NLINKS = System.getProperty("oz.print.nlinks", null);
 
+	public static final boolean FREE_LINKS = bool("oz.free.links", true);
+
 	// Truffle options
 	public static final int TruffleInvalidationReprofileCount = integer("graal.TruffleInvalidationReprofileCount", 3);
 	public static final int TruffleOSRCompilationThreshold = integer("graal.TruffleOSRCompilationThreshold", 100_000);
