@@ -16,6 +16,7 @@ public abstract class Options {
 	public static final boolean SELF_TAIL_CALLS_OSR = bool("oz.tail.selfcalls.osr", true);
 
 	public static final boolean STACKTRACE_ON_INTERRUPT = System.getProperty("oz.stacktrace.on_interrupt") != null;
+	public static final String PRINT_NLINKS = System.getProperty("oz.print.nlinks", null);
 
 	// Truffle options
 	public static final int TruffleInvalidationReprofileCount = integer("graal.TruffleInvalidationReprofileCount", 3);
