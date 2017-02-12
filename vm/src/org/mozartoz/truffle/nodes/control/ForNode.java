@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes.control;
 
+import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.call.CallNode;
 import org.mozartoz.truffle.nodes.call.CallableNode;
@@ -16,6 +17,9 @@ public class ForNode extends OzNode {
 	@Child OzNode toNode;
 	@Child OzNode procNode;
 
+	@Child DerefNode fromDerefNode = DerefNode.create();
+	@Child DerefNode toDerefNode = DerefNode.create();
+
 	@Child CallableNode callNode = CallNode.create(null, null);
 	private final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
 
@@ -27,8 +31,8 @@ public class ForNode extends OzNode {
 
 	@Override
 	public Object execute(VirtualFrame frame) {
-		long from = (long) fromNode.execute(frame);
-		long to = (long) toNode.execute(frame);
+		long from = (long) fromDerefNode.executeDeref(fromNode.execute(frame));
+		long to = (long) toDerefNode.executeDeref(toNode.execute(frame));
 
 		int count = 0;
 		if (CompilerDirectives.inInterpreter()) {
