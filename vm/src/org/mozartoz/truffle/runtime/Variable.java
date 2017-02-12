@@ -57,15 +57,17 @@ public abstract class Variable {
 		assert !(value instanceof Variable);
 		assert !(this instanceof OzFuture) || from instanceof OzFuture;
 		this.value = value;
+		this.next = null; // Set to null or to this?
 	}
 
 	public void bind(Object value) {
+		Variable var = this.next, next;
 		setInternalValue(value, this);
 
-		Variable var = next;
 		while (var != this) {
+			next = var.next;
 			var.setInternalValue(value, this);
-			var = var.next;
+			var = next;
 		}
 	}
 
