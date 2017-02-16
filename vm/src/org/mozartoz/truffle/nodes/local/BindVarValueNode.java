@@ -37,8 +37,9 @@ public abstract class BindVarValueNode extends OzNode {
 	@Specialization(guards = { "var.getNext() != var", "var.getNext().getNext().getNext() == var" })
 	Object bind3(Variable var, Object value) {
 		print_nlinks(var);
-		Variable next1 = var.getNext(), next2 = next1.getNext();
+		Variable next1 = var.getNext();
 		var.setInternalValue(value, var);
+		Variable next2 = next1.getNext();
 		next1.setInternalValue(value, var);
 		next2.setInternalValue(value, var);
 		return value;
@@ -52,14 +53,14 @@ public abstract class BindVarValueNode extends OzNode {
 	}
 
 	public static void print_nlinks(Variable var) {
-		if (Options.PRINT_NLINKS != null) {
+		if (Options.PRINT_NLINKS) {
 			int count = 1;
 			Variable current = var.getNext();
 			while (current != var) {
 				count += 1;
 				current = current.getNext();
 			}
-			System.out.println(Options.PRINT_NLINKS + " --- " + count);
+			System.out.println("nlinks --- " + count);
 		}
 	}
 
