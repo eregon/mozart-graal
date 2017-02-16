@@ -104,16 +104,14 @@ public abstract class Variable {
 		return getBoundValue(currentNode);
 	}
 
-	public void countLinks() {
-		if (Options.PRINT_NLINKS) {
-			int count = 1;
-			Variable current = this.getNext();
-			while (current != this) {
-				count += 1;
-				current = current.getNext();
-			}
-			System.out.println("nlinks --- " + count);
+	public int countLinks() {
+		int count = 1;
+		Variable current = this.getNext();
+		while (current != this) {
+			count += 1;
+			current = current.getNext();
 		}
+		return count;
 	}
 
 	@Override
