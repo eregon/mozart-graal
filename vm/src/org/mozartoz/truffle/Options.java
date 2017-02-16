@@ -17,15 +17,21 @@ public abstract class Options {
 
 	public static final boolean STACKTRACE_ON_INTERRUPT = System.getProperty("oz.stacktrace.on_interrupt") != null;
 
-	public static final boolean PRINT_NLINKS = bool("oz.print.nlinks", false);
 	public static final boolean FREE_LINKS = bool("oz.free.links", true);
+	public static final boolean PRINT_NLINKS = bool("oz.print.nlinks", false);
 
 	// Truffle options
 	public static final int TruffleInvalidationReprofileCount = integer("graal.TruffleInvalidationReprofileCount", 3);
 	public static final int TruffleOSRCompilationThreshold = integer("graal.TruffleOSRCompilationThreshold", 100_000);
 
 	private static boolean bool(String property, boolean defaultValue) {
-		return Boolean.valueOf(System.getProperty(property, Boolean.toString(defaultValue)));
+		String value = System.getProperty(property, Boolean.toString(defaultValue));
+		if (value.equalsIgnoreCase("true")) {
+			return true;
+		} else if (value.equalsIgnoreCase("false")) {
+			return false;
+		}
+		throw new RuntimeException(property + " was expected to be true or false, got " + value);
 	}
 
 	private static int integer(String property, int defaultValue) {
