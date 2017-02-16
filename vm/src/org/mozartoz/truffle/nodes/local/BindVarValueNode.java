@@ -1,6 +1,5 @@
 package org.mozartoz.truffle.nodes.local;
 
-import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.runtime.Variable;
@@ -20,14 +19,14 @@ public abstract class BindVarValueNode extends OzNode {
 
 	@Specialization(guards = "var.getNext() == var")
 	Object bind1(Variable var, Object value) {
-		print_nlinks(var);
+		var.countLinks();
 		var.setInternalValue(value, var);
 		return value;
 	}
 
 	@Specialization(guards = { "var.getNext() != var", "var.getNext().getNext() == var" })
 	Object bind2(Variable var, Object value) {
-		print_nlinks(var);
+		var.countLinks();
 		Variable next = var.getNext();
 		var.setInternalValue(value, var);
 		next.setInternalValue(value, var);
@@ -36,7 +35,7 @@ public abstract class BindVarValueNode extends OzNode {
 
 	@Specialization(guards = { "var.getNext() != var", "var.getNext().getNext().getNext() == var" })
 	Object bind3(Variable var, Object value) {
-		print_nlinks(var);
+		var.countLinks();
 		Variable next1 = var.getNext();
 		var.setInternalValue(value, var);
 		Variable next2 = next1.getNext();
@@ -47,21 +46,9 @@ public abstract class BindVarValueNode extends OzNode {
 
 	@Specialization(contains = { "bind1", "bind2", "bind3" })
 	Object bindLeft(OzVar var, Object value) {
-		print_nlinks(var);
+		var.countLinks();
 		var.bind(value);
 		return value;
-	}
-
-	public static void print_nlinks(Variable var) {
-		if (Options.PRINT_NLINKS) {
-			int count = 1;
-			Variable current = var.getNext();
-			while (current != var) {
-				count += 1;
-				current = current.getNext();
-			}
-			System.out.println("nlinks --- " + count);
-		}
 	}
 
 }
