@@ -40,7 +40,7 @@ public abstract class CallProcNode extends OzNode {
 		return callNode.call(frame, OzArguments.pack(proc.declarationFrame, arguments));
 	}
 
-	@Specialization
+	@Specialization(contains = "callDirect")
 	protected Object callIndirect(VirtualFrame frame, OzProc proc, Object[] arguments,
 			@Cached("create()") IndirectCallNode callNode) {
 		return callNode.call(frame, proc.callTarget, OzArguments.pack(proc.declarationFrame, arguments));
