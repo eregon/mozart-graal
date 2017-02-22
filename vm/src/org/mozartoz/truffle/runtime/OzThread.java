@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.mozartoz.truffle.Options;
 
+import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.coro.Coroutine;
@@ -35,6 +36,7 @@ public class OzThread implements Runnable {
 
 	private final Coroutine coroutine;
 	private final OzProc proc;
+	private final CallTarget initialCall;
 
 	private String status = "runnable";
 	private boolean raiseOnBlock = false;
@@ -42,11 +44,13 @@ public class OzThread implements Runnable {
 	private OzThread() {
 		coroutine = (Coroutine) Coroutine.current();
 		proc = null;
+		initialCall = null;
 		setInitialOzThread();
 	}
 
-	public OzThread(OzProc proc) {
+	public OzThread(OzProc proc, CallTarget initialCall) {
 		this.proc = proc;
+		this.initialCall = initialCall;
 		this.coroutine = new Coroutine(this, 1024 * 1024); // 256 seems OK if we parse outside the coro
 		threadsCreated++;
 	}
@@ -80,7 +84,7 @@ public class OzThread implements Runnable {
 		setInitialOzThread();
 		threadsRunnable++;
 		try {
-			proc.rootCall("Thread.create");
+			initialCall.call(OzArguments.pack(null, new Object[0]));
 		} finally {
 			threadsRunnable--;
 			status = "terminated";

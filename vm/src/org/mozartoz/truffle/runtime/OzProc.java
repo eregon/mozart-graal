@@ -45,7 +45,11 @@ public class OzProc {
 
 	/** Wraps itself in a CallNode so it works well with TailCallException */
 	public CallTarget wrap(String identifier, Object[] arguments) {
-		OzNode callNode = CallNode.create(new LiteralNode(this), new LiteralNode(arguments));
+		return wrap(identifier, new LiteralNode(this), arguments);
+	}
+
+	public static CallTarget wrap(String identifier, OzNode procNode, Object[] arguments) {
+		OzNode callNode = CallNode.create(procNode, new LiteralNode(arguments));
 		return OzRootNode.createTopRootNode(identifier, callNode).toCallTarget();
 	}
 
