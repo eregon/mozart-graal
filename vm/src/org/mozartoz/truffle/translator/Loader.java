@@ -33,6 +33,7 @@ import org.mozartoz.truffle.runtime.PropertyRegistry;
 import org.mozartoz.truffle.runtime.StacktraceThread;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -283,6 +284,7 @@ public class Loader {
 		childProcesses.add(process);
 	}
 
+	@TruffleBoundary
 	public void shutdown(int exitCode) {
 		for (Process process : childProcesses) {
 			process.destroyForcibly();
