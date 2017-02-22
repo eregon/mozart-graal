@@ -47,6 +47,12 @@ if vm_options.delete('--fg')
   java_opts << "-Dgraal.TruffleBackgroundCompilation=false"
 end
 
+if vm_options.delete('--stress')
+  java_opts << '-Dgraal.TruffleCompileImmediately=true'
+  java_opts << '-Dgraal.TruffleBackgroundCompilation=false'
+  java_opts << '-Dgraal.TruffleCompilationExceptionsAreFatal=true'
+end
+
 if vm_options.delete('--igv')
   java_opts << "-Dgraal.Dump=TruffleTree,PartialEscape,RemoveValueProxy"
   java_opts << "-Dgraal.PrintBackendCFG=false"
