@@ -20,6 +20,8 @@ public abstract class Options {
 	public static final boolean FREE_LINKS = bool("oz.free.links", true);
 	public static final boolean PRINT_NLINKS = bool("oz.print.nlinks", false);
 
+	public static final boolean SPLIT_BUILTINS = bool("oz.builtins.split", true);
+
 	// Truffle options
 	public static final int TruffleInvalidationReprofileCount = integer("graal.TruffleInvalidationReprofileCount", 3);
 	public static final int TruffleOSRCompilationThreshold = integer("graal.TruffleOSRCompilationThreshold", 100_000);

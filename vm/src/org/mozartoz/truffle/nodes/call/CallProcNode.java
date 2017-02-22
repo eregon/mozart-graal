@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes.call;
 
+import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.runtime.OzArguments;
@@ -48,7 +49,7 @@ public abstract class CallProcNode extends OzNode {
 	protected DirectCallNode createDirectCallNode(RootCallTarget callTarget) {
 		DirectCallNode callNode = DirectCallNode.create(callTarget);
 		OzRootNode rootNode = (OzRootNode) callTarget.getRootNode();
-		if (rootNode.isForceSplitting()) {
+		if (Options.SPLIT_BUILTINS && rootNode.isForceSplitting()) {
 			boolean cloned = callNode.cloneCallTarget();
 			callNode.forceInlining();
 			assert OzLanguage.ON_GRAAL == cloned;
