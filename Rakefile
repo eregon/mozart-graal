@@ -92,7 +92,7 @@ namespace :build do
 
   file JVMCI_RELEASE => [JVMCI, MX] do
     sh "echo 'Choose JDK 1.8.0_92 when asked for JAVA_HOME' && echo"
-    sh "cd #{JVMCI} && #{MX} build"
+    sh "cd #{JVMCI} && #{MX} build" unless JVMCI_RELEASE.exist?
     sh "cd #{JVMCI_HOME} && bin/java -version"
   end
 
