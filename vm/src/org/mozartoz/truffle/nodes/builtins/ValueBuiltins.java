@@ -112,6 +112,7 @@ public abstract class ValueBuiltins {
 			return false;
 		}
 
+		@TruffleBoundary
 		@Specialization
 		protected boolean equal(BigInteger a, BigInteger b) {
 			return a.equals(b);
@@ -301,6 +302,7 @@ public abstract class ValueBuiltins {
 			return a > b;
 		}
 
+		@TruffleBoundary
 		@Specialization
 		protected boolean greaterThan(BigInteger a, BigInteger b) {
 			return a.compareTo(b) > 0;

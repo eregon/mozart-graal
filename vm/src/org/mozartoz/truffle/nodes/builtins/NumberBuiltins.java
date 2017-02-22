@@ -152,6 +152,7 @@ public abstract class NumberBuiltins {
 			return a + b;
 		}
 
+		@TruffleBoundary
 		@Specialization
 		BigInteger add(BigInteger a, BigInteger b) {
 			return a.add(b);
@@ -174,6 +175,7 @@ public abstract class NumberBuiltins {
 			return a - b;
 		}
 
+		@TruffleBoundary
 		@Specialization
 		BigInteger sub(BigInteger a, BigInteger b) {
 			return a.subtract(b);
@@ -197,8 +199,8 @@ public abstract class NumberBuiltins {
 			return ExactMath.multiplyExact(a, b);
 		}
 
-		@Specialization
 		@TruffleBoundary
+		@Specialization
 		BigInteger mul(BigInteger a, BigInteger b) {
 			return a.multiply(b);
 		}
