@@ -24,6 +24,7 @@ import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.ArrayUtils;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzProc;
@@ -308,7 +309,7 @@ public class Loader {
 	}
 
 	public Object execute(RootCallTarget callTarget) {
-		Object[] arguments = OzArguments.pack(null, new Object[0]);
+		Object[] arguments = OzArguments.pack(null, ArrayUtils.EMPTY);
 		Object value = callTarget.call(arguments);
 		tick("executed " + callTarget.getRootNode().getName());
 		return value;

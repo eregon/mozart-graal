@@ -84,7 +84,7 @@ public class OzThread implements Runnable {
 		setInitialOzThread();
 		threadsRunnable++;
 		try {
-			initialCall.call(OzArguments.pack(null, new Object[0]));
+			initialCall.call(OzArguments.pack(null, ArrayUtils.EMPTY));
 		} finally {
 			threadsRunnable--;
 			status = "terminated";

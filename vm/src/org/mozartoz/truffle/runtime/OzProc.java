@@ -23,7 +23,7 @@ public class OzProc {
 	}
 
 	public Object rootCall(String identifier, Object... arguments) {
-		return wrap(identifier, arguments).call(OzArguments.pack(null, new Object[0]));
+		return wrap(identifier, arguments).call(OzArguments.pack(null, ArrayUtils.EMPTY));
 	}
 
 	@Override

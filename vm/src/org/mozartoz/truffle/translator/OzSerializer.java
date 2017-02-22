@@ -82,6 +82,7 @@ import org.mozartoz.truffle.nodes.pattern.PatternMatchIdentityNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchOpenRecordNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.ArrayUtils;
 import org.mozartoz.truffle.runtime.OzCell;
 import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -308,7 +309,7 @@ public class OzSerializer implements AutoCloseable {
 
 	private static class FrameSerializer extends Serializer<Frame> {
 
-		static final Object[] FAKE_ARGUMENTS = new Object[0];
+		static final Object[] FAKE_ARGUMENTS = ArrayUtils.EMPTY;
 		Field argumentsField;
 		Field wrappedField;
 
@@ -633,7 +634,7 @@ public class OzSerializer implements AutoCloseable {
 	}
 
 	private static final TruffleRuntime TRUFFLE = Truffle.getRuntime();
-	private static final MaterializedFrame FRAME = TRUFFLE.createMaterializedFrame(new Object[0]);
+	private static final MaterializedFrame FRAME = TRUFFLE.createMaterializedFrame(ArrayUtils.EMPTY);
 	private static final Class<? extends MaterializedFrame> MATERIALIZED_FRAME = FRAME.getClass();
 	private static final Class<? extends RootCallTarget> ROOT_CALL_TARGET =
 			TRUFFLE.createCallTarget(RootNode.createConstantNode(null)).getClass();
