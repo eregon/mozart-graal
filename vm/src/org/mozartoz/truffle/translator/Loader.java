@@ -13,6 +13,7 @@ import org.mozartoz.bootcompiler.transform.Desugar;
 import org.mozartoz.bootcompiler.transform.DesugarClass;
 import org.mozartoz.bootcompiler.transform.DesugarFunctor;
 import org.mozartoz.bootcompiler.transform.Namer;
+import org.mozartoz.bootcompiler.transform.OnStackMarking;
 import org.mozartoz.bootcompiler.transform.TailCallMarking;
 import org.mozartoz.bootcompiler.transform.Unnester;
 import org.mozartoz.truffle.Options;
@@ -32,9 +33,10 @@ import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.PropertyRegistry;
 import org.mozartoz.truffle.runtime.StacktraceThread;
+import org.mozartoz.truffle.runtime.Variable;
 
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -249,6 +251,10 @@ public class Loader {
 
 		waitThreads();
 		shutdown();
+
+		if (Options.PRINT_NVARS) {
+			System.out.println("nvars --- " + Variable.variableCount);
+		}
 	}
 
 	private void waitThreads() {
@@ -330,6 +336,9 @@ public class Loader {
 		ConstantFolding.apply(program);
 		Unnester.apply(program);
 
+		if (Options.DIRECT_VARS) {
+			new OnStackMarking().apply(program);
+		}
 		TailCallMarking.apply(program);
 
 		return program.rawCode();

@@ -12,6 +12,14 @@ public abstract class Variable {
 	private @CompilationFinal Object value = null;
 	private boolean needed = false;
 
+	public static long variableCount = 0;
+
+	public Variable() {
+		if (Options.PRINT_NVARS) {
+			Variable.variableCount++;
+		}
+	}
+
 	/** A circular list of linked Variable */
 	private Variable next = this;
 

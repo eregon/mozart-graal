@@ -191,8 +191,12 @@ trait RaiseCommon extends StatOrExpr {
 }
 
 trait BindCommon extends StatOrExpr with InfixSyntax {
+  var onStack = false
+  
   protected val left: Expression
   protected val right: Expression
 
   protected val opSyntax = " = "
+  
+  override def syntax(indent: String) = super.syntax(indent) + (if (onStack) "(stack)" else "")
 }

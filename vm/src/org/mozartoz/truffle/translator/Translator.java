@@ -109,6 +109,7 @@ import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
+import org.mozartoz.truffle.nodes.local.BindOnStackForcedNode;
 import org.mozartoz.truffle.nodes.local.InitializeArgNode;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
@@ -121,8 +122,6 @@ import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.Unit;
 
-import scala.collection.JavaConversions;
-
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -130,6 +129,8 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
+
+import scala.collection.JavaConversions;
 
 public class Translator {
 
@@ -266,10 +267,11 @@ public class Translator {
 			LocalCommon local = (LocalCommon) node;
 			List<OzNode> decls = new ArrayList<>(local.declarations().size());
 			for (RawDeclarationOrVar variable : toJava(local.declarations())) {
-				Symbol symbol = ((Variable) variable).symbol();
+				Variable var = ((Variable) variable);
+				Symbol symbol = var.symbol();
 				FrameSlot slot = environment.addLocalVariable(symbol);
 				// No need to initialize captures, the slot will be set directly
-				if (!symbol.isCapture()) {
+				if (!(symbol.isCapture() | var.onStack())) {
 					decls.add(t(variable, new InitializeVarNode(slot)));
 				}
 			}
@@ -286,6 +288,10 @@ public class Translator {
 			BindCommon bind = (BindCommon) node;
 			Expression left = bind.left();
 			Expression right = bind.right();
+			if (bind.onStack()) {
+				FrameSlot slot = findVariable(((Variable) left).symbol()).slot;
+				return t(node, new BindOnStackForcedNode(slot, translate(right)));
+			}
 			return t(node, BindNodeGen.create(translate(left), translate(right)));
 		} else if (node instanceof IfCommon) {
 			IfCommon ifNode = (IfCommon) node;

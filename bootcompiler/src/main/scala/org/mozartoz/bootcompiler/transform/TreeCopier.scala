@@ -6,6 +6,16 @@ import ast._
 import symtab._
 
 class TreeCopier {
+  def copyOptions[U <: StatOrExpr](orig: Node, copy: U): U = {
+		  (orig, copy) match {
+  		  case (orig: BindCommon, copy: BindCommon) =>
+  		    copy.onStack = orig.onStack
+  		    
+  		  case _ =>
+		  }
+		  copy
+  }
+    
   // Statements
 
   def CompoundStatement(tree: Node, statements: Seq[Statement]) =
@@ -60,7 +70,7 @@ class TreeCopier {
     new FailStatement()(tree)
 
   def BindStatement(tree: Node, left: Expression, right: Expression) =
-    new BindStatement(left, right)(tree)
+    copyOptions(tree, new BindStatement(left, right)(tree))
 
   def BinaryOpStatement(tree: Node, left: Expression, operator: String,
       right: Expression) =
@@ -132,7 +142,7 @@ class TreeCopier {
     new RaiseExpression(exception)(tree)
 
   def BindExpression(tree: Node, left: Expression, right: Expression) =
-    new BindExpression(left, right)(tree)
+    copyOptions(tree, new BindExpression(left, right)(tree))
 
   def DotAssignExpression(tree: Node, left: Expression, center: Expression,
       right: Expression) =
