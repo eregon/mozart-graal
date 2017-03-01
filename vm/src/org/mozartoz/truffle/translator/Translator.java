@@ -271,7 +271,7 @@ public class Translator {
 				Symbol symbol = var.symbol();
 				FrameSlot slot = environment.addLocalVariable(symbol);
 				// No need to initialize captures, the slot will be set directly
-				if (!(symbol.isCapture() | var.onStack())) {
+				if (!(symbol.isCapture() || var.onStack())) {
 					decls.add(t(variable, new InitializeVarNode(slot)));
 				}
 			}
