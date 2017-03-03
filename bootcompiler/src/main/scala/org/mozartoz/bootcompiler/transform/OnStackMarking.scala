@@ -9,14 +9,15 @@ import scala.collection._
 /**
  * Declared is the state of a variable that has been declared by a local node but that
  *   has not been encountered yet. If at the end of a local node, a variable is still in that state,
- *   it is useless and can be "put on the stack".
+ *   it is unused and can be "put on the stack".
  *
  * A variable is Captured when it has been captured by a procedure from its declaration until here,
  *   but that has not been encountered in any other way. When a call node will be reached, every
  *   captured variable will be set to "ToInstantiate" in order to avoid hazards of having a link to it
  *   in the called procedure. There is however a hope for seing it become BoundFirst before a call happens.
  *
- * BoundFirst is the state of variable that can be put on the stack whatever happens in the next instructions.
+ * BoundFirst is the state of variable that can be put on the stack whatever happens in the next instructions
+ *   because it has first been bound to a value or another variable.
  *
  * ToInstantiate is of course the state of a variable that cannot be put on the stack whatever happens in the
  *   next instructions. This is the privileged state to provide in case of doubt.
@@ -47,14 +48,13 @@ case class VarAndState(v: Variable, state: VarState)
  * 	 This means that any A = {IntToFloat 3} will instantiate because it results in {IntToFloat 3 A}
  *   that could potentially call end up calling A
  *
- * When having two branches, if a variable does not end in the same state, it it better to instantiate it
+ * When having two branches, if a variable does not end in the same state, it is needed to instantiate it for safety
+ *   (as specified [[VarState.merge]])
  *
  * If a variable is encountered, it is always put into the modified set (if any) except if it was already
- * in a BoundFirst or a ToInstantiate state.
+ * in a final state (BoundFirst or ToInstantiate).
  *
  * In try-catch or andthen/orelse nodes, variables that have not been bound yet end up in ToInstantiate state
- *
- * The basic idea is that if no usage appears before binding, no need to create a variable.
  */
 class OnStackMarking(
     val declVars: mutable.HashMap[Symbol, VarAndState],

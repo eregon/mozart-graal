@@ -8,11 +8,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public class InitializeTmpNode extends OzNode implements FrameSlotNode {
 
 	@Child WriteFrameSlotNode writeFrameSlotNode;
-	@Child OzNode value;
+	@Child OzNode valueNode;
 
-	public InitializeTmpNode(FrameSlot slot, OzNode value) {
+	public InitializeTmpNode(FrameSlot slot, OzNode valueNode) {
 		this.writeFrameSlotNode = WriteFrameSlotNodeGen.create(slot);
-		this.value = value;
+		this.valueNode = valueNode;
 	}
 
 	public FrameSlot getSlot() {
@@ -21,8 +21,9 @@ public class InitializeTmpNode extends OzNode implements FrameSlotNode {
 
 	@Override
 	public Object execute(VirtualFrame frame) {
-		writeFrameSlotNode.executeWrite(frame, value.execute(frame));
-		return unit;
+		Object value = valueNode.execute(frame);
+		writeFrameSlotNode.executeWrite(frame, value);
+		return value;
 	}
 
 }

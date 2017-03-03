@@ -9,7 +9,6 @@ import java.util.function.Function;
 import org.mozartoz.bootcompiler.ast.BinaryOp;
 import org.mozartoz.bootcompiler.ast.BindCommon;
 import org.mozartoz.bootcompiler.ast.CallCommon;
-import org.mozartoz.bootcompiler.ast.CallStatement;
 import org.mozartoz.bootcompiler.ast.CompoundStatement;
 import org.mozartoz.bootcompiler.ast.Constant;
 import org.mozartoz.bootcompiler.ast.Expression;
@@ -27,13 +26,11 @@ import org.mozartoz.bootcompiler.ast.RaiseCommon;
 import org.mozartoz.bootcompiler.ast.RawDeclarationOrVar;
 import org.mozartoz.bootcompiler.ast.Record;
 import org.mozartoz.bootcompiler.ast.RecordField;
-import org.mozartoz.bootcompiler.ast.SelfTailCallMarker;
 import org.mozartoz.bootcompiler.ast.ShortCircuitBinaryOp;
 import org.mozartoz.bootcompiler.ast.SkipStatement;
 import org.mozartoz.bootcompiler.ast.StatAndExpression;
 import org.mozartoz.bootcompiler.ast.StatOrExpr;
 import org.mozartoz.bootcompiler.ast.Statement;
-import org.mozartoz.bootcompiler.ast.TailCallMarker;
 import org.mozartoz.bootcompiler.ast.TryCommon;
 import org.mozartoz.bootcompiler.ast.UnboundExpression;
 import org.mozartoz.bootcompiler.ast.Variable;
@@ -59,6 +56,7 @@ import org.mozartoz.bootcompiler.oz.UnitVal;
 import org.mozartoz.bootcompiler.symtab.Builtin;
 import org.mozartoz.bootcompiler.symtab.Symbol;
 import org.mozartoz.truffle.Options;
+import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.ExecuteValuesNode;
 import org.mozartoz.truffle.nodes.OzNode;
@@ -109,7 +107,6 @@ import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
-import org.mozartoz.truffle.nodes.local.BindOnStackForcedNode;
 import org.mozartoz.truffle.nodes.local.InitializeArgNode;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
@@ -278,10 +275,6 @@ public class Translator {
 			return t(node, SequenceNode.sequence(decls.toArray(new OzNode[decls.size()]), translate(local.body())));
 		} else if (node instanceof CallCommon) {
 			return translateCall((CallCommon) node);
-		} else if (node instanceof SelfTailCallMarker) {
-			return translateSelfTailCall(((SelfTailCallMarker) node).call());
-		} else if (node instanceof TailCallMarker) {
-			return translateTailCall(((TailCallMarker) node).call());
 		} else if (node instanceof SkipStatement) {
 			return t(node, new SkipNode());
 		} else if (node instanceof BindCommon) {
@@ -290,7 +283,7 @@ public class Translator {
 			Expression right = bind.right();
 			if (bind.onStack()) {
 				FrameSlot slot = findVariable(((Variable) left).symbol()).slot;
-				return t(node, new BindOnStackForcedNode(slot, translate(right)));
+				return t(node, new InitializeTmpNode(slot, DerefIfBoundNode.create(translate(right))));
 			}
 			return t(node, BindNodeGen.create(translate(left), translate(right)));
 		} else if (node instanceof IfCommon) {
@@ -364,25 +357,13 @@ public class Translator {
 	private OzNode translateCall(CallCommon call) {
 		OzNode receiver = translate(call.callable());
 		OzNode[] argsNodes = translate(call.args());
+		if (Options.SELF_TAIL_CALLS && call.tail_self() == 2) {
+			isSelfTailRec = true;
+			return t(call, new SelfTailCallThrowerNode(argsNodes));
+		} else if (Options.TAIL_CALLS && call.tail_self() == 1) {
+			return t(call, new TailCallThrowerNode(receiver, new ExecuteValuesNode(argsNodes)));
+		}
 		return t(call, CallNode.create(receiver, new ExecuteValuesNode(argsNodes)));
-	}
-
-	private OzNode translateTailCall(CallStatement call) {
-		if (!Options.TAIL_CALLS) {
-			return translateCall(call);
-		}
-		OzNode receiver = translate(call.callable());
-		OzNode[] argsNodes = translate(call.args());
-		return t(call, new TailCallThrowerNode(receiver, new ExecuteValuesNode(argsNodes)));
-	}
-
-	private OzNode translateSelfTailCall(CallStatement call) {
-		if (!Options.SELF_TAIL_CALLS) {
-			return translateTailCall(call);
-		}
-		isSelfTailRec = true;
-		OzNode[] argsNodes = translate(call.args());
-		return t(call, new SelfTailCallThrowerNode(argsNodes));
 	}
 
 	private OzNode translateMatch(MatchCommon match) {

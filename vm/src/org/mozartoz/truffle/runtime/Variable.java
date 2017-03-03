@@ -116,8 +116,8 @@ public abstract class Variable {
 		int count = 1;
 		Variable current = this.getNext();
 		while (current != this) {
-			count += 1;
 			current = current.getNext();
+			count++;
 		}
 		return count;
 	}
