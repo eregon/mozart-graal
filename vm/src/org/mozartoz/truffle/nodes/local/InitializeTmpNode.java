@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes.local;
 
+import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.frame.FrameSlot;
@@ -12,7 +13,7 @@ public class InitializeTmpNode extends OzNode implements FrameSlotNode {
 
 	public InitializeTmpNode(FrameSlot slot, OzNode valueNode) {
 		this.writeFrameSlotNode = WriteFrameSlotNodeGen.create(slot);
-		this.valueNode = valueNode;
+		this.valueNode = DerefIfBoundNode.create(valueNode);
 	}
 
 	public FrameSlot getSlot() {

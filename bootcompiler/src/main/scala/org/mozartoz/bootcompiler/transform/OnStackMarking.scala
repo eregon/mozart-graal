@@ -45,8 +45,8 @@ case class VarAndState(v: Variable, state: VarState)
  *
  * When a proc is declared, it is difficult to track where it will end up. So if a call occurs,
  *   by precaution, all captured variable that were not bound should be instantiated
- * 	 This means that any A = {IntToFloat 3} will instantiate because it results in {IntToFloat 3 A}
- *   that could potentially call end up calling A
+ * 	 This means that any A = {IntToFloat 3} will instantiate captured variables because it results
+ *   in {IntToFloat 3 A} that could potentially end up calling A
  *
  * When having two branches, if a variable does not end in the same state, it is needed to instantiate it for safety
  *   (as specified [[VarState.merge]])

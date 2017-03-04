@@ -283,7 +283,7 @@ public class Translator {
 			Expression right = bind.right();
 			if (bind.onStack()) {
 				FrameSlot slot = findVariable(((Variable) left).symbol()).slot;
-				return t(node, new InitializeTmpNode(slot, DerefIfBoundNode.create(translate(right))));
+				return t(node, new InitializeTmpNode(slot, translate(right)));
 			}
 			return t(node, BindNodeGen.create(translate(left), translate(right)));
 		} else if (node instanceof IfCommon) {
@@ -357,10 +357,10 @@ public class Translator {
 	private OzNode translateCall(CallCommon call) {
 		OzNode receiver = translate(call.callable());
 		OzNode[] argsNodes = translate(call.args());
-		if (Options.SELF_TAIL_CALLS && call.tail_self() == 2) {
+		if (Options.SELF_TAIL_CALLS && call.isSelfTail()) {
 			isSelfTailRec = true;
 			return t(call, new SelfTailCallThrowerNode(argsNodes));
-		} else if (Options.TAIL_CALLS && call.tail_self() == 1) {
+		} else if (Options.TAIL_CALLS && call.isTail()) {
 			return t(call, new TailCallThrowerNode(receiver, new ExecuteValuesNode(argsNodes)));
 		}
 		return t(call, CallNode.create(receiver, new ExecuteValuesNode(argsNodes)));

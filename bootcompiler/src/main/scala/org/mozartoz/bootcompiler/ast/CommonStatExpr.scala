@@ -42,9 +42,19 @@ trait ProcFunExpression extends StatOrExpr {
   }
 }
 
+object CallKind extends Enumeration {
+  case class CallKind(desc: String)
+  
+  val Normal = CallKind("")
+  val Tail = CallKind("(tail)")
+  val SelfTail = CallKind("(self)")
+}
+
 trait CallCommon extends StatOrExpr {
-  /** 1 for tail call, 2 for tail call to current proc */
-  var tail_self = 0
+  var kind = CallKind.Normal
+  
+  def isSelfTail() = kind == CallKind.SelfTail
+  def isTail() = kind == CallKind.Tail
   
   protected val callable: Expression
   protected val args: Seq[Expression]
@@ -60,9 +70,7 @@ trait CallCommon extends StatOrExpr {
 
       otherArgs.foldLeft(firstLine) {
         _ + "\n" + subIndent + _.syntax(subIndent)
-      } + "}" + (if (tail_self == 2) "(self)" 
-        else if (tail_self == 1) "(tail)"
-        else "")
+      } + "}" + kind.desc
     }
   }
 }

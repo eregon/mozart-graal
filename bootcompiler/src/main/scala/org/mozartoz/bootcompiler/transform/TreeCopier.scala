@@ -12,7 +12,7 @@ class TreeCopier {
   		    copy.onStack = orig.onStack
   		    
   		  case (orig: CallCommon, copy: CallCommon) =>
-  		    copy.tail_self = orig.tail_self
+  		    copy.kind = orig.kind
   		    
   		  case _ =>
 		  }
