@@ -56,7 +56,6 @@ import org.mozartoz.bootcompiler.oz.UnitVal;
 import org.mozartoz.bootcompiler.symtab.Builtin;
 import org.mozartoz.bootcompiler.symtab.Symbol;
 import org.mozartoz.truffle.Options;
-import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.ExecuteValuesNode;
 import org.mozartoz.truffle.nodes.OzNode;
@@ -119,6 +118,8 @@ import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.Unit;
 
+import scala.collection.JavaConversions;
+
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -126,8 +127,6 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
-
-import scala.collection.JavaConversions;
 
 public class Translator {
 
@@ -342,7 +341,7 @@ public class Translator {
 			nodes[i] = translate(procExpression.body());
 
 			OzNode procBody = SequenceNode.sequence(nodes);
-			if (isSelfTailRec) { // Set when translating SelfTailCallMarker
+			if (isSelfTailRec) { // Set when translating a self tail call
 				procBody = SelfTailCallCatcherNode.create(procBody, environment.frameDescriptor);
 			}
 			boolean forceSplitting = Loader.getInstance().isLoadingBase();
