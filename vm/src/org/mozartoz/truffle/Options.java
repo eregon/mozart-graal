@@ -18,7 +18,9 @@ public abstract class Options {
 	public static final boolean STACKTRACE_ON_INTERRUPT = bool("oz.stacktrace.on_interrupt", false);
 
 	public static final boolean FREE_LINKS = bool("oz.free.links", true);
+	public static final boolean DIRECT_VARS = bool("oz.vars.direct", true);
 	public static final boolean PRINT_NLINKS = bool("oz.print.nlinks", false);
+	public static final boolean PRINT_NVARS = bool("oz.print.nvars", false);
 
 	public static final boolean SPLIT_BUILTINS = bool("oz.builtins.split", true);
 

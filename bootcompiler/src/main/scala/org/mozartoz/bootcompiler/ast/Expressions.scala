@@ -368,10 +368,11 @@ case class RawVariable(name: String)(val pos: Pos) extends VariableOrRaw with Ra
 /** Variable */
 case class Variable(symbol: Symbol)(val pos: Pos) extends VarOrConst with VariableOrRaw with Phrase
     with RawDeclarationOrVar {
+  var onStack = false
   def name = symbol.name
 
   def syntax(indent: String) =
-    symbol.fullName
+    symbol.fullName + (if (onStack) "(onstack)" else "")
 }
 
 /** Factory for Variable */

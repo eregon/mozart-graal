@@ -6,6 +6,19 @@ import ast._
 import symtab._
 
 class TreeCopier {
+  def copyAttrs[U <: StatOrExpr](orig: Node, copy: U): U = {
+		  (orig, copy) match {
+  		  case (orig: BindCommon, copy: BindCommon) =>
+  		    copy.onStack = orig.onStack
+  		    
+  		  case (orig: CallCommon, copy: CallCommon) =>
+  		    copy.kind = orig.kind
+  		    
+  		  case _ =>
+		  }
+		  copy
+  }
+    
   // Statements
 
   def CompoundStatement(tree: Node, statements: Seq[Statement]) =
@@ -20,7 +33,7 @@ class TreeCopier {
     new LocalStatement(declarations, statement)(tree)
 
   def CallStatement(tree: Node, callable: Expression, args: Seq[Expression]) =
-    new CallStatement(callable, args)(tree)
+    copyAttrs(tree, new CallStatement(callable, args)(tree))
 
   def IfStatement(tree: Node, condition: Expression,
       trueStatement: Statement, falseStatement: Statement) =
@@ -60,7 +73,7 @@ class TreeCopier {
     new FailStatement()(tree)
 
   def BindStatement(tree: Node, left: Expression, right: Expression) =
-    new BindStatement(left, right)(tree)
+    copyAttrs(tree, new BindStatement(left, right)(tree))
 
   def BinaryOpStatement(tree: Node, left: Expression, operator: String,
       right: Expression) =
@@ -98,7 +111,7 @@ class TreeCopier {
     new FunExpression(name, args, body, flags)(tree)
 
   def CallExpression(tree: Node, callable: Expression, args: Seq[Expression]) =
-    new CallExpression(callable, args)(tree)
+    copyAttrs(tree, new CallExpression(callable, args)(tree))
 
   def IfExpression(tree: Node, condition: Expression,
       trueExpression: Expression, falseExpression: Expression) =
@@ -132,7 +145,7 @@ class TreeCopier {
     new RaiseExpression(exception)(tree)
 
   def BindExpression(tree: Node, left: Expression, right: Expression) =
-    new BindExpression(left, right)(tree)
+    copyAttrs(tree, new BindExpression(left, right)(tree))
 
   def DotAssignExpression(tree: Node, left: Expression, center: Expression,
       right: Expression) =

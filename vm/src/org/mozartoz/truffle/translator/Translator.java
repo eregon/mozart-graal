@@ -9,7 +9,6 @@ import java.util.function.Function;
 import org.mozartoz.bootcompiler.ast.BinaryOp;
 import org.mozartoz.bootcompiler.ast.BindCommon;
 import org.mozartoz.bootcompiler.ast.CallCommon;
-import org.mozartoz.bootcompiler.ast.CallStatement;
 import org.mozartoz.bootcompiler.ast.CompoundStatement;
 import org.mozartoz.bootcompiler.ast.Constant;
 import org.mozartoz.bootcompiler.ast.Expression;
@@ -27,13 +26,11 @@ import org.mozartoz.bootcompiler.ast.RaiseCommon;
 import org.mozartoz.bootcompiler.ast.RawDeclarationOrVar;
 import org.mozartoz.bootcompiler.ast.Record;
 import org.mozartoz.bootcompiler.ast.RecordField;
-import org.mozartoz.bootcompiler.ast.SelfTailCallMarker;
 import org.mozartoz.bootcompiler.ast.ShortCircuitBinaryOp;
 import org.mozartoz.bootcompiler.ast.SkipStatement;
 import org.mozartoz.bootcompiler.ast.StatAndExpression;
 import org.mozartoz.bootcompiler.ast.StatOrExpr;
 import org.mozartoz.bootcompiler.ast.Statement;
-import org.mozartoz.bootcompiler.ast.TailCallMarker;
 import org.mozartoz.bootcompiler.ast.TryCommon;
 import org.mozartoz.bootcompiler.ast.UnboundExpression;
 import org.mozartoz.bootcompiler.ast.Variable;
@@ -59,6 +56,7 @@ import org.mozartoz.bootcompiler.oz.UnitVal;
 import org.mozartoz.bootcompiler.symtab.Builtin;
 import org.mozartoz.bootcompiler.symtab.Symbol;
 import org.mozartoz.truffle.Options;
+import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.ExecuteValuesNode;
 import org.mozartoz.truffle.nodes.OzNode;
@@ -121,8 +119,6 @@ import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.Unit;
 
-import scala.collection.JavaConversions;
-
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -130,6 +126,8 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
+
+import scala.collection.JavaConversions;
 
 public class Translator {
 
@@ -266,26 +264,27 @@ public class Translator {
 			LocalCommon local = (LocalCommon) node;
 			List<OzNode> decls = new ArrayList<>(local.declarations().size());
 			for (RawDeclarationOrVar variable : toJava(local.declarations())) {
-				Symbol symbol = ((Variable) variable).symbol();
+				Variable var = ((Variable) variable);
+				Symbol symbol = var.symbol();
 				FrameSlot slot = environment.addLocalVariable(symbol);
 				// No need to initialize captures, the slot will be set directly
-				if (!symbol.isCapture()) {
+				if (!(symbol.isCapture() || var.onStack())) {
 					decls.add(t(variable, new InitializeVarNode(slot)));
 				}
 			}
 			return t(node, SequenceNode.sequence(decls.toArray(new OzNode[decls.size()]), translate(local.body())));
 		} else if (node instanceof CallCommon) {
 			return translateCall((CallCommon) node);
-		} else if (node instanceof SelfTailCallMarker) {
-			return translateSelfTailCall(((SelfTailCallMarker) node).call());
-		} else if (node instanceof TailCallMarker) {
-			return translateTailCall(((TailCallMarker) node).call());
 		} else if (node instanceof SkipStatement) {
 			return t(node, new SkipNode());
 		} else if (node instanceof BindCommon) {
 			BindCommon bind = (BindCommon) node;
 			Expression left = bind.left();
 			Expression right = bind.right();
+			if (bind.onStack()) {
+				FrameSlot slot = findVariable(((Variable) left).symbol()).slot;
+				return t(node, new InitializeTmpNode(slot, translate(right)));
+			}
 			return t(node, BindNodeGen.create(translate(left), translate(right)));
 		} else if (node instanceof IfCommon) {
 			IfCommon ifNode = (IfCommon) node;
@@ -358,25 +357,13 @@ public class Translator {
 	private OzNode translateCall(CallCommon call) {
 		OzNode receiver = translate(call.callable());
 		OzNode[] argsNodes = translate(call.args());
+		if (Options.SELF_TAIL_CALLS && call.isSelfTail()) {
+			isSelfTailRec = true;
+			return t(call, new SelfTailCallThrowerNode(argsNodes));
+		} else if (Options.TAIL_CALLS && call.isTail()) {
+			return t(call, new TailCallThrowerNode(receiver, new ExecuteValuesNode(argsNodes)));
+		}
 		return t(call, CallNode.create(receiver, new ExecuteValuesNode(argsNodes)));
-	}
-
-	private OzNode translateTailCall(CallStatement call) {
-		if (!Options.TAIL_CALLS) {
-			return translateCall(call);
-		}
-		OzNode receiver = translate(call.callable());
-		OzNode[] argsNodes = translate(call.args());
-		return t(call, new TailCallThrowerNode(receiver, new ExecuteValuesNode(argsNodes)));
-	}
-
-	private OzNode translateSelfTailCall(CallStatement call) {
-		if (!Options.SELF_TAIL_CALLS) {
-			return translateTailCall(call);
-		}
-		isSelfTailRec = true;
-		OzNode[] argsNodes = translate(call.args());
-		return t(call, new SelfTailCallThrowerNode(argsNodes));
 	}
 
 	private OzNode translateMatch(MatchCommon match) {

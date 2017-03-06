@@ -19,10 +19,11 @@ object TailCallMarking extends Transformer {
   def markTailCalls(statement: Statement): Statement = statement match {
     case call @ CallStatement(callable, args) =>
       if (Some(callable) == procExpr.name) {
-        SelfTailCallMarker(call)(call)
+        call.kind = CallKind.SelfTail
       } else {
-        TailCallMarker(call)(call)
+        call.kind = CallKind.Tail
       }
+      call
 
     case CompoundStatement(stats) =>
       val last = markTailCalls(stats.last)

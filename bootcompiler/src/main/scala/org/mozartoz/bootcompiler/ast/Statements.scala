@@ -59,14 +59,6 @@ case class LocalStatement(declarations: Seq[Variable],
 case class CallStatement(callable: Expression,
     args: Seq[Expression])(val pos: Pos) extends Statement with CallCommon
     
-case class TailCallMarker(call: CallStatement)(val pos: Pos) extends Statement {
-  override def syntax(indent: String) = call.syntax(indent) + "(tail)"
-}
-
-case class SelfTailCallMarker(call: CallStatement)(val pos: Pos) extends Statement {
-  override def syntax(indent: String) = call.syntax(indent) + "(self)"
-}
-
 /** If statement
  *
  *  {{{
