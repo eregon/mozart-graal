@@ -361,8 +361,9 @@ public class Translator {
 			return t(call, new SelfTailCallThrowerNode(argsNodes));
 		} else if (Options.TAIL_CALLS && call.isTail()) {
 			return t(call, new TailCallThrowerNode(receiver, new ExecuteValuesNode(argsNodes)));
+		} else {
+			return t(call, CallNode.create(receiver, new ExecuteValuesNode(argsNodes)));
 		}
-		return t(call, CallNode.create(receiver, new ExecuteValuesNode(argsNodes)));
 	}
 
 	private OzNode translateMatch(MatchCommon match) {
