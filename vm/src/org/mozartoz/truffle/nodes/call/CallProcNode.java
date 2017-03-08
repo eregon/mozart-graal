@@ -46,7 +46,7 @@ public abstract class CallProcNode extends OzNode {
 		return callNode.call(frame, proc.callTarget, OzArguments.pack(proc.declarationFrame, arguments));
 	}
 
-	protected DirectCallNode createDirectCallNode(RootCallTarget callTarget) {
+	protected static DirectCallNode createDirectCallNode(RootCallTarget callTarget) {
 		DirectCallNode callNode = DirectCallNode.create(callTarget);
 		OzRootNode rootNode = (OzRootNode) callTarget.getRootNode();
 		if (Options.SPLIT_BUILTINS && rootNode.isForceSplitting()) {
