@@ -27,10 +27,12 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @NodeChildren({ @NodeChild("object"), @NodeChild("arguments") })
 public abstract class CallMethodNode extends OzNode {
 
+	protected static final String OTHERWISE = "otherwise";
+
 	@Child DerefNode derefNode = DerefNode.create();
 	@Child LabelNode labelNode = LabelNode.create();
 
-	protected static int optional(int l) {
+	protected static int methodCache(int l) {
 		return Options.OPTIMIZE_METHODS ? l : 0;
 	}
 
@@ -44,10 +46,10 @@ public abstract class CallMethodNode extends OzNode {
 	static final RecordFactory OTHERWISE_MESSAGE_FACTORY = Arity.build("otherwise", 1L).createFactory();
 
 	@Specialization(guards = {
-			"cachedProc != null",
 			"self.getClazz() == cachedClazz",
-			"cachedLabel.equals(labelFromArgs(args))",
-	}, limit = "optional(3)")
+			"labelFromArgs(args) == cachedLabel",
+			"cachedProc != null",
+	}, limit = "methodCache(3)")
 	protected Object callClassLabelIdentity(VirtualFrame frame, OzObject self, Object[] args,
 			@Cached("self.getClazz()") DynamicObject cachedClazz,
 			@Cached("labelFromArgs(args)") Object cachedLabel,
@@ -59,9 +61,9 @@ public abstract class CallMethodNode extends OzNode {
 	}
 
 	@Specialization(guards = {
+			"methodFromArgs(self, args) == cachedProc",
 			"cachedProc != null",
-			"cachedProc == methodFromArgs(self, args)",
-	}, contains = "callClassLabelIdentity", limit = "optional(3)")
+	}, contains = "callClassLabelIdentity", limit = "methodCache(3)")
 	protected Object callProcIdentity(VirtualFrame frame, OzObject self, Object[] args,
 			@Cached("methodFromArgs(self, args)") OzProc cachedProc,
 			@Cached("createDirectCallNode(cachedProc.callTarget)") DirectCallNode callNode) {
@@ -70,7 +72,23 @@ public abstract class CallMethodNode extends OzNode {
 		return callNode.call(frame, OzArguments.pack(cachedProc.declarationFrame, arguments));
 	}
 
-	@Specialization(contains = { "callClassLabelIdentity", "callProcIdentity" })
+	@Specialization(guards = {
+			"self.getClazz() == cachedClazz",
+			"labelFromArgs(args) == cachedLabel",
+			"methodNotFound",
+	}, limit = "methodCache(3)")
+	protected Object callOtherwise(VirtualFrame frame, OzObject self, Object[] args,
+			@Cached("self.getClazz()") DynamicObject cachedClazz,
+			@Cached("labelFromArgs(args)") Object cachedLabel,
+			@Cached("methodFromArgs(self, args) == null") boolean methodNotFound,
+			@Cached("getMethod(self, OTHERWISE)") OzProc otherwiseProc,
+			@Cached("createDirectCallNode(otherwiseProc.callTarget)") DirectCallNode callNode) {
+		assert args.length == 1;
+		Object[] arguments = new Object[] { self, OTHERWISE_MESSAGE_FACTORY.newRecord(args[0]) };
+		return callNode.call(frame, OzArguments.pack(otherwiseProc.declarationFrame, arguments));
+	}
+
+	@Specialization(contains = { "callClassLabelIdentity", "callProcIdentity", "callOtherwise" })
 	protected Object callObject(VirtualFrame frame, OzObject self, Object[] args,
 			@Cached("create()") IndirectCallNode callNode,
 			@Cached("createBinaryProfile()") ConditionProfile otherwise) {
@@ -93,7 +111,7 @@ public abstract class CallMethodNode extends OzNode {
 	static final OzUniqueName ooMeth = OzUniqueName.get("ooMeth");
 
 	@TruffleBoundary
-	private OzProc getMethod(OzObject self, Object name) {
+	protected OzProc getMethod(OzObject self, Object name) {
 		DynamicObject methods = (DynamicObject) self.getClazz().get(ooMeth);
 		return (OzProc) methods.get(name);
 	}
