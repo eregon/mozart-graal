@@ -70,6 +70,7 @@ public class SelfTailCallCatcherNode extends OzNode {
 
 		private boolean loopBody(VirtualFrame frame) {
 			try {
+				// Create a new frame as we don't want to override slots in the frame (if they are captured by a proc)
 				body.execute(Truffle.getRuntime().createVirtualFrame(frame.getArguments(), frameDescriptor));
 				returnProfile.enter();
 				return false;
