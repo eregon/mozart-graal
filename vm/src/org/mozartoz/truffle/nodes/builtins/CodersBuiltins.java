@@ -47,6 +47,7 @@ public abstract class CodersBuiltins {
 	@NodeChildren({ @NodeChild("value"), @NodeChild("encoding"), @NodeChild("variant") })
 	public static abstract class DecodeNode extends OzNode {
 
+		@Child DerefNode derefConsNode = DerefNode.create();
 		@Child DerefNode derefNode = DerefNode.create();
 
 		@TruffleBoundary
@@ -61,7 +62,7 @@ public abstract class CodersBuiltins {
 		@Specialization
 		String decode(OzCons cons, String encoding, String variant) {
 			List<Byte> list = new ArrayList<Byte>();
-			cons.forEach(derefNode, e -> list.add((byte) (long) e));
+			cons.forEach(derefConsNode, e -> list.add((byte) (long) derefNode.executeDeref(e)));
 			byte[] array = new byte[list.size()];
 			for (int i = 0; i < array.length; i++) {
 				array[i] = list.get(i);

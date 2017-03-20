@@ -56,13 +56,13 @@ public abstract class ProcedureBuiltins {
 	@NodeChildren({ @NodeChild("procedure"), @NodeChild("args") })
 	public static abstract class ApplyNode extends OzNode {
 
-		@Child DerefNode derefNode = DerefNode.create();
+		@Child DerefNode derefConsNode = DerefNode.create();
 
 		@Specialization
 		Object apply(VirtualFrame frame, OzProc proc, OzCons args,
 				@Cached("create()") IndirectCallNode callNode) {
 			List<Object> list = new ArrayList<>();
-			args.forEach(derefNode, e -> list.add(e));
+			args.forEach(derefConsNode, e -> list.add(e));
 			Object[] arguments = list.toArray(new Object[list.size()]);
 			callNode.call(frame, proc.callTarget, OzArguments.pack(proc.declarationFrame, arguments));
 			return unit;

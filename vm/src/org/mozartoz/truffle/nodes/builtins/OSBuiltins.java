@@ -505,6 +505,7 @@ public abstract class OSBuiltins {
 	public static abstract class PipeNode extends OzNode {
 
 		@Child ToAtomNode toAtomNode = ToAtomNode.create();
+		@Child DerefNode derefConsNode = DerefNode.create();
 		@Child DerefNode derefNode = DerefNode.create();
 
 		@CreateCast("executable")
@@ -522,8 +523,8 @@ public abstract class OSBuiltins {
 
 			List<String> command = new ArrayList<>();
 			command.add(executable);
-			argv.forEach(derefNode, e -> {
-				command.add(toAtomNode.executeToAtom(e));
+			argv.forEach(derefConsNode, e -> {
+				command.add(toAtomNode.executeToAtom(derefNode.executeDeref(e)));
 			});
 			ProcessBuilder builder = new ProcessBuilder(command).redirectErrorStream(true);
 			try {

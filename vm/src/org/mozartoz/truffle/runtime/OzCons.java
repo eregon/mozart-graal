@@ -22,13 +22,12 @@ public class OzCons {
 		return tail;
 	}
 
-	public void forEach(DerefNode deref, Consumer<Object> block) {
+	public void forEach(DerefNode derefConsNode, Consumer<Object> block) {
 		Object list = this;
 		while (list instanceof OzCons) {
 			OzCons cons = (OzCons) list;
-			Object head = deref.executeDeref(cons.getHead());
-			block.accept(head);
-			list = deref.executeDeref(cons.getTail());
+			block.accept(cons.getHead());
+			list = derefConsNode.executeDeref(cons.getTail());
 		}
 		assert list == "nil";
 	}
