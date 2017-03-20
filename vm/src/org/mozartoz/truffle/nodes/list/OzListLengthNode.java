@@ -4,6 +4,7 @@ import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -27,7 +28,7 @@ public abstract class OzListLengthNode extends OzNode {
 		return 0;
 	}
 
-	@Specialization(guards = "lengthCheck(list, cachedLength)", limit = "5", rewriteOn = ClassCastException.class)
+	@Specialization(guards = "lengthCheck(list, cachedLength)", limit = "1")
 	protected int fixedLengthList(OzCons list,
 			@Cached("list.length(derefConsNode)") int cachedLength) {
 		return cachedLength;
@@ -42,7 +43,11 @@ public abstract class OzListLengthNode extends OzNode {
 	protected boolean lengthCheck(OzCons list, int expectedLength) {
 		Object current = list;
 		for (int i = 0; i < expectedLength; i++) {
-			OzCons cons = (OzCons) current; // Can throw ClassCastException, in which case it is rewritten
+			if (!(current instanceof OzCons)) {
+				CompilerDirectives.transferToInterpreterAndInvalidate();
+				return false;
+			}
+			OzCons cons = (OzCons) current;
 			current = derefConsNode.executeDeref(cons.getTail());
 		}
 		return current == "nil";
