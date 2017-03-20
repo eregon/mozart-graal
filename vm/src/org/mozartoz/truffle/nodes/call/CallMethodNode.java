@@ -115,21 +115,21 @@ public abstract class CallMethodNode extends OzNode {
 			return callNode.call(frame, OzArguments.pack(cachedMethod.declarationFrame, arguments));
 		}
 
-		@Specialization(guards = { "method == null" })
+		@Specialization(contains = "dispatchCached")
+		protected Object dispatchUncached(VirtualFrame frame, OzObject self, OzProc method, Object message,
+				@Cached("create()") IndirectCallNode callNode) {
+			Object[] arguments = new Object[] { self, message };
+			return callNode.call(frame, method.callTarget,
+					OzArguments.pack(method.declarationFrame, arguments));
+		}
+
+		@Specialization(guards = "method == null")
 		protected Object dispatchOtherwise(VirtualFrame frame, OzObject self, Object method, Object message,
 				@Cached("create()") MethodLookupNode otherwiseLookupNode,
 				@Cached("create()") MethodDispatchNode otherwiseDispatchNode) {
 			Object otherwiseMessage = OTHERWISE_MESSAGE_FACTORY.newRecord(message);
 			OzProc otherwiseMethod = otherwiseLookupNode.executeLookup(self, OTHERWISE);
 			return otherwiseDispatchNode.executeDispatch(frame, self, otherwiseMethod, otherwiseMessage);
-		}
-
-		@Specialization(contains = { "dispatchCached" })
-		protected Object dispatch(VirtualFrame frame, OzObject self, OzProc method, Object message,
-				@Cached("create()") IndirectCallNode callNode) {
-			Object[] arguments = new Object[] { self, message };
-			return callNode.call(frame, method.callTarget,
-					OzArguments.pack(method.declarationFrame, arguments));
 		}
 
 		protected static DirectCallNode createDirectCallNode(RootCallTarget callTarget) {
