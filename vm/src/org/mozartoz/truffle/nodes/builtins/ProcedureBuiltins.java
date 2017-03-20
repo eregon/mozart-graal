@@ -7,7 +7,8 @@ import java.util.List;
 
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.runtime.OzArguments;
+import org.mozartoz.truffle.nodes.call.CallNode;
+import org.mozartoz.truffle.nodes.call.CallableNode;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzProc;
@@ -18,7 +19,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.IndirectCallNode;
 
 public abstract class ProcedureBuiltins {
 
@@ -60,17 +60,21 @@ public abstract class ProcedureBuiltins {
 
 		@Specialization
 		Object apply(VirtualFrame frame, OzProc proc, OzCons args,
-				@Cached("create()") IndirectCallNode callNode) {
+				@Cached("createCallNode()") CallableNode callNode) {
 			List<Object> list = new ArrayList<>();
 			args.forEach(derefConsNode, e -> list.add(e));
 			Object[] arguments = list.toArray(new Object[list.size()]);
-			callNode.call(frame, proc.callTarget, OzArguments.pack(proc.declarationFrame, arguments));
+			callNode.executeCall(frame, proc, arguments);
 			return unit;
 		}
 
 		@Specialization
 		Object apply(VirtualFrame frame, OzObject object, OzCons args) {
 			return unimplemented();
+		}
+
+		protected CallableNode createCallNode() {
+			return CallNode.create();
 		}
 
 	}

@@ -25,6 +25,10 @@ public abstract class CallNode extends CallableNode {
 		return DerefNode.create(var);
 	}
 
+	public static CallableNode create() {
+		return create(null, null);
+	}
+
 	public static CallableNode create(OzNode receiver, OzNode arguments) {
 		if (Options.TAIL_CALLS) {
 			// Always create a TailCallCatcherNode to ensure a TailCallException

@@ -20,7 +20,7 @@ public class ForNode extends OzNode {
 	@Child DerefNode fromDerefNode = DerefNode.create();
 	@Child DerefNode toDerefNode = DerefNode.create();
 
-	@Child CallableNode callNode = CallNode.create(null, null);
+	@Child CallableNode callNode = CallNode.create();
 	private final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
 
 	public ForNode(OzNode fromNode, OzNode toNode, OzNode procNode) {
