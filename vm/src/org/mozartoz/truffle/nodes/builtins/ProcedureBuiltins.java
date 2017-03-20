@@ -8,8 +8,6 @@ import org.mozartoz.truffle.nodes.call.CallNode;
 import org.mozartoz.truffle.nodes.call.CallableNode;
 import org.mozartoz.truffle.nodes.list.OzListToObjectArrayNode;
 import org.mozartoz.truffle.nodes.list.OzListToObjectArrayNodeGen;
-import org.mozartoz.truffle.runtime.OzCons;
-import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzProc;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -59,16 +57,11 @@ public abstract class ProcedureBuiltins {
 		@Child OzListToObjectArrayNode listToObjectArrayNode = OzListToObjectArrayNodeGen.create(null);
 
 		@Specialization
-		Object apply(VirtualFrame frame, OzProc proc, Object args,
+		Object apply(VirtualFrame frame, Object receiver, Object args,
 				@Cached("createCallNode()") CallableNode callNode) {
 			Object[] arguments = listToObjectArrayNode.executeToObjectArray(args);
-			callNode.executeCall(frame, proc, arguments);
+			callNode.executeCall(frame, receiver, arguments);
 			return unit;
-		}
-
-		@Specialization
-		Object apply(VirtualFrame frame, OzObject object, OzCons args) {
-			return unimplemented();
 		}
 
 		protected CallableNode createCallNode() {

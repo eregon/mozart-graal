@@ -26,5 +26,22 @@ define
             R = 3
          end
          keys: [procedure apply])
+
+         applyObject(proc {$}
+            class Test
+               meth init
+                  skip
+               end
+
+               meth otherwise(Msg)
+                  Msg.2 = Msg.1
+               end
+            end
+            T={New Test init}
+         in
+            {T foo(3 $)} = 3
+            {Procedure.apply T [foo(3 $)]} = 3
+         end
+         keys: [procedure apply object])
       ])
 end
