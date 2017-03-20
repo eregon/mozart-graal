@@ -14,9 +14,17 @@ define
          closure(proc {$}
             Xs={Closure 3}
             Applied={Map Xs fun {$ X} {X} end}
-            in
+         in
             Applied = [3 2 1]
          end
          keys: [procedure capture])
+
+         apply(proc {$}
+            R
+         in
+            {Procedure.apply Number.'+' [1 2 R]}
+            R = 3
+         end
+         keys: [procedure apply])
       ])
 end
