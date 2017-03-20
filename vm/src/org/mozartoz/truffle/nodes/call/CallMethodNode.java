@@ -51,8 +51,8 @@ public abstract class CallMethodNode extends OzNode {
 		Object name = labelNode.executeLabel(message);
 		assert OzGuards.isLiteral(name);
 
-		OzProc lookup = lookupNode.executeLookup(self, name);
-		return dispatchNode.executeDispatch(frame, self, lookup, message);
+		OzProc method = lookupNode.executeLookup(self, name);
+		return dispatchNode.executeDispatch(frame, self, method, message);
 	}
 
 	@ImportStatic(CallMethodNode.class)
@@ -71,15 +71,15 @@ public abstract class CallMethodNode extends OzNode {
 				"self.getClazz() == cachedClazz",
 				"name == cachedName",
 		}, limit = "methodCache(3)")
-		protected OzProc descriptorIdentityLookup(OzObject self, Object name,
+		protected OzProc cachedLookup(OzObject self, Object name,
 				@Cached("self.getClazz()") DynamicObject cachedClazz,
 				@Cached("name") Object cachedName,
-				@Cached("genericLookup(self, name)") OzProc cachedLookup) {
-			return cachedLookup;
+				@Cached("getMethod(self, name)") OzProc cachedMethod) {
+			return cachedMethod;
 		}
 
-		@Specialization(contains = "descriptorIdentityLookup")
-		protected OzProc genericLookup(OzObject self, Object name) {
+		@Specialization(contains = "cachedLookup")
+		protected OzProc uncachedLookup(OzObject self, Object name) {
 			return getMethod(self, name);
 		}
 
@@ -92,7 +92,7 @@ public abstract class CallMethodNode extends OzNode {
 	}
 
 	@ImportStatic(CallMethodNode.class)
-	@NodeChildren({ @NodeChild("self"), @NodeChild("lookup"), @NodeChild("args") })
+	@NodeChildren({ @NodeChild("self"), @NodeChild("method"), @NodeChild("args") })
 	public abstract static class MethodDispatchNode extends OzNode {
 
 		static final String OTHERWISE = "otherwise";
@@ -102,34 +102,34 @@ public abstract class CallMethodNode extends OzNode {
 			return MethodDispatchNodeGen.create(null, null, null);
 		}
 
-		public abstract Object executeDispatch(VirtualFrame frame, OzObject self, OzProc lookup, Object message);
+		public abstract Object executeDispatch(VirtualFrame frame, OzObject self, OzProc method, Object message);
 
 		@Specialization(guards = {
-				"lookup == cachedLookup",
-				"cachedLookup != null",
+				"method == cachedMethod",
+				"cachedMethod != null",
 		}, limit = "methodCache(3)")
-		protected Object dispatchCached(VirtualFrame frame, OzObject self, OzProc lookup, Object message,
-				@Cached("lookup") OzProc cachedLookup,
-				@Cached("createDirectCallNode(cachedLookup.callTarget)") DirectCallNode callNode) {
+		protected Object dispatchCached(VirtualFrame frame, OzObject self, OzProc method, Object message,
+				@Cached("method") OzProc cachedMethod,
+				@Cached("createDirectCallNode(cachedMethod.callTarget)") DirectCallNode callNode) {
 			Object[] arguments = new Object[] { self, message };
-			return callNode.call(frame, OzArguments.pack(cachedLookup.declarationFrame, arguments));
+			return callNode.call(frame, OzArguments.pack(cachedMethod.declarationFrame, arguments));
 		}
 
-		@Specialization(guards = { "lookup == null" })
-		protected Object dispatchOtherwise(VirtualFrame frame, OzObject self, Object lookup, Object message,
+		@Specialization(guards = { "method == null" })
+		protected Object dispatchOtherwise(VirtualFrame frame, OzObject self, Object method, Object message,
 				@Cached("create()") MethodLookupNode otherwiseLookupNode,
 				@Cached("create()") MethodDispatchNode otherwiseDispatchNode) {
 			Object otherwiseMessage = OTHERWISE_MESSAGE_FACTORY.newRecord(message);
-			OzProc otherwiseProc = otherwiseLookupNode.executeLookup(self, OTHERWISE);
-			return otherwiseDispatchNode.executeDispatch(frame, self, otherwiseProc, otherwiseMessage);
+			OzProc otherwiseMethod = otherwiseLookupNode.executeLookup(self, OTHERWISE);
+			return otherwiseDispatchNode.executeDispatch(frame, self, otherwiseMethod, otherwiseMessage);
 		}
 
 		@Specialization(contains = { "dispatchCached" })
-		protected Object dispatch(VirtualFrame frame, OzObject self, OzProc lookup, Object message,
+		protected Object dispatch(VirtualFrame frame, OzObject self, OzProc method, Object message,
 				@Cached("create()") IndirectCallNode callNode) {
 			Object[] arguments = new Object[] { self, message };
-			return callNode.call(frame, lookup.callTarget,
-					OzArguments.pack(lookup.declarationFrame, arguments));
+			return callNode.call(frame, method.callTarget,
+					OzArguments.pack(method.declarationFrame, arguments));
 		}
 
 		protected static DirectCallNode createDirectCallNode(RootCallTarget callTarget) {
