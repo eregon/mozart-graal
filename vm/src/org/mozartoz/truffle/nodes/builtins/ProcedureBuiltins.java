@@ -2,13 +2,12 @@ package org.mozartoz.truffle.nodes.builtins;
 
 import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.call.CallNode;
 import org.mozartoz.truffle.nodes.call.CallableNode;
+import org.mozartoz.truffle.nodes.list.OzListToObjectArrayNode;
+import org.mozartoz.truffle.nodes.list.OzListToObjectArrayNodeGen;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzProc;
@@ -57,13 +56,12 @@ public abstract class ProcedureBuiltins {
 	public static abstract class ApplyNode extends OzNode {
 
 		@Child DerefNode derefConsNode = DerefNode.create();
+		@Child OzListToObjectArrayNode listToObjectArrayNode = OzListToObjectArrayNodeGen.create(null);
 
 		@Specialization
-		Object apply(VirtualFrame frame, OzProc proc, OzCons args,
+		Object apply(VirtualFrame frame, OzProc proc, Object args,
 				@Cached("createCallNode()") CallableNode callNode) {
-			List<Object> list = new ArrayList<>();
-			args.forEach(derefConsNode, e -> list.add(e));
-			Object[] arguments = list.toArray(new Object[list.size()]);
+			Object[] arguments = listToObjectArrayNode.executeToObjectArray(args);
 			callNode.executeCall(frame, proc, arguments);
 			return unit;
 		}

@@ -32,6 +32,18 @@ public class OzCons {
 		assert list == "nil";
 	}
 
+	public int length(DerefNode derefConsNode) {
+		int length = 0;
+		Object list = this;
+		while (list instanceof OzCons) {
+			OzCons cons = (OzCons) list;
+			length++;
+			list = derefConsNode.executeDeref(cons.getTail());
+		}
+		assert list == "nil";
+		return length;
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		throw new UnsupportedOperationException("OzCons has structural equality");
