@@ -3,7 +3,6 @@ package org.mozartoz.truffle.nodes.local;
 import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.EqualNode;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzVar;
@@ -18,22 +17,22 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 
 @NodeChildren({ @NodeChild("left"), @NodeChild("right") })
-public abstract class UnifyNode extends OzNode {
+public abstract class DFSUnifyNode extends OzNode {
 
-	public static UnifyNode create() {
-		return UnifyNodeGen.create(null, null);
+	public static DFSUnifyNode create() {
+		return DFSUnifyNodeGen.create(null, null);
 	}
 
-	// TODO: should undo bindings if unification fails.
-	// Maybe by catching the failed unification exception?
+	// Should undo bindings if unification fails?
+	// Actually, no, as stated in PVR's book
 
 	@Child DerefIfBoundNode derefIfBoundNode = DerefIfBoundNodeGen.create();
-	@Child EqualNode equalNode;
+	@Child DFSEqualNode equalNode;
 
 	public abstract Object executeUnify(Object a, Object b);
 
 	@TruffleBoundary
-	private Object unify(Object a, Object b) {
+	protected Object unify(Object a, Object b) {
 		return executeUnify(deref(a), deref(b));
 	}
 
@@ -86,25 +85,31 @@ public abstract class UnifyNode extends OzNode {
 		return a;
 	}
 
-	@Specialization(guards = { "!isVariable(a)", "!isVariable(b)", "!isCons(a)", "!isCons(b)" })
+	@Specialization(guards = { "!isVariable(a)", "!isVariable(b)",
+			"!isCons(a) || !isCons(b)", // not to conflict with other specializations
+			"!isRecord(a) || !isRecord(b)" })
 	Object unifyValues(Object a, Object b) {
 		if (!equal(a, b)) {
 			CompilerDirectives.transferToInterpreter();
-			throw new OzException(this, "Failed unification: " + a + " != " + b);
+			failUnification(a, b);
 		}
 		return a;
 	}
 
-	private Object deref(Object value) {
+	protected Object deref(Object value) {
 		return derefIfBoundNode.executeDerefIfBound(value);
 	}
 
 	private boolean equal(Object a, Object b) {
 		if (equalNode == null) {
 			CompilerDirectives.transferToInterpreter();
-			equalNode = insert(EqualNode.create());
+			equalNode = insert(DFSEqualNode.create());
 		}
 		return equalNode.executeEqual(a, b);
+	}
+
+	public void failUnification(Object a, Object b) {
+		throw new OzException(this, "Failed unification: " + a + " != " + b);
 	}
 
 }
