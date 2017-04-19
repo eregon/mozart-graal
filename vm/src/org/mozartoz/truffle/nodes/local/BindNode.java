@@ -18,7 +18,7 @@ public abstract class BindNode extends OzNode {
 		return BindNodeGen.create(null, null);
 	}
 
-	@Child UnifyNode unifyNode;
+	@Child GenericUnifyNode unifyNode;
 	@Child BindVarValueNode bindVarValueNode;
 
 	@CreateCast("left")
@@ -92,7 +92,7 @@ public abstract class BindNode extends OzNode {
 	private Object unify(Object a, Object b) {
 		if (unifyNode == null) {
 			CompilerDirectives.transferToInterpreter();
-			unifyNode = insert(UnifyNode.create());
+			unifyNode = insert(GenericUnifyNode.create());
 		}
 		return unifyNode.executeUnify(a, b);
 	}
