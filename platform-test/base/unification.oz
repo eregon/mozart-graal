@@ -4,17 +4,14 @@ import
 export
    Return
 define
-   ShouldHaveFailed = 'should have failed'
    proc{MustFail X P}
       skip
       try
          {P}
-         raise ShouldHaveFailed end
-      catch S then case S of !ShouldHaveFailed then
-         raise '  '(X ShouldHaveFailed) end
-      [] _ then
+         raise {VirtualString.toAtom '  '#X#' should have failed'} end
+      catch failure(...) then
          skip
-      end end
+      end
    end
    Return='unification'([
       cyclic( % unification should work with cyclic structures
@@ -97,7 +94,6 @@ define
             A
          in
             {Unify 2 2}
-            % Erroneous case throws a Java exception which will still be propagated
             {MustFail 'equality specialization' proc{$} {Unify rec(A) 2} end}
          end
          keys: [truffle unification]

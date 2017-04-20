@@ -109,7 +109,7 @@ public abstract class DFSUnifyNode extends OzNode {
 	}
 
 	public void failUnification(Object a, Object b) {
-		throw new OzException(this, "Failed unification: " + a + " != " + b);
+		throw new OzException(this, OzException.newFailure());
 	}
 
 }
