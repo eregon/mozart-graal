@@ -9,14 +9,18 @@ public class IdentityPair implements Comparable<IdentityPair> {
 	private final int hashCode;
 
 	public IdentityPair(Object a, Object b) {
-		if (a.hashCode() < b.hashCode()) {
+		int ha = System.identityHashCode(a);
+		int hb = System.identityHashCode(b);
+		long hashCode64;
+		if (ha < hb) {
 			this.a = a;
 			this.b = b;
+			hashCode64 = ((long) ha << 32) | hb;
 		} else {
 			this.a = b;
 			this.b = a;
+			hashCode64 = ((long) hb << 32) | ha;
 		}
-		long hashCode64 = ((long) System.identityHashCode(this.a) << 32) | System.identityHashCode(this.b);
 		this.hashCode = (int) ((hashCode64 >> 16) ^ hashCode64); // TODO improve distribution?
 	}
 
