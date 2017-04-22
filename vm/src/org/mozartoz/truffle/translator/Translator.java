@@ -103,6 +103,7 @@ import org.mozartoz.truffle.nodes.literal.ListLiteralNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
 import org.mozartoz.truffle.nodes.literal.MakeDynamicRecordNode;
+import org.mozartoz.truffle.nodes.literal.ProcDeclarationAndExtractionNode;
 import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
@@ -110,6 +111,7 @@ import org.mozartoz.truffle.nodes.local.BindNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeArgNode;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
+import org.mozartoz.truffle.nodes.local.WriteFrameToFrameNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchDynamicArityNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNode;
@@ -134,6 +136,7 @@ public class Translator {
 
 	static class Environment {
 		private final Environment parent;
+		private final FrameDescriptor capturedVariables = new FrameDescriptor();
 		private final FrameDescriptor frameDescriptor;
 
 		public Environment(Environment parent, FrameDescriptor frameDescriptor) {
@@ -141,16 +144,40 @@ public class Translator {
 			this.frameDescriptor = frameDescriptor;
 		}
 
-		private String symbol2identifier(Symbol symbol) {
-			return symbol.fullName().intern();
+		public FrameSlot addLocalVariable(String identifier) {
+			return frameDescriptor.addFrameSlot(identifier);
 		}
 
-		public FrameSlot findLocalVariable(Symbol symbol) {
-			return frameDescriptor.findFrameSlot(symbol2identifier(symbol));
+		public FrameSlot findLocalVariable(String identifier) {
+			return frameDescriptor.findFrameSlot(identifier);
 		}
 
-		public FrameSlot addLocalVariable(Symbol symbol) {
-			return frameDescriptor.addFrameSlot(symbol2identifier(symbol));
+		public FrameSlot addCapturedVariable(String identifier) {
+			return capturedVariables.addFrameSlot(identifier);
+		}
+
+		public FrameSlot findCapturedVariable(String identifier) {
+			return capturedVariables.findFrameSlot(identifier);
+		}
+
+		public FrameSlotAndDepth findAndExtractVariable(String identifier) {
+			// Look into locals
+			FrameSlot slot = this.findLocalVariable(identifier);
+			if (slot != null) {
+				return new FrameSlotAndDepth(slot, 0);
+			}
+			if (parent == null) { // If no parent, should have been in the locals
+				throw new Error(identifier);
+			}
+			// Look for already captured
+			slot = this.findCapturedVariable(identifier);
+			if (slot != null) {
+				return new FrameSlotAndDepth(slot, 1);
+			}
+			// Perform lookup, update parent so it can extract it as well from its parents
+			parent.findAndExtractVariable(identifier);
+			FrameSlot stored = addCapturedVariable(identifier);
+			return new FrameSlotAndDepth(stored, 1);
 		}
 	}
 
@@ -167,7 +194,7 @@ public class Translator {
 	}
 
 	public FrameSlot addRootSymbol(Symbol symbol) {
-		return rootEnvironment.addLocalVariable(symbol);
+		return rootEnvironment.addLocalVariable(symbol2identifier(symbol));
 	}
 
 	private void pushEnvironment(FrameDescriptor frameDescriptor, String identifier) {
@@ -178,12 +205,20 @@ public class Translator {
 		environment = environment.parent;
 	}
 
+	public String symbol2identifier(Symbol symbol) {
+		return symbol.fullName().intern();
+	}
+
 	public FrameSlotAndDepth findVariable(Symbol symbol) {
+		return findVariable(symbol2identifier(symbol));
+	}
+
+	public FrameSlotAndDepth findVariable(String identifier) {
 		int depth = 0;
 		Environment environment = this.environment;
 
 		while (environment != null) {
-			FrameSlot slot = environment.findLocalVariable(symbol);
+			FrameSlot slot = environment.findLocalVariable(identifier);
 			if (slot != null) {
 				return new FrameSlotAndDepth(slot, depth);
 			} else {
@@ -191,7 +226,18 @@ public class Translator {
 				depth++;
 			}
 		}
-		throw new Error(symbol.fullName());
+		throw new Error(identifier);
+	}
+
+	public FrameSlotAndDepth findAndExtractVariable(Symbol symbol) {
+		return findAndExtractVariable(symbol2identifier(symbol));
+	}
+
+	public FrameSlotAndDepth findAndExtractVariable(String identifier) {
+		if (!Options.FRAME_FILTERING) {
+			return findVariable(identifier);
+		}
+		return this.environment.findAndExtractVariable(identifier);
 	}
 
 	public RootCallTarget translateAST(String description, Statement ast, Function<OzNode, OzNode> wrap) {
@@ -238,7 +284,7 @@ public class Translator {
 				return t(node, new ListLiteralNode(elements));
 			} else if (node instanceof Variable) {
 				Variable variable = (Variable) node;
-				return t(node, findVariable(variable.symbol()).createReadNode());
+				return t(node, findAndExtractVariable(variable.symbol()).createReadNode());
 			} else if (node instanceof UnboundExpression) {
 				return t(node, new UnboundLiteralNode());
 			} else if (node instanceof BinaryOp) {
@@ -269,7 +315,7 @@ public class Translator {
 			for (RawDeclarationOrVar variable : toJava(local.declarations())) {
 				Variable var = ((Variable) variable);
 				Symbol symbol = var.symbol();
-				FrameSlot slot = environment.addLocalVariable(symbol);
+				FrameSlot slot = environment.addLocalVariable(symbol2identifier(symbol));
 				// No need to initialize captures, the slot will be set directly
 				if (!(symbol.isCapture() || var.onStack())) {
 					decls.add(t(variable, new InitializeVarNode(slot)));
@@ -285,7 +331,7 @@ public class Translator {
 			Expression left = bind.left();
 			Expression right = bind.right();
 			if (bind.onStack()) {
-				FrameSlot slot = findVariable(((Variable) left).symbol()).slot;
+				FrameSlot slot = findAndExtractVariable(((Variable) left).symbol()).slot;
 				return t(node, new InitializeTmpNode(slot, translate(right)));
 			}
 			return t(node, BindNodeGen.create(translate(left), translate(right)));
@@ -302,7 +348,7 @@ public class Translator {
 					translate(forNode.proc())));
 		} else if (node instanceof TryCommon) {
 			TryCommon tryNode = (TryCommon) node;
-			FrameSlotAndDepth exceptionVarSlot = findVariable(((Variable) tryNode.exceptionVar()).symbol());
+			FrameSlotAndDepth exceptionVarSlot = findAndExtractVariable(((Variable) tryNode.exceptionVar()).symbol());
 			return t(node, new TryNode(
 					exceptionVarSlot.createWriteNode(),
 					translate(tryNode.body()),
@@ -335,7 +381,7 @@ public class Translator {
 			int i = 0;
 			for (VariableOrRaw variable : toJava(procExpression.args())) {
 				if (variable instanceof Variable) {
-					FrameSlot argSlot = environment.addLocalVariable(((Variable) variable).symbol());
+					FrameSlot argSlot = environment.addLocalVariable(symbol2identifier(((Variable) variable).symbol()));
 					nodes[i] = new InitializeArgNode(argSlot, i);
 					i++;
 				} else {
@@ -350,6 +396,17 @@ public class Translator {
 			}
 			boolean forceSplitting = Loader.getInstance().isLoadingBase();
 			OzRootNode rootNode = new OzRootNode(language, sourceSection, identifier, environment.frameDescriptor, procBody, arity, forceSplitting);
+
+			if (Options.FRAME_FILTERING) {
+				WriteFrameToFrameNode[] captureNodes = new WriteFrameToFrameNode[environment.capturedVariables.getSize()];
+				int j = 0;
+				for (FrameSlot dst : environment.capturedVariables.getSlots()) {
+					FrameSlotAndDepth src = environment.parent.findAndExtractVariable((String) dst.getIdentifier());
+					captureNodes[j] = WriteFrameToFrameNode.create(src.createReadNode(), dst);
+					j++;
+				}
+				return t(procExpression, new ProcDeclarationAndExtractionNode(rootNode.toCallTarget(), environment.capturedVariables, captureNodes));
+			}
 			return t(procExpression, new ProcDeclarationNode(rootNode.toCallTarget()));
 		} finally {
 			popEnvironment();
@@ -422,13 +479,13 @@ public class Translator {
 		} else if (matcher instanceof OzPatMatWildcard) {
 			// Nothing to do
 		} else if (matcher instanceof OzPatMatCapture) {
-			FrameSlotAndDepth slot = findVariable(((OzPatMatCapture) matcher).variable());
+			FrameSlotAndDepth slot = findAndExtractVariable(((OzPatMatCapture) matcher).variable());
 			// Set the slot directly since the variable is born here
 			assert slot.getDepth() == 0;
 			bindings.add(new InitializeTmpNode(slot.getSlot(), copy(valueNode)));
 		} else if (matcher instanceof Variable) {
 			Variable var = (Variable) matcher;
-			OzNode left = findVariable(var.symbol()).createReadNode();
+			OzNode left = findAndExtractVariable(var.symbol()).createReadNode();
 			checks.add(EqualNodeFactory.create(deref(left), deref(copy(valueNode))));
 		} else if (matcher instanceof OzPatMatConjunction) {
 			for (OzValue part : toJava(((OzPatMatConjunction) matcher).parts())) {

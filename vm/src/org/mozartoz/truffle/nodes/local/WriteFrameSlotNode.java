@@ -12,6 +12,10 @@ import com.oracle.truffle.api.nodes.Node;
 @ImportStatic(FrameSlotKind.class)
 public abstract class WriteFrameSlotNode extends Node implements WriteNode, FrameSlotNode {
 
+	public static WriteFrameSlotNode create(FrameSlot slot) {
+		return WriteFrameSlotNodeGen.create(slot);
+	}
+
 	private final FrameSlot slot;
 
 	public WriteFrameSlotNode(FrameSlot slot) {
