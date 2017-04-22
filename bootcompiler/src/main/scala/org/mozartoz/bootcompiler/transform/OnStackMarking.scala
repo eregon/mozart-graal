@@ -30,7 +30,7 @@ sealed class VarState(val onStack: Boolean, val locked: Boolean) {
   }
 }
 object Declared      extends VarState(true, false)
-object Captured      extends VarState(false, false)
+object Captured      extends VarState(false, true) // TODO false false if frame hierarchy, false true if extraction
 object BoundFirst    extends VarState(true, true)
 object ToInstantiate extends VarState(false, true)
 
