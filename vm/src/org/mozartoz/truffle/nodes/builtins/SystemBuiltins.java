@@ -8,6 +8,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.SystemBuiltinsFactory.GetReprNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.runtime.Variable;
 import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -58,7 +59,7 @@ public abstract class SystemBuiltins {
 
 		@TruffleBoundary
 		@Specialization(guards = "!isBound(var)")
-		Object printRepr(OzVar var, boolean toStdErr, boolean newLine) {
+		Object printRepr(Variable var, boolean toStdErr, boolean newLine) {
 			return printRepr(var.toString(), toStdErr, newLine);
 		}
 
@@ -79,7 +80,7 @@ public abstract class SystemBuiltins {
 
 		@TruffleBoundary
 		@Specialization(guards = "!isBound(var)")
-		String getRepr(OzVar var, long depth, long width) {
+		String getRepr(Variable var, long depth, long width) {
 			return var.toString().intern();
 		}
 
