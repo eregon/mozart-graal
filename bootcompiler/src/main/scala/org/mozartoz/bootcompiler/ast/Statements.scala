@@ -2,6 +2,7 @@ package org.mozartoz.bootcompiler
 package ast
 
 import Node.Pos
+import org.mozartoz.bootcompiler.symtab.Symbol
 
 /** Base class for ASTs that represent statements */
 sealed abstract class Statement extends StatOrExpr with RawDeclaration
@@ -252,3 +253,6 @@ case class DotAssignStatement(left: Expression, center: Expression,
 case class SkipStatement()(val pos: Pos) extends Statement with Phrase {
   def syntax(indent: String) = "skip"
 }
+
+case class ClearVarsStatement(node: Statement, before: Seq[Symbol],
+    after: Seq[Symbol])(val pos: Pos) extends Statement with ClearVarsCommon

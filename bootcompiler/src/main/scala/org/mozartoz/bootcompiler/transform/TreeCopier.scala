@@ -85,6 +85,9 @@ class TreeCopier {
 
   def SkipStatement(tree: Node) =
     new SkipStatement()(tree)
+    
+  def ClearVarsStatement(tree: Node, node: Statement, before: Seq[Symbol], after: Seq[Symbol])=
+    new ClearVarsStatement(node, before, after)(tree)
 
   // Expressions
 
@@ -150,6 +153,9 @@ class TreeCopier {
   def DotAssignExpression(tree: Node, left: Expression, center: Expression,
       right: Expression) =
     new DotAssignExpression(left, center, right)(tree)
+    
+  def ClearVarsExpression(tree: Node, node: Expression, before: Seq[Symbol], after: Seq[Symbol]) =
+    new ClearVarsExpression(node, before, after)(tree)
 
   // Functors
 

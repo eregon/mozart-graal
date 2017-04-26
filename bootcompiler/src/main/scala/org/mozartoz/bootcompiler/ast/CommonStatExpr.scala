@@ -1,6 +1,8 @@
 package org.mozartoz.bootcompiler
 package ast
 
+import org.mozartoz.bootcompiler.symtab.Symbol
+
 trait StatOrExpr extends Node
 
 trait LocalCommon extends StatOrExpr {
@@ -212,4 +214,17 @@ trait BindCommon extends StatOrExpr with InfixSyntax {
   protected val opSyntax = " = "
   
   override def syntax(indent: String) = super.syntax(indent) + (if (onStack) "(stack)" else "")
+}
+
+trait ClearVarsCommon extends StatOrExpr {
+	protected val node: StatOrExpr
+  protected val before: Seq[Symbol]
+  protected val after: Seq[Symbol]
+  
+  override def syntax(indent: String) = {
+    val subIndent = indent + "   "
+	  "/"+before.mkString(",")+"/" + "\n"+
+	    subIndent+node.syntax(subIndent) + "\n" +
+	  indent + "\\"+after.mkString(",")+"\\"
+	}
 }

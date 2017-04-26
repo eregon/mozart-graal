@@ -3,57 +3,53 @@ package transform
 
 import ast._
 
-trait Walker {
+trait ReverseWalker {
   /** Transforms a Statement */
   def walkStat(statement: Statement): Unit = (statement: @unchecked) match {
     case CompoundStatement(stats) =>
-      stats foreach walkStat
-
-    case RawLocalStatement(declarations, body) =>
-      declarations foreach walkDecl
-      walkStat(body)
+      stats.reverse foreach walkStat
 
     case LocalStatement(declarations, body) =>
       walkStat(body)
 
     case CallStatement(callable, args) =>
+      args.reverse foreach walkExpr
       walkExpr(callable)
-      args foreach walkExpr
 
     case IfStatement(condition, trueStatement, falseStatement) =>
-      walkExpr(condition)
-      walkStat(trueStatement)
       walkStat(falseStatement)
+      walkStat(trueStatement)
+      walkExpr(condition)
 
     case MatchStatement(value, clauses, elseStatement) =>
-      walkExpr(value)
-      clauses foreach walkClauseStat
       walkStat(elseStatement)
+      clauses.reverse foreach walkClauseStat
+      walkExpr(value)
 
     case NoElseStatement() =>
 
     case ForStatement(from, to, proc) =>
-      walkExpr(from)
-      walkExpr(to)
       walkExpr(proc)
+      walkExpr(to)
+      walkExpr(from)
 
     case ThreadStatement(body) =>
       walkStat(body)
 
     case LockStatement(lock, body) =>
-      walkExpr(lock)
       walkStat(body)
+      walkExpr(lock)
 
     case LockObjectStatement(body) =>
       walkStat(body)
 
     case TryStatement(body, exceptionVar, catchBody) =>
-      walkStat(body)
       walkStat(catchBody)
+      walkStat(body)
 
     case TryFinallyStatement(body, finallyBody) =>
-      walkStat(body)
       walkStat(finallyBody)
+      walkStat(body)
 
     case RaiseStatement(body) =>
       walkExpr(body)
@@ -61,17 +57,17 @@ trait Walker {
     case FailStatement() =>
 
     case BindStatement(left, right) =>
-      walkExpr(left)
       walkExpr(right)
+      walkExpr(left)
 
     case BinaryOpStatement(left, operator, right) =>
-      walkExpr(left)
       walkExpr(right)
+      walkExpr(left)
 
     case DotAssignStatement(left, center, right) =>
-      walkExpr(left)
-      walkExpr(center)
       walkExpr(right)
+      walkExpr(center)
+      walkExpr(left)
 
     case SkipStatement() =>
       
@@ -81,12 +77,8 @@ trait Walker {
 
   def walkExpr(expression: Expression): Unit = (expression: @unchecked) match {
     case StatAndExpression(statement, expr) =>
+      walkExpr(expr)
       walkStat(statement)
-      walkExpr(expr)
-
-    case RawLocalExpression(declarations, expr) =>
-      declarations foreach walkDecl
-      walkExpr(expr)
 
     case LocalExpression(declarations, expr) =>
       walkExpr(expr)
@@ -100,18 +92,18 @@ trait Walker {
       walkExpr(body)
 
     case CallExpression(callable, args) =>
+      args.reverse foreach walkExpr
       walkExpr(callable)
-      args foreach walkExpr
 
     case IfExpression(condition, trueExpression, falseExpression) =>
-      walkExpr(condition)
-      walkExpr(trueExpression)
       walkExpr(falseExpression)
+      walkExpr(trueExpression)
+      walkExpr(condition)
 
     case MatchExpression(value, clauses, elseExpression) =>
-      walkExpr(value)
-      clauses foreach walkClauseExpr
       walkExpr(elseExpression)
+      clauses.reverse foreach walkClauseExpr
+      walkExpr(value)
 
     case NoElseExpression() =>
 
@@ -119,35 +111,35 @@ trait Walker {
       walkExpr(body)
 
     case LockExpression(lock, body) =>
-      walkExpr(lock)
       walkExpr(body)
+      walkExpr(lock)
 
     case LockObjectExpression(body) =>
       walkExpr(body)
 
     case TryExpression(body, exceptionVar, catchBody) =>
-      walkExpr(body)
       walkExpr(catchBody)
+      walkExpr(body)
 
     case TryFinallyExpression(body, finallyBody) =>
-      walkExpr(body)
       walkStat(finallyBody)
+      walkExpr(body)
 
     case RaiseExpression(body) =>
       walkExpr(body)
 
     case BindExpression(left, right) =>
-      walkExpr(left)
       walkExpr(right)
+      walkExpr(left)
 
     case DotAssignExpression(left, center, right) =>
-      walkExpr(left)
-      walkExpr(center)
       walkExpr(right)
+      walkExpr(center)
+      walkExpr(left)
 
     case FunctorExpression(name, require, prepare, imports, define, exports) =>
-      prepare foreach walkStat
       define foreach walkStat
+      prepare foreach walkStat
       
     case ClearVarsExpression(expr, before, after) =>
       walkExpr(expr)
@@ -158,12 +150,12 @@ trait Walker {
       walkExpr(operand)
 
     case BinaryOp(left, operator, right) =>
-      walkExpr(left)
       walkExpr(right)
+      walkExpr(left)
 
     case ShortCircuitBinaryOp(left, operator, right) =>
-      walkExpr(left)
       walkExpr(right)
+      walkExpr(left)
 
     // Trivial expressions
 
@@ -183,27 +175,27 @@ trait Walker {
     case AutoFeature() =>
 
     case Record(label, fields) =>
+      fields.reverse foreach walkRecordField
       walkExpr(label)
-      fields foreach walkRecordField
 
     case OpenRecordPattern(label, fields) =>
+      fields.reverse foreach walkRecordField
       walkExpr(label)
-      fields foreach walkRecordField
 
     case ListExpression(elements) =>
-      elements foreach walkExpr
+      elements.reverse foreach walkExpr
 
     case PatternConjunction(parts) =>
-      parts foreach walkExpr
+      parts.reverse foreach walkExpr
 
     // Classes
 
     case ClassExpression(name, parents, features, attributes, properties, methods) =>
-      parents foreach walkExpr
-      features foreach walkFeatOrAttr
-      attributes foreach walkFeatOrAttr
-      properties foreach walkExpr
-      methods foreach walkMethodDef
+      methods.reverse foreach walkMethodDef
+      properties.reverse foreach walkExpr
+      attributes.reverse foreach walkFeatOrAttr
+      features.reverse foreach walkFeatOrAttr
+      parents.reverse foreach walkExpr
   }
 
   /** Transforms a declaration */
@@ -214,28 +206,28 @@ trait Walker {
 
   /** Transforms a record field */
   private def walkRecordField(field: RecordField): Unit = {
-    walkExpr(field.feature)
     walkExpr(field.value)
+    walkExpr(field.feature)
   }
 
   /** Transforms a clause of a match statement */
   def walkClauseStat(clause: MatchStatementClause) = {
-    walkExpr(clause.pattern)
-    clause.guard foreach walkExpr
     walkStat(clause.body)
+    clause.guard foreach walkExpr
+    walkExpr(clause.pattern)
   }
 
   /** Transforms a clause of a match expression */
   def walkClauseExpr(clause: MatchExpressionClause) = {
-    walkExpr(clause.pattern)
+	  walkExpr(clause.body)
     clause.guard foreach walkExpr
-    walkExpr(clause.body)
+    walkExpr(clause.pattern)
   }
 
   /** Transforms a feature or an attribute of a class */
   def walkFeatOrAttr(featOrAttr: FeatOrAttr) = {
-    walkExpr(featOrAttr.name)
     featOrAttr.value foreach walkExpr
+    walkExpr(featOrAttr.name)
   }
 
   /** Transforms a method definition */
