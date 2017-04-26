@@ -9,6 +9,7 @@ import java.util.function.Function;
 import org.mozartoz.bootcompiler.ast.BinaryOp;
 import org.mozartoz.bootcompiler.ast.BindCommon;
 import org.mozartoz.bootcompiler.ast.CallCommon;
+import org.mozartoz.bootcompiler.ast.ClearVarsCommon;
 import org.mozartoz.bootcompiler.ast.CompoundStatement;
 import org.mozartoz.bootcompiler.ast.Constant;
 import org.mozartoz.bootcompiler.ast.Expression;
@@ -111,6 +112,7 @@ import org.mozartoz.truffle.nodes.local.BindNodeGen;
 import org.mozartoz.truffle.nodes.local.InitializeArgNode;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
+import org.mozartoz.truffle.nodes.local.ResetSlotsNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameToFrameNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchDynamicArityNodeGen;
@@ -284,7 +286,14 @@ public class Translator {
 				return t(node, new ListLiteralNode(elements));
 			} else if (node instanceof Variable) {
 				Variable variable = (Variable) node;
-				return t(node, findAndExtractVariable(variable.symbol()).createReadNode());
+				Symbol sym = variable.symbol();
+				OzNode variableNode = t(node, findAndExtractVariable(sym).createReadNode());
+				if (variable.clear()) {
+					return t(node, new ResetSlotsNode(
+							new FrameSlot[0], variableNode,
+							new FrameSlot[] { environment.findLocalVariable(symbol2identifier(sym)) }));
+				}
+				return variableNode;
 			} else if (node instanceof UnboundExpression) {
 				return t(node, new UnboundLiteralNode());
 			} else if (node instanceof BinaryOp) {
@@ -342,6 +351,17 @@ public class Translator {
 					translate(ifNode.falsePart())));
 		} else if (node instanceof MatchCommon) {
 			return translateMatch((MatchCommon) node);
+		} else if (node instanceof ClearVarsCommon) {
+			ClearVarsCommon clearVars = (ClearVarsCommon) node;
+			FrameSlot[] before = new FrameSlot[clearVars.before().length()];
+			for (int i = 0; i < before.length; i++) {
+				before[i] = environment.findLocalVariable(symbol2identifier(clearVars.before().apply(i)));
+			}
+			FrameSlot[] after = new FrameSlot[clearVars.after().length()];
+			for (int i = 0; i < after.length; i++) {
+				after[i] = environment.findLocalVariable(symbol2identifier(clearVars.after().apply(i)));
+			}
+			return t(node, new ResetSlotsNode(before, translate(clearVars.node()), after));
 		} else if (node instanceof ForStatement) {
 			ForStatement forNode = (ForStatement) node;
 			return t(node, new ForNode(translate(forNode.from()), translate(forNode.to()),

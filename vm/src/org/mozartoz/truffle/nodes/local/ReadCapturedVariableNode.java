@@ -5,14 +5,15 @@ import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzArguments;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-@ImportStatic(Options.class)
 public abstract class ReadCapturedVariableNode extends OzNode implements FrameSlotNode {
+	protected static final boolean CACHE_READ = Options.CACHE_READ;
+
+	public abstract Object executeRead(VirtualFrame frame);
 
 	final FrameSlot slot;
 	final int depth;

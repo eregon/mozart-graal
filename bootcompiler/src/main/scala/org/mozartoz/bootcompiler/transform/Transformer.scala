@@ -112,6 +112,9 @@ abstract class Transformer extends (Program => Unit) {
 
     case SkipStatement() =>
       treeCopy.SkipStatement(statement)
+      
+    case ClearVarsStatement(stat, before, after) =>
+      treeCopy.ClearVarsStatement(statement, transformStat(stat), before, after)
   }
 
   /** Transforms an expression */
@@ -190,6 +193,9 @@ abstract class Transformer extends (Program => Unit) {
           require, prepare map transformDefine,
           imports, define map transformDefine,
           exports)
+      
+    case ClearVarsExpression(expr, before, after) =>
+      treeCopy.ClearVarsExpression(expression, transformExpr(expr), before, after)
 
     // Operations
 

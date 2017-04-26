@@ -18,6 +18,7 @@ public abstract class Options {
 	public static final boolean STACKTRACE_ON_INTERRUPT = bool("oz.stacktrace.on_interrupt", false);
 
 	public static final boolean FREE_LINKS = bool("oz.free.links", true);
+	public static final boolean FREE_SLOTS = bool("oz.free.slots", true);
 	public static final boolean DIRECT_VARS = bool("oz.vars.direct", true);
 	public static final boolean FRAME_FILTERING = bool("oz.vars.filtering", true);
 	public static final boolean CACHE_READ = bool("oz.reads.cache", true);

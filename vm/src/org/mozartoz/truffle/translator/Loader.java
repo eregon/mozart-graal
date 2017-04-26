@@ -16,6 +16,8 @@ import org.mozartoz.bootcompiler.transform.Namer;
 import org.mozartoz.bootcompiler.transform.OnStackMarking;
 import org.mozartoz.bootcompiler.transform.TailCallMarking;
 import org.mozartoz.bootcompiler.transform.Unnester;
+import org.mozartoz.bootcompiler.transform.VariableClearing;
+import org.mozartoz.bootcompiler.transform.VariableDeduplication;
 import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
@@ -344,6 +346,11 @@ public class Loader {
 			new OnStackMarking().apply(program);
 		}
 		TailCallMarking.apply(program);
+		if (Options.FREE_SLOTS) {
+			assert Options.FRAME_FILTERING : "";
+			VariableDeduplication.apply(program);
+			VariableClearing.apply(program);
+		}
 
 		return program.rawCode();
 	}

@@ -369,10 +369,11 @@ case class RawVariable(name: String)(val pos: Pos) extends VariableOrRaw with Ra
 case class Variable(symbol: Symbol)(val pos: Pos) extends VarOrConst with VariableOrRaw with Phrase
     with RawDeclarationOrVar {
   var onStack = false
+  var clear = false
   def name = symbol.name
 
   def syntax(indent: String) =
-    symbol.fullName + (if (onStack) "(onstack)" else "")
+    symbol.fullName + (if (clear) "\\" else "") + (if (onStack) "(onstack)" else "")
 }
 
 /** Factory for Variable */
@@ -698,3 +699,6 @@ case class ClassExpression(name: String, parents: Seq[Expression],
     untilMethods + "\n\n" + indent + "end"
   }
 }
+
+case class ClearVarsExpression(node: Expression, before: Seq[Symbol],
+    after: Seq[Symbol])(val pos: Pos) extends Expression with ClearVarsCommon
