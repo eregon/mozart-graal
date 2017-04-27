@@ -2,7 +2,8 @@ package org.mozartoz.truffle.nodes.literal;
 
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
-import org.mozartoz.truffle.nodes.local.WriteFrameToFrameNode;
+import org.mozartoz.truffle.nodes.local.CopyVariableToFrameNode;
+import org.mozartoz.truffle.runtime.ArrayUtils;
 import org.mozartoz.truffle.runtime.OzProc;
 
 import com.oracle.truffle.api.RootCallTarget;
@@ -15,11 +16,11 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 public class ProcDeclarationAndExtractionNode extends OzNode {
 
 	private final RootCallTarget callTarget;
-	private FrameDescriptor capturedDescriptor;
-	@Children final WriteFrameToFrameNode[] captureNodes;
+	private final FrameDescriptor capturedDescriptor;
+	@Children final CopyVariableToFrameNode[] captureNodes;
 	private final int arity;
 
-	public ProcDeclarationAndExtractionNode(RootCallTarget callTarget, FrameDescriptor capturedDescriptor, WriteFrameToFrameNode[] captureNodes) {
+	public ProcDeclarationAndExtractionNode(RootCallTarget callTarget, FrameDescriptor capturedDescriptor, CopyVariableToFrameNode[] captureNodes) {
 		this.callTarget = callTarget;
 		this.capturedDescriptor = capturedDescriptor;
 		this.captureNodes = captureNodes;
@@ -29,7 +30,7 @@ public class ProcDeclarationAndExtractionNode extends OzNode {
 	@Override
 	@ExplodeLoop
 	public Object execute(VirtualFrame frame) {
-		MaterializedFrame capture = Truffle.getRuntime().createMaterializedFrame(new Object[0], capturedDescriptor);
+		MaterializedFrame capture = Truffle.getRuntime().createMaterializedFrame(ArrayUtils.EMPTY, capturedDescriptor);
 		for (int i = 0; i < captureNodes.length; i++) {
 			captureNodes[i].executeWrite(frame, capture);
 		}

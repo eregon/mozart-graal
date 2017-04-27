@@ -2,15 +2,16 @@ package org.mozartoz.truffle.nodes.local;
 
 import org.mozartoz.truffle.nodes.OzNode;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 public class ResetSlotsNode extends OzNode {
 
-	final FrameSlot[] before;
+	@CompilationFinal(dimensions = 1) FrameSlot[] before;
 	@Child OzNode node;
-	final FrameSlot[] after;
+	@CompilationFinal(dimensions = 1) FrameSlot[] after;
 
 	public ResetSlotsNode(FrameSlot[] before, OzNode node, FrameSlot[] after) {
 		this.before = before;

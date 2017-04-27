@@ -1,27 +1,15 @@
 package org.mozartoz.bootcompiler.transform
 
-import org.mozartoz.bootcompiler.ast.TreeDSL
-import org.mozartoz.bootcompiler.ast.ProcExpression
-import org.mozartoz.bootcompiler.ast.Expression
-import scala.collection.mutable.HashMap
-import org.mozartoz.bootcompiler.ast.Node
-import org.mozartoz.bootcompiler.ast.LocalStatement
-import org.mozartoz.bootcompiler.ast.Statement
-import org.mozartoz.bootcompiler.symtab.Symbol
-import org.mozartoz.bootcompiler.ast.Variable
-import org.mozartoz.bootcompiler.ast.IfStatement
-import scala.collection.mutable.HashSet
-import scala.collection.mutable.Buffer
-import org.mozartoz.bootcompiler.ast.StatOrExpr
-import org.mozartoz.bootcompiler.symtab.Symbol
-import org.mozartoz.bootcompiler.ast.IfExpression
 import java.util.IdentityHashMap
+
 import scala.collection.mutable.ArrayBuffer
-import org.mozartoz.bootcompiler.ast.MatchExpression
-import org.mozartoz.bootcompiler.ast.MatchStatement
-import org.mozartoz.bootcompiler.ast.LocalExpression
-import org.mozartoz.bootcompiler.ast.NoElseExpression
-import org.mozartoz.bootcompiler.ast.NoElseStatement
+import scala.collection.mutable.Buffer
+import scala.collection.mutable.HashMap
+import scala.collection.mutable.HashSet
+
+import org.mozartoz.bootcompiler.ast._
+import org.mozartoz.bootcompiler.oz._
+import org.mozartoz.bootcompiler.symtab._
 
 
 /**
@@ -30,7 +18,7 @@ import org.mozartoz.bootcompiler.ast.NoElseStatement
 case class ClearSite(node: StatOrExpr, before: Boolean)
 /**
  * The complementary, a variable a node should clear. These two could be merged, but the separated
- * approach allows to express sites without decided symbols
+ * approach allows to express sites without decided symbols more clearly.
  */
 case class Clear(sym: Symbol, before: Boolean)
 
@@ -40,7 +28,7 @@ case class Clear(sym: Symbol, before: Boolean)
  */
 case class BranchClearsMap(clearsMap: HashMap[Symbol, Seq[ClearSite]], default: ClearSite)
 
-object VariableClearing extends Transformer with ReverseWalker {
+object VariableClearing extends Transformer with ReverseWalker with TreeDSL {
   type ClearsMap = HashMap[Symbol, Seq[ClearSite]]
   
   // Map of variables and the nodes eliminating them
@@ -69,7 +57,7 @@ object VariableClearing extends Transformer with ReverseWalker {
     val localTouched = new HashSet[Symbol]()
     
     val branchClearsMaps = branches.map(_.clearsMap) // Actual clears from branches
-    val branchDefault = branches.map(_.default) // ClearVar for missing variable clears
+    val branchDefault = branches.map(_.default) // ClearSite for missing variable clears
     
     // ClearVars from branches must be propagated
     for ((branchClearsMap, i) <- branchClearsMaps.zipWithIndex) {
@@ -115,10 +103,12 @@ object VariableClearing extends Transformer with ReverseWalker {
       walkExpr(condition)
       
     case MatchStatement(value, clauses, elseStatement) =>
+      /* If walkExpr was used, the variable would be cleared in-place, which is not desirable because
+       * it will be copied in the final AST, and so might clear itself before being read again */
       def clearVal(stat: Statement) = {
         val sym = value.asInstanceOf[Variable].symbol
         if (this.clearsMap.get(sym) == Some(null))
-          this.clearsMap.put(sym, Seq(ClearSite(stat, false)))
+          this.clearsMap.put(sym, Seq(ClearSite(stat, true)))
       }
       
       merge((clauses.map { clause =>
@@ -168,11 +158,21 @@ object VariableClearing extends Transformer with ReverseWalker {
       })
       walkExpr(condition)
       
+    case ShortCircuitBinaryOp(left, "andthen", right) => // We use the substitution mechanism, only if necessary.
+      val subst = treeCopy.IfExpression(expression, left, right, Constant(False())(right.pos))
+      walkExpr(subst)
+      nodeSubst.put(expression, subst)
+      
+    case ShortCircuitBinaryOp(left, "orelse", right) =>
+      val subst = treeCopy.IfExpression(expression, left, Constant(True())(right.pos), right)
+      walkExpr(subst)
+      nodeSubst.put(expression, subst)
+      
     case MatchExpression(value, clauses, elseExpression) =>
       def clearVal(expr: Expression) = {
         val sym = value.asInstanceOf[Variable].symbol
         if (this.clearsMap.get(sym) == Some(null))
-          this.clearsMap.put(sym, Seq(ClearSite(expr, false)))
+          this.clearsMap.put(sym, Seq(ClearSite(expr, true)))
       }
       
       merge((clauses.map { clause =>
@@ -189,39 +189,39 @@ object VariableClearing extends Transformer with ReverseWalker {
         BranchClearsMap(this.clearsMap, ClearSite(elseExpression, true))
       }): _*)
       
-    
     case _ => super.walkExpr(expression)
   }
   
-  var nodeReplacements: IdentityHashMap[StatOrExpr, Buffer[Clear]] = new IdentityHashMap()
-  def withNodeReplacement[A](nodeReplacements: IdentityHashMap[StatOrExpr, Buffer[Clear]])(f: => A): A = {
-    val oldNodeReplacements = this.nodeReplacements
-    this.nodeReplacements = nodeReplacements
+  var nodeSubst: IdentityHashMap[StatOrExpr, StatOrExpr] = new IdentityHashMap()
+  var nodeClears: IdentityHashMap[StatOrExpr, Buffer[Clear]] = new IdentityHashMap()
+  def withNodeClears[A](nodeReplacements: IdentityHashMap[StatOrExpr, Buffer[Clear]])(f: => A): A = {
+    val oldNodeClears = this.nodeClears
+    this.nodeClears = nodeReplacements
     try {
       return f
     } finally {
-      this.nodeReplacements = oldNodeReplacements
+      this.nodeClears = oldNodeClears
     }
   }
   
-  def clearsMap2replacements(clearsMap: ClearsMap): IdentityHashMap[StatOrExpr, Buffer[Clear]] = {
-    val replacements = new IdentityHashMap[StatOrExpr, Buffer[Clear]]()
+  def clearsMap2nodeClears(clearsMap: ClearsMap): IdentityHashMap[StatOrExpr, Buffer[Clear]] = {
+    val nodeClears = new IdentityHashMap[StatOrExpr, Buffer[Clear]]()
     for ((sym, clears) <- clearsMap if clears != null) { // TODO WHAT IF UNENCOUNTERED?
       for (ClearSite(node, before) <- clears) {
-        var buffer = replacements.get(node)
+        var buffer = nodeClears.get(node)
         if (buffer == null) {
           buffer = ArrayBuffer[Clear]()
-          replacements.put(node, buffer)
+          nodeClears.put(node, buffer)
         }
         buffer += Clear(sym, before)
       }
     }
     
-    replacements
+    nodeClears
   }
   
   def replaceStat(statement: Statement): Statement = {
-    val replacements = nodeReplacements.get(statement)
+    val replacements = nodeClears.get(statement)
     if (replacements != null) {
       treeCopy.ClearVarsStatement(statement, super.transformStat(statement),
           replacements.filter(_.before).map(_.sym),
@@ -232,7 +232,7 @@ object VariableClearing extends Transformer with ReverseWalker {
   }
   
   def replaceExpr(expression: Expression): Expression = {
-    val replacements = nodeReplacements.get(expression)
+    val replacements = nodeClears.get(expression)
       if (replacements != null) {
         treeCopy.ClearVarsExpression(expression, super.transformExpr(expression),
           replacements.filter(_.before).map(_.sym),
@@ -249,24 +249,44 @@ object VariableClearing extends Transformer with ReverseWalker {
     	  walkStat(body)
     	  this.clearsMap
       }
-      withNodeReplacement(clearsMap2replacements(clearsMap)) {
+      withNodeClears(clearsMap2nodeClears(clearsMap)) {
     	  treeCopy.ProcExpression(expression, name, args, replaceStat(body), flags)
       }
       
     case v @ Variable(sym) => // Some nodes expect a variable as child. Do not create unnecessary resetters
-      val repl = nodeReplacements.get(v)
+      val repl = nodeClears.get(v)
       if (repl != null) {
         val idx = repl.indexWhere { clear => clear.sym == sym }
         if (idx >= 0) {
           v.clear = true
           if (repl.length == 1) {
-            nodeReplacements.put(v, null)
+            nodeClears.put(v, null)
           } else {
             repl.remove(idx)
           }
         }
       }
       replaceExpr(v)
+      
+    case ShortCircuitBinaryOp(left, "andthen", right) =>
+      nodeSubst.get(expression) match {
+        case ifExpr @ IfExpression(left, longCircuit, shortCircuit) =>
+          if (nodeClears.get(shortCircuit) != null) {
+          	replaceExpr(ifExpr)
+          } else {
+            treeCopy.ShortCircuitBinaryOp(expression, replaceExpr(left), "andthen", right)
+          }
+      }
+      
+    case ShortCircuitBinaryOp(left, "orelse", right) =>
+      nodeSubst.get(expression) match {
+        case ifExpr @ IfExpression(left, shortCircuit, longCircuit) =>
+          if (nodeClears.get(shortCircuit) != null) {
+          	replaceExpr(ifExpr)
+          } else {
+            treeCopy.ShortCircuitBinaryOp(expression, replaceExpr(left), "orelse", right)
+          }
+      }
       
     case NoElseExpression() => expression
     case _ => replaceExpr(expression)

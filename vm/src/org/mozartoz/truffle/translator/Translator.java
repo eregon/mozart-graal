@@ -113,7 +113,7 @@ import org.mozartoz.truffle.nodes.local.InitializeArgNode;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.local.ResetSlotsNode;
-import org.mozartoz.truffle.nodes.local.WriteFrameToFrameNode;
+import org.mozartoz.truffle.nodes.local.CopyVariableToFrameNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchDynamicArityNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNode;
@@ -418,11 +418,11 @@ public class Translator {
 			OzRootNode rootNode = new OzRootNode(language, sourceSection, identifier, environment.frameDescriptor, procBody, arity, forceSplitting);
 
 			if (Options.FRAME_FILTERING) {
-				WriteFrameToFrameNode[] captureNodes = new WriteFrameToFrameNode[environment.capturedVariables.getSize()];
+				CopyVariableToFrameNode[] captureNodes = new CopyVariableToFrameNode[environment.capturedVariables.getSize()];
 				int j = 0;
 				for (FrameSlot dst : environment.capturedVariables.getSlots()) {
 					FrameSlotAndDepth src = environment.parent.findAndExtractVariable((String) dst.getIdentifier());
-					captureNodes[j] = WriteFrameToFrameNode.create(src.createReadNode(), dst);
+					captureNodes[j] = CopyVariableToFrameNode.create(src.createReadNode(), dst);
 					j++;
 				}
 				return t(procExpression, new ProcDeclarationAndExtractionNode(rootNode.toCallTarget(), environment.capturedVariables, captureNodes));
