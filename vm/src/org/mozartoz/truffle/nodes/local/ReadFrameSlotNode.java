@@ -30,7 +30,7 @@ public abstract class ReadFrameSlotNode extends Node implements FrameSlotNode {
 		return frame.getObject(slot);
 	}
 
-	@Specialization(contains = { "readLong", "readObject" })
+	@Specialization(replaces = { "readLong", "readObject" })
 	protected Object read(Frame frame) {
 		return frame.getValue(slot);
 	}

@@ -30,7 +30,7 @@ public abstract class CachingReadFrameSlotNode extends Node implements FrameSlot
 		return cachedValue;
 	}
 
-	@Specialization(contains = "readConstant")
+	@Specialization(replaces = "readConstant")
 	protected Object readNotConstant(Frame frame) {
 		return readFrameSlotNode.executeRead(frame);
 	}

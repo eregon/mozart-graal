@@ -45,7 +45,7 @@ public abstract class OzListToObjectArrayNode extends OzNode {
 		return array;
 	}
 
-	@Specialization(contains = "fixedLengthList")
+	@Specialization(replaces = "fixedLengthList")
 	protected Object[] uncachedWithArrayList(OzCons list) {
 		List<Object> array = new ArrayList<>();
 		list.forEach(derefConsNode, e -> array.add(e));

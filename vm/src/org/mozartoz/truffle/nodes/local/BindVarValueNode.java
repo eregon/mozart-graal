@@ -45,7 +45,7 @@ public abstract class BindVarValueNode extends OzNode {
 		return value;
 	}
 
-	@Specialization(contains = { "bind1", "bind2", "bind3" })
+	@Specialization(replaces = { "bind1", "bind2", "bind3" })
 	Object bindLeft(OzVar var, Object value) {
 		printNLinks(var);
 		var.bind(value);

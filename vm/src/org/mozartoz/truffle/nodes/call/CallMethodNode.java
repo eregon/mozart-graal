@@ -77,7 +77,7 @@ public abstract class CallMethodNode extends OzNode {
 			return cachedMethod;
 		}
 
-		@Specialization(contains = "cachedLookup")
+		@Specialization(replaces = "cachedLookup")
 		protected OzProc uncachedLookup(OzObject self, Object name) {
 			return getMethod(self, name);
 		}
@@ -114,7 +114,7 @@ public abstract class CallMethodNode extends OzNode {
 			return callNode.call(OzArguments.pack(cachedMethod.declarationFrame, arguments));
 		}
 
-		@Specialization(contains = "dispatchCached")
+		@Specialization(replaces = "dispatchCached")
 		protected Object dispatchUncached(OzObject self, OzProc method, Object message,
 				@Cached("create()") IndirectCallNode callNode) {
 			Object[] arguments = new Object[] { self, message };

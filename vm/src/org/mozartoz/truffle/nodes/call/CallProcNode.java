@@ -32,14 +32,14 @@ public abstract class CallProcNode extends OzNode {
 		return callNode.call(OzArguments.pack(cachedProc.declarationFrame, arguments));
 	}
 
-	@Specialization(guards = "proc.callTarget == cachedCallTarget", contains = "callProcIdentity")
+	@Specialization(guards = "proc.callTarget == cachedCallTarget", replaces = "callProcIdentity")
 	protected Object callDirect(OzProc proc, Object[] arguments,
 			@Cached("proc.callTarget") RootCallTarget cachedCallTarget,
 			@Cached("createDirectCallNode(cachedCallTarget)") DirectCallNode callNode) {
 		return callNode.call(OzArguments.pack(proc.declarationFrame, arguments));
 	}
 
-	@Specialization(contains = "callDirect")
+	@Specialization(replaces = "callDirect")
 	protected Object callIndirect(OzProc proc, Object[] arguments,
 			@Cached("create()") IndirectCallNode callNode) {
 		return callNode.call(proc.callTarget, OzArguments.pack(proc.declarationFrame, arguments));

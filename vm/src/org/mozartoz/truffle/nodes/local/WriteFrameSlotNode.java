@@ -33,7 +33,7 @@ public abstract class WriteFrameSlotNode extends Node implements WriteNode, Fram
 		frame.setLong(slot, value);
 	}
 
-	@Specialization(contains = "writeLong")
+	@Specialization(replaces = "writeLong")
 	protected void write(Frame frame, Object value) {
 		if (slot.getKind() != FrameSlotKind.Object) {
 			CompilerDirectives.transferToInterpreterAndInvalidate();

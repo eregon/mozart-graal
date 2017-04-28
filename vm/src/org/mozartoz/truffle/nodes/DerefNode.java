@@ -40,7 +40,7 @@ public abstract class DerefNode extends OzNode {
 		return klass.cast(value);
 	}
 
-	@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" }, contains = "derefValueProfiled")
+	@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" }, replaces = "derefValueProfiled")
 	Object derefValue(Object value) {
 		return value;
 	}

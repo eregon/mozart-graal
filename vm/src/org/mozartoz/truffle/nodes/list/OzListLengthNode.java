@@ -34,7 +34,7 @@ public abstract class OzListLengthNode extends OzNode {
 		return cachedLength;
 	}
 
-	@Specialization(contains = "fixedLengthList")
+	@Specialization(replaces = "fixedLengthList")
 	protected int uncachedLength(OzCons list) {
 		return list.length(derefConsNode);
 	}
