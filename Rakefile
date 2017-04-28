@@ -1,6 +1,8 @@
 require_relative 'tool/common'
 require 'tempfile'
 
+TRUFFLE_RELEASE = "0.18"
+
 OZWISH = PROJECT_DIR / "wish/ozwish"
 OZWISH_SRC = PROJECT_DIR / "wish/unixmain.cc"
 
@@ -72,7 +74,7 @@ namespace :build do
 
   file TRUFFLE do
     sh "cd .. && git clone https://github.com/eregon/truffle.git"
-    sh "cd #{TRUFFLE} && git checkout coro"
+    sh "cd #{TRUFFLE} && git checkout coro-#{TRUFFLE_RELEASE}"
   end
 
   file TRUFFLE_API_JAR => [MX, TRUFFLE] do
@@ -82,12 +84,12 @@ namespace :build do
 
   file JVMCI do
     sh "cd .. && git clone https://github.com/eregon/jvmci.git"
-    sh "cd #{JVMCI} && git checkout coro"
+    sh "cd #{JVMCI} && git checkout coro-#{TRUFFLE_RELEASE}"
   end
 
   file GRAAL => TRUFFLE do
     sh "git clone https://github.com/eregon/graal-core.git #{GRAAL}" unless GRAAL.directory?
-    sh "cd #{GRAAL} && git checkout coro"
+    sh "cd #{GRAAL} && git checkout coro-#{TRUFFLE_RELEASE}"
   end
 
   file JVMCI_RELEASE => [JVMCI, MX] do
