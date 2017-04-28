@@ -2,6 +2,7 @@ require_relative 'tool/common'
 require 'tempfile'
 
 TRUFFLE_RELEASE = "0.25"
+JVMCI_BASE = "1.8.0_121"
 
 OZWISH = PROJECT_DIR / "wish/ozwish"
 OZWISH_SRC = PROJECT_DIR / "wish/unixmain.cc"
@@ -12,7 +13,7 @@ TRUFFLE_API_SRC = TRUFFLE / "mxbuild/dists/truffle-api.src.zip"
 TRUFFLE_DEBUG_SRC = TRUFFLE / "mxbuild/dists/truffle-debug.src.zip"
 TRUFFLE_DSL_PROCESSOR_JAR = TRUFFLE / "mxbuild/dists/truffle-dsl-processor.jar"
 
-JVMCI_HOME = JVMCI / "jdk1.8.0_92/product"
+JVMCI_HOME = JVMCI / "jdk#{JVMCI_BASE}/product"
 JVMCI_RELEASE = JVMCI_HOME / "release"
 GRAAL_MX_ENV = GRAAL / "mx.graal-core/env"
 
@@ -93,7 +94,7 @@ namespace :build do
   end
 
   file JVMCI_RELEASE => [JVMCI, MX] do
-    sh "echo 'Choose JDK 1.8.0_92 when asked for JAVA_HOME' && echo"
+    sh "echo 'Choose JDK #{JVMCI_BASE} when asked for JAVA_HOME' && echo"
     sh "cd #{JVMCI} && #{MX} build" unless JVMCI_RELEASE.exist?
     sh "cd #{JVMCI_HOME} && bin/java -version"
   end
