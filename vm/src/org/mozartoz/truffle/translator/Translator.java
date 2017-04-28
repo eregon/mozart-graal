@@ -116,9 +116,8 @@ import org.mozartoz.truffle.nodes.pattern.PatternMatchOpenRecordNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.Unit;
-
-import scala.collection.JavaConversions;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.NodeFactory;
@@ -127,6 +126,8 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
+
+import scala.collection.JavaConversions;
 
 public class Translator {
 
@@ -154,11 +155,13 @@ public class Translator {
 
 	private Environment environment = new Environment(null, new FrameDescriptor());
 	private final Environment rootEnvironment = environment;
+	private final OzLanguage language;
 	private final DynamicObject base;
 
 	private boolean isSelfTailRec = false;
 
-	public Translator(DynamicObject base) {
+	public Translator(OzLanguage language, DynamicObject base) {
+		this.language = language;
 		this.base = base;
 	}
 
@@ -195,7 +198,7 @@ public class Translator {
 		OzNode wrapped = wrap.apply(translated);
 		OzNode handler = new TopLevelHandlerNode(wrapped);
 
-		OzRootNode rootNode = new OzRootNode(Loader.MAIN_SOURCE_SECTION, description, environment.frameDescriptor, handler, 0, false);
+		OzRootNode rootNode = new OzRootNode(language, Loader.MAIN_SOURCE_SECTION, description, environment.frameDescriptor, handler, 0, false);
 		return rootNode.toCallTarget();
 	}
 
@@ -345,7 +348,7 @@ public class Translator {
 				procBody = SelfTailCallCatcherNode.create(procBody, environment.frameDescriptor);
 			}
 			boolean forceSplitting = Loader.getInstance().isLoadingBase();
-			OzRootNode rootNode = new OzRootNode(sourceSection, identifier, environment.frameDescriptor, procBody, arity, forceSplitting);
+			OzRootNode rootNode = new OzRootNode(language, sourceSection, identifier, environment.frameDescriptor, procBody, arity, forceSplitting);
 			return t(procExpression, new ProcDeclarationNode(rootNode.toCallTarget()));
 		} finally {
 			popEnvironment();

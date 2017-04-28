@@ -73,6 +73,8 @@ public class Loader {
 			PROJECT_ROOT + "/stdlib/wp/qtk",
 	};
 
+	public static final Source GET_LANGUAGE_SOURCE = buildInternalSource("language");
+
 	public static final Source MAIN_SOURCE = buildInternalSource("main");
 	public static final SourceSection MAIN_SOURCE_SECTION = MAIN_SOURCE.createUnavailableSection();
 
@@ -98,13 +100,15 @@ public class Loader {
 	private DynamicObject base = null;
 	private final PropertyRegistry propertyRegistry;
 	private final PolyglotEngine engine;
+	private final OzLanguage language;
 	private StacktraceThread shutdownHook;
 
 	private Loader() {
-		BuiltinsManager.defineBuiltins();
+		engine = PolyglotEngine.newBuilder().build();
+		language = engine.eval(GET_LANGUAGE_SOURCE).as(OzLanguage.class);
+		BuiltinsManager.defineBuiltins(language);
 		propertyRegistry = PropertyRegistry.INSTANCE;
 		propertyRegistry.initialize();
-		engine = PolyglotEngine.newBuilder().build();
 
 		if (Options.STACKTRACE_ON_INTERRUPT) {
 			shutdownHook = new StacktraceThread();
@@ -139,7 +143,7 @@ public class Loader {
 			Object baseFunctor = execute(baseFunctorTarget);
 
 			Object imports = BuiltinsManager.getBootModulesRecord();
-			RootCallTarget applyBase = ApplyFunctor.apply(baseFunctor, imports, "Base.apply");
+			RootCallTarget applyBase = ApplyFunctor.apply(language, baseFunctor, imports, "Base.apply");
 			Object result = execute(applyBase);
 			assert result instanceof DynamicObject;
 
@@ -156,7 +160,7 @@ public class Loader {
 		tick("parse Base");
 		Statement ast = compile(program, "the base environment");
 
-		Translator translator = new Translator(null);
+		Translator translator = new Translator(language, null);
 		FrameSlot topLevelResultSlot = translator.addRootSymbol(program.topLevelResultSymbol());
 		return translator.translateAST("<Base>", ast, node -> {
 			return SequenceNode.sequence(
@@ -173,7 +177,7 @@ public class Loader {
 		Program program = BootCompiler.buildMainProgram(source, BuiltinsRegistry.getBuiltins());
 		Statement ast = compile(program, fileName);
 
-		Translator translator = new Translator(base);
+		Translator translator = new Translator(language, base);
 		FrameSlot baseSlot = translator.addRootSymbol(program.baseEnvSymbol());
 		return translator.translateAST(fileName, ast, node -> {
 			return SequenceNode.sequence(
@@ -195,7 +199,7 @@ public class Loader {
 		Statement ast = compile(program, fileName);
 		tick("compiled functor " + fileName);
 
-		Translator translator = new Translator(base);
+		Translator translator = new Translator(language, base);
 		FrameSlot baseSlot = translator.addRootSymbol(program.baseEnvSymbol());
 		FrameSlot topLevelResultSlot = translator.addRootSymbol(program.topLevelResultSymbol());
 		RootCallTarget callTarget = translator.translateAST(fileName, ast, node -> {
@@ -217,7 +221,7 @@ public class Loader {
 		tick("start loading Main");
 		final OzProc main;
 		if (Options.SERIALIZER && new File(MAIN_IMAGE).exists()) {
-			try (OzSerializer serializer = new OzSerializer()) {
+			try (OzSerializer serializer = new OzSerializer(language)) {
 				main = serializer.deserialize(MAIN_IMAGE, OzProc.class);
 			} catch (Throwable t) {
 				System.err.println("Got " + t.getClass().getSimpleName() + " while deserializing, removing Main.image");
@@ -235,7 +239,7 @@ public class Loader {
 				Object applied = applyInitFunctor(initFunctor);
 				main = (OzProc) ((DynamicObject) applied).get("main");
 				if (Options.SERIALIZER) {
-					try (OzSerializer serializer = new OzSerializer()) {
+					try (OzSerializer serializer = new OzSerializer(language)) {
 						serializer.serialize(main, MAIN_IMAGE);
 					}
 				}
@@ -273,7 +277,7 @@ public class Loader {
 		Object imports = OzRecord.buildRecord(
 				Arity.build("import", "Boot"),
 				BuiltinsManager.getBootModule("Boot_Boot"));
-		return execute(ApplyFunctor.apply(initFunctor, imports, "Init.apply"));
+		return execute(ApplyFunctor.apply(language, initFunctor, imports, "Init.apply"));
 	}
 
 	private DynamicObject getBaseFromMain(OzProc main) {

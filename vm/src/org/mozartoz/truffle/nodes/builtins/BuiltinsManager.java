@@ -11,6 +11,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.call.ReadArgumentNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
+import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.translator.BuiltinsRegistry;
@@ -97,7 +98,7 @@ public abstract class BuiltinsManager {
 		return OzRecord.buildRecord("bootModules", BOOT_MODULES);
 	}
 
-	public static void defineBuiltins() {
+	public static void defineBuiltins(OzLanguage language) {
 		assert BUILTINS.isEmpty();
 		String pkg = BuiltinsManager.class.getPackage().getName();
 		for (String module : MODULES) {
@@ -106,7 +107,7 @@ public abstract class BuiltinsManager {
 				Object untypedFactories = moduleFactory.getMethod("getFactories").invoke(null);
 				@SuppressWarnings("unchecked")
 				List<NodeFactory<? extends OzNode>> factories = (List<NodeFactory<? extends OzNode>>) untypedFactories;
-				installBuiltins(module, factories);
+				installBuiltins(language, module, factories);
 			} catch (ReflectiveOperationException e) {
 				throw new Error(e);
 			}
@@ -128,7 +129,7 @@ public abstract class BuiltinsManager {
 		return factory.createNode(arguments);
 	}
 
-	private static void installBuiltins(String module, List<NodeFactory<? extends OzNode>> factories) {
+	private static void installBuiltins(OzLanguage language, String module, List<NodeFactory<? extends OzNode>> factories) {
 		// The builtins of this module only, indexed by the builtin name
 		Map<String, OzProc> builtins = new HashMap<>(factories.size());
 
@@ -160,7 +161,7 @@ public abstract class BuiltinsManager {
 			String name = module + "." + builtinName;
 
 			SourceSection sourceSection = builtinSourceSection(builtinName);
-			OzRootNode rootNode = new OzRootNode(sourceSection, name, new FrameDescriptor(), node, arity, true);
+			OzRootNode rootNode = new OzRootNode(language, sourceSection, name, new FrameDescriptor(), node, arity, true);
 			OzProc function = new OzProc(rootNode.toCallTarget(), null, arity);
 
 			assert !BUILTINS.containsKey(name) : name;

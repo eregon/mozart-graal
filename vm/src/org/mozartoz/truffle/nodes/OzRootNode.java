@@ -16,9 +16,9 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class OzRootNode extends RootNode {
 
-	public static OzRootNode createTopRootNode(String name, OzNode body) {
+	public static OzRootNode createTopRootNode(OzLanguage language, String name, OzNode body) {
 		final TopLevelHandlerNode handler = new TopLevelHandlerNode(body);
-		return new OzRootNode(Loader.MAIN_SOURCE_SECTION, name, new FrameDescriptor(), handler, 0, false);
+		return new OzRootNode(language, Loader.MAIN_SOURCE_SECTION, name, new FrameDescriptor(), handler, 0, false);
 	}
 
 	private final String name;
@@ -28,8 +28,9 @@ public class OzRootNode extends RootNode {
 
 	@Child OzNode body;
 
-	public OzRootNode(SourceSection sourceSection, String name, FrameDescriptor frameDescriptor, OzNode body, int arity, boolean forceSplitting) {
-		super(OzLanguage.SINGLETON, frameDescriptor);
+	public OzRootNode(OzLanguage language, SourceSection sourceSection, String name,
+			FrameDescriptor frameDescriptor, OzNode body, int arity, boolean forceSplitting) {
+		super(language, frameDescriptor);
 		assert sourceSection != null;
 		this.name = name;
 		this.body = body;

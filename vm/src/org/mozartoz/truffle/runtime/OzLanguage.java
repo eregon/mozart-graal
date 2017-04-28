@@ -16,6 +16,7 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags.RootTag;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 
 @Registration(name = "Oz", version = "0.1", mimeType = OzLanguage.MIME_TYPE)
@@ -25,11 +26,8 @@ public class OzLanguage extends TruffleLanguage<Object> {
 	public static final String MIME_TYPE = "application/x-oz";
 	public static final boolean ON_GRAAL = Truffle.getRuntime().getName().startsWith("Graal");
 
-	public static OzLanguage SINGLETON;
-
 	public OzLanguage() {
 		super();
-		SINGLETON = this;
 	}
 
 	@Override
@@ -39,11 +37,16 @@ public class OzLanguage extends TruffleLanguage<Object> {
 
 	@Override
 	protected CallTarget parse(ParsingRequest parsingRequest) {
-		final RootCallTarget ozTarget = Loader.getInstance().parseFunctor(parsingRequest.getSource());
+		final Source source = parsingRequest.getSource();
+		if (source == Loader.GET_LANGUAGE_SOURCE) {
+			return Truffle.getRuntime().createCallTarget(RootNode.createConstantNode(this));
+		}
+		final RootCallTarget ozTarget = Loader.getInstance().parseFunctor(source);
 		RunCallTargetNode runOzTarget = new RunCallTargetNode(ozTarget);
 		String name = ozTarget.getRootNode().getName();
 		FrameDescriptor frameDescriptor = new FrameDescriptor();
-		OzRootNode rootNode = new OzRootNode(Loader.MAIN_SOURCE_SECTION, name, frameDescriptor, runOzTarget, -OzArguments.IMPLICIT_ARGUMENTS, false);
+		OzRootNode rootNode = new OzRootNode(this, Loader.MAIN_SOURCE_SECTION, name, frameDescriptor,
+				runOzTarget, -OzArguments.IMPLICIT_ARGUMENTS, false);
 		return rootNode.toCallTarget();
 	}
 

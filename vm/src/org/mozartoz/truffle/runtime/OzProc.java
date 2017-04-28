@@ -23,7 +23,9 @@ public class OzProc {
 	}
 
 	public Object rootCall(String identifier, Object... arguments) {
-		return wrap(identifier, arguments).call(OzArguments.pack(null, ArrayUtils.EMPTY));
+		final OzLanguage language = callTarget.getRootNode().getLanguage(OzLanguage.class);
+		final CallTarget target = wrap(language, identifier, new LiteralNode(this), arguments);
+		return target.call(OzArguments.pack(null, ArrayUtils.EMPTY));
 	}
 
 	@Override
@@ -44,13 +46,9 @@ public class OzProc {
 	}
 
 	/** Wraps itself in a CallNode so it works well with TailCallException */
-	public CallTarget wrap(String identifier, Object[] arguments) {
-		return wrap(identifier, new LiteralNode(this), arguments);
-	}
-
-	public static CallTarget wrap(String identifier, OzNode procNode, Object[] arguments) {
+	public static CallTarget wrap(OzLanguage language, String identifier, OzNode procNode, Object[] arguments) {
 		OzNode callNode = CallNode.create(procNode, new LiteralNode(arguments));
-		return OzRootNode.createTopRootNode(identifier, callNode).toCallTarget();
+		return OzRootNode.createTopRootNode(language, identifier, callNode).toCallTarget();
 	}
 
 }

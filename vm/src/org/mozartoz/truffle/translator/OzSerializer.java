@@ -252,6 +252,12 @@ public class OzSerializer implements AutoCloseable {
 	}
 
 	private static class OzRootNodeSerializer extends Serializer<OzRootNode> {
+		private final OzLanguage language;
+
+		public OzRootNodeSerializer(OzLanguage language) {
+			this.language = language;
+		}
+
 		public void write(Kryo kryo, Output output, OzRootNode rootNode) {
 			kryo.writeClassAndObject(output, rootNode.getSourceSection());
 			output.writeString(rootNode.getName());
@@ -268,7 +274,7 @@ public class OzSerializer implements AutoCloseable {
 			OzNode body = (OzNode) kryo.readClassAndObject(input);
 			int arity = input.readInt();
 			boolean forceSplitting = input.readBoolean();
-			return new OzRootNode(sourceSection, name, frameDescriptor, body, arity, forceSplitting);
+			return new OzRootNode(language, sourceSection, name, frameDescriptor, body, arity, forceSplitting);
 		}
 	}
 
@@ -647,7 +653,7 @@ public class OzSerializer implements AutoCloseable {
 
 	private final Kryo kryo;
 
-	public OzSerializer() {
+	public OzSerializer(OzLanguage language) {
 		kryo = new Kryo();
 		kryo.setRegistrationRequired(true);
 		kryo.setReferences(true);
@@ -675,7 +681,7 @@ public class OzSerializer implements AutoCloseable {
 
 		kryo.register(OzProc.class, new OzProcSerializer());
 		kryo.register(ROOT_CALL_TARGET, new RootCallTargetSerializer());
-		kryo.register(OzRootNode.class, new OzRootNodeSerializer());
+		kryo.register(OzRootNode.class, new OzRootNodeSerializer(language));
 
 		// nodes
 		kryo.register(OzNode[].class);
@@ -763,7 +769,7 @@ public class OzSerializer implements AutoCloseable {
 
 		// values
 		kryo.register(Arity.class);
-		kryo.register(OzLanguage.class, new SingletonSerializer(OzLanguage.SINGLETON));
+		kryo.register(OzLanguage.class, new SingletonSerializer(language));
 		kryo.register(Unit.class, new SingletonSerializer(Unit.INSTANCE));
 		kryo.register(OzVar.class, new OzVarSerializer());
 		kryo.register(OzName.class);
