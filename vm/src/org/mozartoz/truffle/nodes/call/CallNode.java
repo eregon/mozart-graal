@@ -42,15 +42,15 @@ public abstract class CallNode extends CallableNode {
 	public abstract Object executeCall(VirtualFrame frame, Object receiver, Object[] arguments);
 
 	@Specialization
-	protected Object callProc(VirtualFrame frame, OzProc proc, Object[] arguments,
+	protected Object callProc(OzProc proc, Object[] arguments,
 			@Cached("create()") CallProcNode callProcNode) {
-		return callProcNode.executeCall(frame, proc, arguments);
+		return callProcNode.executeCall(proc, arguments);
 	}
 
 	@Specialization
-	protected Object callObject(VirtualFrame frame, OzObject object, Object[] arguments,
+	protected Object callObject(OzObject object, Object[] arguments,
 			@Cached("create()") CallMethodNode callMethodNode) {
-		return callMethodNode.executeCall(frame, object, arguments);
+		return callMethodNode.executeCall(object, arguments);
 	}
 
 	@Specialization

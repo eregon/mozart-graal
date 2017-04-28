@@ -231,7 +231,7 @@ public class Loader {
 			try {
 				// The first execution of code needs to go through PolyglotEngine
 				// to initialize it for instrumentation purposes.
-				Object initFunctor = engine.eval(createSource(INIT_FUNCTOR)).get();
+				Object initFunctor = engine.eval(createSource(INIT_FUNCTOR)).as(DynamicObject.class);
 				Object applied = applyInitFunctor(initFunctor);
 				main = (OzProc) ((DynamicObject) applied).get("main");
 				if (Options.SERIALIZER) {

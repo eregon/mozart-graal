@@ -23,16 +23,18 @@ public class OzRootNode extends RootNode {
 
 	private final String name;
 	private final int arity;
+	private final SourceSection sourceSection;
 	private final boolean forceSplitting;
 
 	@Child OzNode body;
 
 	public OzRootNode(SourceSection sourceSection, String name, FrameDescriptor frameDescriptor, OzNode body, int arity, boolean forceSplitting) {
-		super(OzLanguage.class, sourceSection, frameDescriptor);
+		super(OzLanguage.SINGLETON, frameDescriptor);
 		assert sourceSection != null;
 		this.name = name;
 		this.body = body;
 		this.arity = arity;
+		this.sourceSection = sourceSection;
 		this.forceSplitting = forceSplitting;
 
 		// Mark the body with the RootTag and make it has a source section
@@ -58,6 +60,11 @@ public class OzRootNode extends RootNode {
 
 	public OzNode getBody() {
 		return body;
+	}
+
+	@Override
+	public SourceSection getSourceSection() {
+		return sourceSection;
 	}
 
 	public boolean isForceSplitting() {

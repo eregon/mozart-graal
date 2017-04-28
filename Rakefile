@@ -1,7 +1,7 @@
 require_relative 'tool/common'
 require 'tempfile'
 
-TRUFFLE_RELEASE = "0.18"
+TRUFFLE_RELEASE = "0.25"
 
 OZWISH = PROJECT_DIR / "wish/ozwish"
 OZWISH_SRC = PROJECT_DIR / "wish/unixmain.cc"

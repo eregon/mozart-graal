@@ -25,7 +25,12 @@ public class OzLanguage extends TruffleLanguage<Object> {
 	public static final String MIME_TYPE = "application/x-oz";
 	public static final boolean ON_GRAAL = Truffle.getRuntime().getName().startsWith("Graal");
 
-	public static final OzLanguage INSTANCE = new OzLanguage();
+	public static OzLanguage SINGLETON;
+
+	public OzLanguage() {
+		super();
+		SINGLETON = this;
+	}
 
 	@Override
 	protected Object createContext(Env env) {
@@ -33,8 +38,8 @@ public class OzLanguage extends TruffleLanguage<Object> {
 	}
 
 	@Override
-	protected CallTarget parse(Source source, Node context, String... argumentNames) throws IOException {
-		final RootCallTarget ozTarget = Loader.getInstance().parseFunctor(source);
+	protected CallTarget parse(ParsingRequest parsingRequest) {
+		final RootCallTarget ozTarget = Loader.getInstance().parseFunctor(parsingRequest.getSource());
 		RunCallTargetNode runOzTarget = new RunCallTargetNode(ozTarget);
 		String name = ozTarget.getRootNode().getName();
 		FrameDescriptor frameDescriptor = new FrameDescriptor();

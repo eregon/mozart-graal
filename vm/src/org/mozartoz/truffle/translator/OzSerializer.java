@@ -14,6 +14,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
@@ -507,6 +508,7 @@ public class OzSerializer implements AutoCloseable {
 		private final Field[] fields;
 		private final Method constructor;
 		private final boolean removeDeref;
+		private static final Pattern CACHE_FIELD_PATTERN = Pattern.compile("_.+_");
 
 		public DSLNodeSerializer(Class<? extends Node> genClass) {
 			Class<?> baseClass = genClass.getAnnotation(GeneratedBy.class).value();
@@ -522,9 +524,11 @@ public class OzSerializer implements AutoCloseable {
 
 			for (Field field : genClass.getDeclaredFields()) {
 				String name = field.getName();
-				if (!name.equals("specialization_")
-						&& !name.startsWith("seenUnsupported")
-						&& !name.startsWith("exclude")) {
+				if (!name.equals("state_")
+						&& !name.startsWith("exclude_")
+						&& !name.endsWith("_cache")
+						&& !name.startsWith("$")
+						&& !CACHE_FIELD_PATTERN.matcher(name).find()) {
 					toSave.add(field);
 				}
 			}
@@ -759,7 +763,7 @@ public class OzSerializer implements AutoCloseable {
 
 		// values
 		kryo.register(Arity.class);
-		kryo.register(OzLanguage.class, new SingletonSerializer(OzLanguage.INSTANCE));
+		kryo.register(OzLanguage.class, new SingletonSerializer(OzLanguage.SINGLETON));
 		kryo.register(Unit.class, new SingletonSerializer(Unit.INSTANCE));
 		kryo.register(OzVar.class, new OzVarSerializer());
 		kryo.register(OzName.class);

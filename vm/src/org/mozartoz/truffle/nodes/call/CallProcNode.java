@@ -12,7 +12,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 
@@ -24,26 +23,26 @@ public abstract class CallProcNode extends OzNode {
 		return CallProcNodeGen.create(null, null);
 	}
 
-	abstract Object executeCall(VirtualFrame frame, OzProc proc, Object[] arguments);
+	abstract Object executeCall(OzProc proc, Object[] arguments);
 
 	@Specialization(guards = "proc == cachedProc", limit = "1")
-	protected Object callProcIdentity(VirtualFrame frame, OzProc proc, Object[] arguments,
+	protected Object callProcIdentity(OzProc proc, Object[] arguments,
 			@Cached("proc") OzProc cachedProc,
 			@Cached("createDirectCallNode(cachedProc.callTarget)") DirectCallNode callNode) {
-		return callNode.call(frame, OzArguments.pack(cachedProc.declarationFrame, arguments));
+		return callNode.call(OzArguments.pack(cachedProc.declarationFrame, arguments));
 	}
 
 	@Specialization(guards = "proc.callTarget == cachedCallTarget", contains = "callProcIdentity")
-	protected Object callDirect(VirtualFrame frame, OzProc proc, Object[] arguments,
+	protected Object callDirect(OzProc proc, Object[] arguments,
 			@Cached("proc.callTarget") RootCallTarget cachedCallTarget,
 			@Cached("createDirectCallNode(cachedCallTarget)") DirectCallNode callNode) {
-		return callNode.call(frame, OzArguments.pack(proc.declarationFrame, arguments));
+		return callNode.call(OzArguments.pack(proc.declarationFrame, arguments));
 	}
 
 	@Specialization(contains = "callDirect")
-	protected Object callIndirect(VirtualFrame frame, OzProc proc, Object[] arguments,
+	protected Object callIndirect(OzProc proc, Object[] arguments,
 			@Cached("create()") IndirectCallNode callNode) {
-		return callNode.call(frame, proc.callTarget, OzArguments.pack(proc.declarationFrame, arguments));
+		return callNode.call(proc.callTarget, OzArguments.pack(proc.declarationFrame, arguments));
 	}
 
 	protected static DirectCallNode createDirectCallNode(RootCallTarget callTarget) {

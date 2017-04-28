@@ -21,7 +21,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -38,10 +37,10 @@ public abstract class CallMethodNode extends OzNode {
 		return CallMethodNodeGen.create(null, null);
 	}
 
-	abstract Object executeCall(VirtualFrame frame, OzObject self, Object[] args);
+	abstract Object executeCall(OzObject self, Object[] args);
 
 	@Specialization
-	public Object callMethod(VirtualFrame frame, OzObject self, Object[] args,
+	public Object callMethod(OzObject self, Object[] args,
 			@Cached("create()") DerefNode derefNode,
 			@Cached("create()") LabelNode labelNode,
 			@Cached("create()") MethodLookupNode lookupNode,
@@ -52,7 +51,7 @@ public abstract class CallMethodNode extends OzNode {
 		assert OzGuards.isLiteral(name);
 
 		OzProc method = lookupNode.executeLookup(self, name);
-		return dispatchNode.executeDispatch(frame, self, method, message);
+		return dispatchNode.executeDispatch(self, method, message);
 	}
 
 	@ImportStatic(CallMethodNode.class)
@@ -102,34 +101,34 @@ public abstract class CallMethodNode extends OzNode {
 			return MethodDispatchNodeGen.create(null, null, null);
 		}
 
-		public abstract Object executeDispatch(VirtualFrame frame, OzObject self, OzProc method, Object message);
+		public abstract Object executeDispatch(OzObject self, OzProc method, Object message);
 
 		@Specialization(guards = {
 				"method == cachedMethod",
 				"cachedMethod != null",
 		}, limit = "methodCache(3)")
-		protected Object dispatchCached(VirtualFrame frame, OzObject self, OzProc method, Object message,
+		protected Object dispatchCached(OzObject self, OzProc method, Object message,
 				@Cached("method") OzProc cachedMethod,
 				@Cached("createDirectCallNode(cachedMethod.callTarget)") DirectCallNode callNode) {
 			Object[] arguments = new Object[] { self, message };
-			return callNode.call(frame, OzArguments.pack(cachedMethod.declarationFrame, arguments));
+			return callNode.call(OzArguments.pack(cachedMethod.declarationFrame, arguments));
 		}
 
 		@Specialization(contains = "dispatchCached")
-		protected Object dispatchUncached(VirtualFrame frame, OzObject self, OzProc method, Object message,
+		protected Object dispatchUncached(OzObject self, OzProc method, Object message,
 				@Cached("create()") IndirectCallNode callNode) {
 			Object[] arguments = new Object[] { self, message };
-			return callNode.call(frame, method.callTarget,
+			return callNode.call(method.callTarget,
 					OzArguments.pack(method.declarationFrame, arguments));
 		}
 
 		@Specialization(guards = "method == null")
-		protected Object dispatchOtherwise(VirtualFrame frame, OzObject self, Object method, Object message,
+		protected Object dispatchOtherwise(OzObject self, Object method, Object message,
 				@Cached("create()") MethodLookupNode otherwiseLookupNode,
 				@Cached("create()") MethodDispatchNode otherwiseDispatchNode) {
 			Object otherwiseMessage = OTHERWISE_MESSAGE_FACTORY.newRecord(message);
 			OzProc otherwiseMethod = otherwiseLookupNode.executeLookup(self, OTHERWISE);
-			return otherwiseDispatchNode.executeDispatch(frame, self, otherwiseMethod, otherwiseMessage);
+			return otherwiseDispatchNode.executeDispatch(self, otherwiseMethod, otherwiseMessage);
 		}
 
 		protected static DirectCallNode createDirectCallNode(RootCallTarget callTarget) {
