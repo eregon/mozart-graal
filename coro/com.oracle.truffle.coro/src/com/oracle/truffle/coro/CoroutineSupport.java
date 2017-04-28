@@ -38,7 +38,7 @@ public abstract class CoroutineSupport {
             return false;
         }
 
-        boolean isGraal = Truffle.getRuntime().getClass().getName().contains(".graal.");
+        boolean isGraal = Truffle.getRuntime().getClass().getName().startsWith("org.graalvm.compiler.");
         return isGraal;
     }
 
