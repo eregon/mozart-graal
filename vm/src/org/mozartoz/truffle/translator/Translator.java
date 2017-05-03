@@ -21,6 +21,7 @@ import org.mozartoz.bootcompiler.ast.MatchClauseCommon;
 import org.mozartoz.bootcompiler.ast.MatchCommon;
 import org.mozartoz.bootcompiler.ast.NoElseCommon;
 import org.mozartoz.bootcompiler.ast.Node;
+import org.mozartoz.bootcompiler.ast.OpenRecordPattern;
 import org.mozartoz.bootcompiler.ast.ProcExpression;
 import org.mozartoz.bootcompiler.ast.RaiseCommon;
 import org.mozartoz.bootcompiler.ast.RawDeclarationOrVar;
@@ -479,6 +480,12 @@ public class Translator {
 				DotNode dotNode = DotNodeFactory.create(deref(copy(valueNode)), new LiteralNode(feature));
 				translateMatcher(field.value(), dotNode, checks, bindings);
 			}
+		} else if (matcher instanceof OpenRecordPattern) {
+			OpenRecordPattern record = (OpenRecordPattern) matcher;
+			// First match the label
+			translateMatcher(record.label(), LabelNodeFactory.create(copy(valueNode)), checks, bindings);
+			// Then check if features match
+			assert record.fields().isEmpty();
 		} else {
 			throw unknown("pattern matcher", matcher);
 		}
