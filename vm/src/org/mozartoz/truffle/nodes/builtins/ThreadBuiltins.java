@@ -109,4 +109,40 @@ public abstract class ThreadBuiltins {
 
 	}
 
+	@Builtin(proc = true, deref = ALL)
+	@GenerateNodeFactory
+	@NodeChild("thread")
+	public static abstract class SuspendNode extends OzNode {
+
+		@Specialization
+		Object suspend(OzThread thread) {
+			return unimplemented();
+		}
+
+	}
+
+	@Builtin(deref = ALL)
+	@GenerateNodeFactory
+	@NodeChild("thread")
+	public static abstract class IsSuspendedNode extends OzNode {
+
+		@Specialization
+		Object isSuspended(OzThread thread) {
+			return unimplemented();
+		}
+
+	}
+
+	@Builtin(proc = true, deref = ALL)
+	@GenerateNodeFactory
+	@NodeChild("thread")
+	public static abstract class ResumeNode extends OzNode {
+
+		@Specialization
+		Object resume(OzThread thread) {
+			return unimplemented();
+		}
+
+	}
+
 }
