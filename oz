@@ -70,6 +70,10 @@ if vm_options.delete('--infopoints')
   java_opts << "-Dgraal.TruffleEnableInfopoints=true"
 end
 
+if vm_options.delete('--jdebug')
+  java_opts << "-agentlib:jdwp=transport=dt_socket,server=y,address=51819,suspend=y"
+end
+
 cmd = [
   java,
   *java_opts,
