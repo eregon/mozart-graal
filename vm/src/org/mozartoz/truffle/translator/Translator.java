@@ -643,8 +643,8 @@ public class Translator {
 		return result;
 	}
 
-	private static RuntimeException unknown(String type, Object description) {
-		return new RuntimeException("Unknown " + type + " " + description.getClass() + ": " + description);
+	private static Error unknown(String type, Object description) {
+		return new AssertionError("Unknown " + type + " " + description.getClass() + ": " + description);
 	}
 
 	private <T extends OzNode> T t(Node node, T ozNode) {
