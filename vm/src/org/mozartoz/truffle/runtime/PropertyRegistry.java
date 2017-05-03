@@ -55,12 +55,16 @@ public class PropertyRegistry {
 		registerComputed("gc.size", () -> memoryMXBean.getHeapMemoryUsage().getUsed());
 		registerComputed("gc.threshold", () -> memoryMXBean.getHeapMemoryUsage().getCommitted());
 
+		registerValue("internal.debug", false);
+
 		registerConstant("limits.bytecode.xregisters", 65536L);
 		registerConstant("limits.int.max", Long.MAX_VALUE);
 		registerConstant("limits.int.min", Long.MIN_VALUE);
 
 		registerValue("messages.gc", false);
 		registerValue("messages.idle", false);
+
+		registerValue("oz.standalone", true);
 
 		registerConstant("platform.arch", System.getProperty("os.arch").intern());
 		registerConstant("platform.os", System.getProperty("os.name").intern());
