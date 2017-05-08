@@ -220,27 +220,30 @@ object VariableClearing extends Transformer with ReverseWalker with TreeDSL {
     nodeClears
   }
   
-  def replaceStat(statement: Statement): Statement = {
-    val replacements = nodeClears.get(statement)
+  def wrapStat(src: Statement, toWrap: Statement): Statement = {
+    val replacements = nodeClears.get(src)
     if (replacements != null) {
-      treeCopy.ClearVarsStatement(statement, super.transformStat(statement),
+      treeCopy.ClearVarsStatement(src, toWrap,
           replacements.filter(_.before).map(_.sym),
           replacements.filter(!_.before).map(_.sym))
     } else {
-  	  super.transformStat(statement)
+  	  toWrap
     }
   }
   
-  def replaceExpr(expression: Expression): Expression = {
-    val replacements = nodeClears.get(expression)
+  def wrapExpr(src: Expression, toWrap: Expression): Expression = {
+    val replacements = nodeClears.get(src)
       if (replacements != null) {
-        treeCopy.ClearVarsExpression(expression, super.transformExpr(expression),
+        treeCopy.ClearVarsExpression(src, toWrap,
           replacements.filter(_.before).map(_.sym),
           replacements.filter(!_.before).map(_.sym))
       } else {
-    	  super.transformExpr(expression)
+    	  toWrap
       }
   }
+  
+  def replaceExpr(expr: Expression) = wrapExpr(expr, super.transformExpr(expr))
+  def replaceStat(stat: Statement) = wrapStat(stat, super.transformStat(stat))
   
   override def transformExpr(expression: Expression) = expression match {
     case proc @ ProcExpression(name, args, body, flags) =>
@@ -249,9 +252,9 @@ object VariableClearing extends Transformer with ReverseWalker with TreeDSL {
     	  walkStat(body)
     	  this.clearsMap
       }
-      withNodeClears(clearsMap2nodeClears(clearsMap)) {
+      wrapExpr(expression, withNodeClears(clearsMap2nodeClears(clearsMap)) {
     	  treeCopy.ProcExpression(expression, name, args, replaceStat(body), flags)
-      }
+      })
       
     case v @ Variable(sym) => // Some nodes expect a variable as child. Do not create unnecessary resetters
       val repl = nodeClears.get(v)
