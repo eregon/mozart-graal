@@ -13,7 +13,7 @@ public class StacktraceThread extends Thread {
 			if (isWaitNeeded(backtrace)) {
 				waitNeeded++;
 			} else {
-				System.out.println(thread.getProc());
+				System.out.println(thread.getInitialProcLocation());
 				backtrace.showUserBacktrace();
 				System.out.println();
 			}

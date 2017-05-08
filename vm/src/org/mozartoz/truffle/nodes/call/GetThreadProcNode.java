@@ -9,7 +9,7 @@ public class GetThreadProcNode extends OzNode {
 
 	@Override
 	public Object execute(VirtualFrame frame) {
-		return OzThread.getCurrent().getProc();
+		return OzThread.getCurrent().getAndClearInitialProc();
 	}
 
 
