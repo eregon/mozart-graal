@@ -51,8 +51,12 @@ public class OzException extends RuntimeException {
 	}
 
 	public OzBacktrace getBacktrace() {
-		Object debug = ((DynamicObject) data).get("debug");
-		return (OzBacktrace) debug;
+		if (data instanceof DynamicObject) {
+			Object debug = ((DynamicObject) data).get("debug");
+			return (OzBacktrace) debug;
+		} else {
+			return null;
+		}
 	}
 
 }
