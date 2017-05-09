@@ -67,7 +67,7 @@ public class TailCallCatcherNode extends CallableNode {
 		TailCallLoopNode tailCallLoop = (TailCallLoopNode) loopNode.getRepeatingNode();
 		tailCallLoop.setTailCallException(frame, tailCall);
 		loopNode.executeLoop(frame);
-		return tailCallLoop.getResult(frame);
+		return unit;
 	}
 
 	public static class TailCallLoopNode extends OzNode implements RepeatingNode {
@@ -91,10 +91,16 @@ public class TailCallCatcherNode extends CallableNode {
 			frame.setObject(argumentsSlot, tailCall.arguments);
 		}
 
-		public Object getResult(VirtualFrame frame) {
-			frame.setObject(receiverSlot, null);
-			frame.setObject(argumentsSlot, null);
-			return unit;
+		private Object getReceiver(VirtualFrame frame) {
+			Object receiver = FrameUtil.getObjectSafe(frame, receiverSlot);
+			frame.setObject(receiverSlot, null); // Clear it to avoid leaking during the call
+			return receiver;
+		}
+
+		private Object[] getArguments(VirtualFrame frame) {
+			Object[] arguments = (Object[]) FrameUtil.getObjectSafe(frame, argumentsSlot);
+			frame.setObject(argumentsSlot, null); // Clear it to avoid leaking during the call
+			return arguments;
 		}
 
 		@Override
@@ -103,10 +109,8 @@ public class TailCallCatcherNode extends CallableNode {
 		}
 
 		private boolean loopBody(VirtualFrame frame) {
-			Object receiver = FrameUtil.getObjectSafe(frame, receiverSlot);
-			Object[] arguments = (Object[]) FrameUtil.getObjectSafe(frame, argumentsSlot);
 			try {
-				callNode.executeCall(frame, receiver, arguments);
+				callNode.executeCall(frame, getReceiver(frame), getArguments(frame));
 				normalCallProfile.enter();
 				return false;
 			} catch (TailCallException exception) {
