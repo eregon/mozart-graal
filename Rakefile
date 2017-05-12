@@ -4,6 +4,8 @@ require 'tempfile'
 TRUFFLE_RELEASE = "0.25"
 JVMCI_BASE = "1.8.0_121"
 
+JDK8_ARCHIVE = "http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html"
+
 OZWISH = PROJECT_DIR / "wish/ozwish"
 OZWISH_SRC = PROJECT_DIR / "wish/unixmain.cc"
 
@@ -94,7 +96,9 @@ namespace :build do
   end
 
   file JVMCI_RELEASE => [JVMCI, MX] do
-    sh "echo 'Choose JDK #{JVMCI_BASE} when asked for JAVA_HOME' && echo"
+    puts "Choose JDK #{JVMCI_BASE} when asked for JAVA_HOME"
+    puts "Download it from #{JDK8_ARCHIVE}"
+    puts
     sh "cd #{JVMCI} && #{MX} build" unless JVMCI_RELEASE.exist?
     sh "cd #{JVMCI_HOME} && bin/java -version"
   end
