@@ -8,14 +8,13 @@ The bootcompiler and Oz libraries are imported from [Mozart 2](https://github.co
 
 ## Current Status
 
-Early stage.
+Early stage but the Panel and Browser are working.
 
-Many simple tests pass and the Panel is working:
 ![The Panel On Mozart-Graal](https://pbs.twimg.com/media/Cf_bHhQXIAAtp_X.png)
 
 ## Dependencies
 
-* Java SE Development Kit 8u92 from [here](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html#jdk-8u92-oth-JPR)
+* Java 8
 * Maven 3
 * C/C++ toolchain (`build-essential`) for building Graal
 * Python 2.7 (for `mx`)
@@ -32,7 +31,6 @@ rake
 ```
 
 It takes around 5 min to build everything.
-When asked for which Java, pick Java 1.8.0_92.
 
 Run with
 ```bash
@@ -46,6 +44,8 @@ To build it, run
 ```bash
 rake build:graal
 ```
+
+On recent Linux, you need to do part of the build manually, see [Building JVMCI](vm/jvmci/README.md).
 
 ## IDE: Scala IDE for Eclipse
 
