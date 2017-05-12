@@ -33,6 +33,7 @@ public class ForNode extends OzNode {
 	public Object execute(VirtualFrame frame) {
 		long from = (long) fromDerefNode.executeDeref(fromNode.execute(frame));
 		long to = (long) toDerefNode.executeDeref(toNode.execute(frame));
+		OzProc proc = (OzProc) procNode.execute(frame);
 
 		int count = 0;
 		if (CompilerDirectives.inInterpreter()) {
@@ -42,7 +43,6 @@ public class ForNode extends OzNode {
 		try {
 			loopProfile.profileCounted(count);
 			for (long i = from; loopProfile.inject(i <= to); i++) {
-				OzProc proc = (OzProc) procNode.execute(frame);
 				callNode.executeCall(frame, proc, new Object[] { i });
 			}
 		} finally {

@@ -3,6 +3,7 @@ package ast
 
 import Node.Pos
 import org.mozartoz.bootcompiler.symtab.Symbol
+import org.mozartoz.bootcompiler.util.WrapperUtil
 
 /** Base class for ASTs that represent statements */
 sealed abstract class Statement extends StatOrExpr with RawDeclaration
@@ -116,11 +117,13 @@ case class NoElseStatement()(val pos: Pos) extends Statement with NoElseCommon {
  *  end
  *  }}}
  */
-case class ForStatement(from: Expression, to: Expression, proc: ProcExpression)(val pos: Pos) extends Statement {
+case class ForStatement(from: Expression, to: Expression, proc: Expression)(val pos: Pos) extends Statement {
+  def procExpr = WrapperUtil.getInnerExpr(proc).asInstanceOf[ProcExpression]
+  
   def syntax(indent: String) = {
-    val variable = proc.args(0)
+    val variable = procExpr.args(0)
     val decl = "for " + variable.syntax(indent) + " in " + from.syntax(indent) + ".." + to.syntax(indent) + " do"
-    decl + "\n" + proc.body.syntax(indent + "   ") + "\n" + indent + "end"
+    decl + "\n" + procExpr.body.syntax(indent + "   ") + "\n" + indent + "end"
   }
 }
 
