@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/eregon/mozart-graal.svg?branch=master)](https://travis-ci.org/eregon/mozart-graal)
 
-An implementation of Oz on top of Truffle and Graal.
+An implementation of the [Oz programming language](https://en.wikipedia.org/wiki/Oz_(programming_language)) on top of Truffle and Graal.
 
 The bootcompiler and Oz libraries are imported from [Mozart 2](https://github.com/mozart/mozart2).
 
