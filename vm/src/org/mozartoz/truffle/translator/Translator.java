@@ -456,14 +456,20 @@ public class Translator {
 			}
 		} else if (matcher instanceof Record) {
 			Record record = (Record) matcher;
-			// First match the label
-			translateMatcher(record.label(), LabelNodeFactory.create(copy(valueNode)), checks, bindings);
-			// Then check if features match
-			Object[] features = mapObjects(record.fields(), field -> {
-				Constant constant = (Constant) field.feature();
-				return translateFeature((OzFeature) constant.value());
-			});
-			checks.add(PatternMatchDynamicArityNodeGen.create(features, copy(valueNode)));
+			Object[] features;
+			if (record.isCons()) {
+				checks.add(PatternMatchConsNodeGen.create(copy(valueNode)));
+				features = new Object[] { 1L, 2L };
+			} else {
+				// First match the label
+				translateMatcher(record.label(), LabelNodeFactory.create(DerefNode.create(copy(valueNode))), checks, bindings);
+				// Then check if features match
+				features = mapObjects(record.fields(), field -> {
+					Constant constant = (Constant) field.feature();
+					return translateFeature((OzFeature) constant.value());
+				});
+				checks.add(PatternMatchDynamicArityNodeGen.create(features, copy(valueNode)));
+			}
 
 			int i = 0;
 			for (RecordField field : toJava(record.fields())) {

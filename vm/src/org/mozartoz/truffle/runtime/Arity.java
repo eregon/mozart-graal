@@ -77,7 +77,7 @@ public class Arity {
 	public boolean matchesOpen(DynamicObject object) {
 		Shape a = object.getShape();
 		Shape b = shape;
-		return a.isRelated(b) && a.getPropertyCount() >= b.getPropertyCount() && isAncestorShape(a, b);
+		return a.isRelated(b) && a.getPropertyCount() >= b.getPropertyCount() && isAncestorShape(a, b) && LABEL_LOCATION.get(object) == label;
 	}
 
 	private boolean isAncestorShape(Shape shape, Shape ancestor) {

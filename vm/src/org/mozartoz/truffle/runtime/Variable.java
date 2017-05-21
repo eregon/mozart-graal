@@ -38,12 +38,13 @@ public abstract class Variable {
 	public void link(Variable other) {
 		assert !isBound();
 		assert !other.isBound();
-		assert !isLinkedTo(other);
 
-		// Link both circular lists
-		Variable oldNext = this.next;
-		this.next = other.next;
-		other.next = oldNext;
+		if (!isLinkedTo(other)) {
+			// Link both circular lists
+			Variable oldNext = this.next;
+			this.next = other.next;
+			other.next = oldNext;
+		}
 	}
 
 	public boolean isLinkedTo(Variable other) {

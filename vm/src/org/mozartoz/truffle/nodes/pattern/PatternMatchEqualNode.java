@@ -3,7 +3,7 @@ package org.mozartoz.truffle.nodes.pattern;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.builtins.ValueBuiltins.EqualNode;
+import org.mozartoz.truffle.nodes.local.DFSEqualNode;
 
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -14,7 +14,7 @@ public abstract class PatternMatchEqualNode extends OzNode {
 
 	private final Object constant;
 
-	@Child EqualNode equalNode = EqualNode.create();
+	@Child DFSEqualNode equalNode = DFSEqualNode.create();
 
 	@CreateCast("value")
 	protected OzNode derefValue(OzNode value) {
