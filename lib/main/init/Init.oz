@@ -359,6 +359,7 @@ define
 
       %% Link or apply root functor (i.e. application)
       proc {Main}
+         {Boot.registerBase Base}
          if {Not {PropertyTestGet 'oz.dotoz' _}} then {OnLoad} end
          AppFunctor = {GetOrFalse 'application.functor'}
       in

@@ -40,7 +40,6 @@ import org.mozartoz.truffle.runtime.Variable;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -154,6 +153,11 @@ public class Loader {
 		return base;
 	}
 
+	public void registerBase(DynamicObject base) {
+		assert this.base == null || this.base == base;
+		this.base = base;
+	}
+
 	private RootCallTarget parseBase() {
 		tick("enter parseBase");
 		Program program = BootCompiler.buildBaseEnvProgram(
@@ -231,7 +235,6 @@ public class Loader {
 				throw t;
 			}
 			tick("deserialized Main");
-			base = getBaseFromMain(main);
 		} else {
 			eagerLoad = true;
 			try {
@@ -280,13 +283,6 @@ public class Loader {
 				Arity.build("import", "Boot"),
 				BuiltinsManager.getBootModule("Boot_Boot"));
 		return execute(ApplyFunctor.apply(language, initFunctor, imports, "Init.apply"));
-	}
-
-	private DynamicObject getBaseFromMain(OzProc main) {
-		MaterializedFrame topFrame = OzArguments.getParentFrame(main.declarationFrame);
-		FrameSlot baseSlot = topFrame.getFrameDescriptor().getSlots().get(0);
-		assert baseSlot.getIdentifier().toString().contains("<Base>");
-		return (DynamicObject) topFrame.getValue(baseSlot);
 	}
 
 	// Shutdown

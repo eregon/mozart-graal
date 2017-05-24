@@ -4,6 +4,7 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
+import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -38,6 +39,19 @@ public abstract class BootBuiltins {
 		@Specialization
 		Object getNative(Object name) {
 			return unimplemented();
+		}
+
+	}
+
+	@Builtin(proc = true, deref = ALL)
+	@GenerateNodeFactory
+	@NodeChild("base")
+	public static abstract class RegisterBaseNode extends OzNode {
+
+		@Specialization
+		Object registerBase(DynamicObject base) {
+			Loader.getInstance().registerBase(base);
+			return unit;
 		}
 
 	}
