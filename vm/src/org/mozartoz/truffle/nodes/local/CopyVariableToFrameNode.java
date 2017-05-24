@@ -12,23 +12,28 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 @NodeChild("capture")
 public abstract class CopyVariableToFrameNode extends OzNode {
 
-	public static CopyVariableToFrameNode create(OzNode readNode, FrameSlot to) {
-		return CopyVariableToFrameNodeGen.create(readNode, to, null);
+	public static CopyVariableToFrameNode create(OzNode readNode, FrameSlot slot) {
+		return CopyVariableToFrameNodeGen.create(readNode, slot, null);
 	}
 
 	public abstract Object executeWrite(VirtualFrame frame, MaterializedFrame capture);
 
 	@Child OzNode readNode;
-	protected final FrameSlot to;
 
-	protected CopyVariableToFrameNode(OzNode readNode, FrameSlot to) {
+	public final FrameSlot slot;
+
+	protected CopyVariableToFrameNode(OzNode readNode, FrameSlot slot) {
 		this.readNode = readNode;
-		this.to = to;
+		this.slot = slot;
+	}
+
+	public OzNode getReadNode() {
+		return readNode;
 	}
 
 	@Specialization
 	public Object write(VirtualFrame frame, MaterializedFrame capture,
-			@Cached("create(to)") WriteFrameSlotNode writeNode) {
+			@Cached("create(slot)") WriteFrameSlotNode writeNode) {
 		writeNode.executeWrite(capture, readNode.execute(frame));
 		return unit;
 	}

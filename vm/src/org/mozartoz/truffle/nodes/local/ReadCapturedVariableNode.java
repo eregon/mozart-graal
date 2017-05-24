@@ -10,7 +10,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public abstract class ReadCapturedVariableNode extends OzNode implements FrameSlotNode {
+public abstract class ReadCapturedVariableNode extends OzNode {
 	protected static final boolean CACHE_READ = Options.CACHE_READ;
 
 	public abstract Object executeRead(VirtualFrame frame);
@@ -23,20 +23,16 @@ public abstract class ReadCapturedVariableNode extends OzNode implements FrameSl
 		this.depth = depth;
 	}
 
-	public FrameSlot getSlot() {
-		return this.slot;
-	}
-
 	@Specialization(guards = "CACHE_READ")
 	protected Object readWithCache(VirtualFrame frame,
-			@Cached("createCachingReadNode(getSlot())") CachingReadFrameSlotNode readNode) {
+			@Cached("createCachingReadNode(slot)") CachingReadFrameSlotNode readNode) {
 		Frame parentFrame = OzArguments.getParentFrame(frame, depth);
 		return readNode.executeRead(parentFrame);
 	}
 
 	@Specialization(guards = "!CACHE_READ")
 	protected Object readWithoutCache(VirtualFrame frame,
-			@Cached("createReadNode(getSlot())") ReadFrameSlotNode readNode) {
+			@Cached("createReadNode(slot)") ReadFrameSlotNode readNode) {
 		Frame parentFrame = OzArguments.getParentFrame(frame, depth);
 		return readNode.executeRead(parentFrame);
 	}

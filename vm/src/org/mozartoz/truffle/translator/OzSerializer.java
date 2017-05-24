@@ -64,17 +64,21 @@ import org.mozartoz.truffle.nodes.literal.ListLiteralNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
 import org.mozartoz.truffle.nodes.literal.LongLiteralNode;
 import org.mozartoz.truffle.nodes.literal.MakeDynamicRecordNode;
+import org.mozartoz.truffle.nodes.literal.ProcDeclarationAndExtractionNode;
 import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
+import org.mozartoz.truffle.nodes.local.CopyVariableToFrameNode;
+import org.mozartoz.truffle.nodes.local.CopyVariableToFrameNodeGen;
 import org.mozartoz.truffle.nodes.local.FrameSlotNode;
 import org.mozartoz.truffle.nodes.local.InitializeArgNode;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
-import org.mozartoz.truffle.nodes.local.ReadCapturedVariableNode;
+import org.mozartoz.truffle.nodes.local.ReadCapturedVariableNodeGen;
 import org.mozartoz.truffle.nodes.local.ReadFrameSlotNodeGen;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
+import org.mozartoz.truffle.nodes.local.ResetSlotsNode;
 import org.mozartoz.truffle.nodes.local.WriteCapturedVariableNode;
 import org.mozartoz.truffle.nodes.local.WriteFrameSlotNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
@@ -434,6 +438,19 @@ public class OzSerializer implements AutoCloseable {
 		}
 	}
 
+	private static class CopyVariableToFrameNodeSerializer extends Serializer<CopyVariableToFrameNode> {
+		public void write(Kryo kryo, Output output, CopyVariableToFrameNode node) {
+			kryo.writeClassAndObject(output, node.getReadNode());
+			kryo.writeObject(output, node.slot);
+		}
+
+		public CopyVariableToFrameNode read(Kryo kryo, Input input, Class<CopyVariableToFrameNode> type) {
+			OzNode readNode = (OzNode) kryo.readClassAndObject(input);
+			FrameSlot slot = kryo.readObject(input, FrameSlot.class);
+			return CopyVariableToFrameNode.create(readNode, slot);
+		}
+	}
+
 	private static class NodeSerializer extends Serializer<Node> {
 		private final Field[] fields;
 		private final Constructor<?> constructor;
@@ -473,7 +490,7 @@ public class OzSerializer implements AutoCloseable {
 						value = ((FrameSlotNode) node).getSlot();
 					} else {
 						value = field.get(node);
-						if (value instanceof OzNode[]) {
+						if (value.getClass() == OzNode[].class) {
 							OzNode[] nodes = (OzNode[]) value;
 							OzNode[] values = new OzNode[nodes.length];
 							for (int i = 0; i < nodes.length; i++) {
@@ -703,9 +720,13 @@ public class OzSerializer implements AutoCloseable {
 		kryo.register(SelfTailCallThrowerNode.class);
 
 		kryo.register(ReadLocalVariableNode.class);
-		kryo.register(ReadCapturedVariableNode.class);
+		kryo.register(ReadCapturedVariableNodeGen.class);
 		kryo.register(WriteCapturedVariableNode.class);
+		kryo.register(CopyVariableToFrameNodeGen.class, new CopyVariableToFrameNodeSerializer());
+		kryo.register(CopyVariableToFrameNode[].class);
+		kryo.register(ResetSlotsNode.class);
 		kryo.register(ProcDeclarationNode.class);
+		kryo.register(ProcDeclarationAndExtractionNode.class);
 		kryo.register(ListLiteralNode.class);
 		kryo.register(RecordLiteralNode.class);
 		kryo.register(MakeDynamicRecordNode.class);
@@ -763,6 +784,7 @@ public class OzSerializer implements AutoCloseable {
 		kryo.register(FrameSlot.class, new FrameSlotSerializer());
 		kryo.register(FrameDescriptor.class, new FrameDescriptorSerializer());
 		kryo.register(MATERIALIZED_FRAME, new FrameSerializer());
+		kryo.register(FrameSlot[].class);
 		kryo.register(Object[].class);
 		kryo.register(long[].class);
 		kryo.register(byte[].class);
