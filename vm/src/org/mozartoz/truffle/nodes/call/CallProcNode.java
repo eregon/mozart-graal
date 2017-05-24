@@ -18,6 +18,10 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 @NodeChildren({ @NodeChild("proc"), @NodeChild("arguments") })
 public abstract class CallProcNode extends OzNode {
 
+	public static int procIdentityLimit() {
+		return Options.INLINE_FRAMES;
+	}
+
 	/** Must only be used by CallNode */
 	public static CallProcNode create() {
 		return CallProcNodeGen.create(null, null);
@@ -25,7 +29,7 @@ public abstract class CallProcNode extends OzNode {
 
 	abstract Object executeCall(OzProc proc, Object[] arguments);
 
-	@Specialization(guards = "proc == cachedProc", limit = "1")
+	@Specialization(guards = "proc == cachedProc", limit = "procIdentityLimit()")
 	protected Object callProcIdentity(OzProc proc, Object[] arguments,
 			@Cached("proc") OzProc cachedProc,
 			@Cached("createDirectCallNode(cachedProc.callTarget)") DirectCallNode callNode) {

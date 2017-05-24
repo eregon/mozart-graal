@@ -21,12 +21,13 @@ public abstract class Options {
 	public static final boolean FREE_SLOTS = bool("oz.free.slots", true);
 	public static final boolean DIRECT_VARS = bool("oz.vars.direct", true);
 	public static final boolean FRAME_FILTERING = bool("oz.vars.filtering", true);
-	public static final boolean CACHE_READ = bool("oz.reads.cache", true);
+	public static final boolean CACHE_READ = bool("oz.reads.cache", false);
 	public static final boolean PRINT_NLINKS = bool("oz.print.nlinks", false);
 	public static final boolean PRINT_NVARS = bool("oz.print.nvars", false);
 
 	public static final boolean SPLIT_BUILTINS = bool("oz.builtins.split", true);
 
+	public static final int INLINE_FRAMES = integer("oz.frames.cache", 1);
 	public static final boolean OPTIMIZE_METHODS = bool("oz.methods.cache", true);
 
 	public static final int CYCLE_THRESHOLD = integer("oz.thresholds.cycles", 20);
