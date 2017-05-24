@@ -1,5 +1,7 @@
 package org.mozartoz.truffle.nodes.local;
 
+import java.lang.ref.WeakReference;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -23,11 +25,13 @@ public abstract class CachingReadFrameSlotNode extends Node implements FrameSlot
 
 	public abstract Object executeRead(Frame frame);
 
-	@Specialization(guards = "frame == cachedFrame", limit = "1")
+	@Specialization(guards = "frame == getFrame(cachedFrame)", limit = "1")
 	protected Object readConstant(Frame frame,
-			@Cached("frame") Frame cachedFrame,
-			@Cached("readFrameSlotNode.executeRead(cachedFrame)") Object cachedValue) {
-		return cachedValue;
+			@Cached("newWeakFrame(frame)") WeakReference<Frame> cachedFrame,
+			@Cached("newWeakRef(readFrameSlotNode.executeRead(frame))") WeakReference<Object> cachedValue) {
+		final Object value = cachedValue.get();
+		assert value != null; // If one can read a variable, then it has a strong ref to it via parent frame(s) + slots
+		return value;
 	}
 
 	@Specialization(replaces = "readConstant")
@@ -38,6 +42,18 @@ public abstract class CachingReadFrameSlotNode extends Node implements FrameSlot
 	@Override
 	public String toString() {
 		return readFrameSlotNode.toString();
+	}
+
+	protected static WeakReference<Object> newWeakRef(Object value) {
+		return new WeakReference<>(value);
+	}
+
+	protected static WeakReference<Frame> newWeakFrame(Frame frame) {
+		return new WeakReference<>(frame);
+	}
+
+	protected static Frame getFrame(WeakReference<Frame> weakRef) {
+		return weakRef.get();
 	}
 
 }
