@@ -30,7 +30,7 @@ public class ProcDeclarationAndExtractionNode extends OzNode {
 	@Override
 	@ExplodeLoop
 	public Object execute(VirtualFrame frame) {
-		MaterializedFrame capture = Truffle.getRuntime().createMaterializedFrame(ArrayUtils.EMPTY, capturedDescriptor);
+		MaterializedFrame capture = Truffle.getRuntime().createVirtualFrame(ArrayUtils.EMPTY, capturedDescriptor).materialize();
 		for (int i = 0; i < captureNodes.length; i++) {
 			captureNodes[i].executeWrite(frame, capture);
 		}
