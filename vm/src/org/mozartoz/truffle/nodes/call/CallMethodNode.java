@@ -114,7 +114,7 @@ public abstract class CallMethodNode extends OzNode {
 			return callNode.call(OzArguments.pack(cachedMethod.declarationFrame, arguments));
 		}
 
-		@Specialization(replaces = "dispatchCached")
+		@Specialization(guards = "method != null", replaces = "dispatchCached")
 		protected Object dispatchUncached(OzObject self, OzProc method, Object message,
 				@Cached("create()") IndirectCallNode callNode) {
 			Object[] arguments = new Object[] { self, message };
