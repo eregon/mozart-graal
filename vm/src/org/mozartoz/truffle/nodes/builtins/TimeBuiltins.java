@@ -16,7 +16,13 @@ public abstract class TimeBuiltins {
 	@NodeChild("delay")
 	public static abstract class AlarmNode extends OzNode {
 
-		@Specialization
+		@Specialization(guards = "delay == 0")
+		Object yield(long delay) {
+			OzThread.getCurrent().yield(this);
+			return unit;
+		}
+
+		@Specialization(guards = "delay != 0")
 		Object alarm(long delay) {
 			long end = now() + delay;
 			while (now() < end) {
