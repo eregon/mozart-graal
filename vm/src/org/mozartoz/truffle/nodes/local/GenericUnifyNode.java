@@ -31,7 +31,7 @@ public abstract class GenericUnifyNode extends OzNode {
 		return unifyNode.resetAndUnify(a, b);
 	}
 
-	@Specialization(contains = "dummyUnify")
+	@Specialization(replaces = "dummyUnify")
 	protected Object cycleDetectingUnify(Object a, Object b,
 			@Cached("create()") CycleDetectingUnifyNode unifyNode) {
 		return unifyNode.resetAndUnify(a, b);

@@ -33,7 +33,7 @@ public abstract class GenericEqualNode extends OzNode {
 		return equalNode.resetAndEqual(a, b);
 	}
 
-	@Specialization(contains = "dummyEqual")
+	@Specialization(replaces = "dummyEqual")
 	protected boolean cycleDetectingEqual(Object a, Object b,
 			@Cached("create()") CycleDetectingEqualNode equalNode) {
 		return equalNode.resetAndEqual(a, b);
