@@ -22,6 +22,10 @@ public abstract class CallProcNode extends OzNode {
 		return Options.INLINE_FRAMES;
 	}
 
+	public static int callTargetLimit() {
+		return Options.INLINE_CALLTARGET;
+	}
+
 	/** Must only be used by CallNode */
 	public static CallProcNode create() {
 		return CallProcNodeGen.create(null, null);
@@ -36,7 +40,7 @@ public abstract class CallProcNode extends OzNode {
 		return callNode.call(OzArguments.pack(cachedProc.declarationFrame, arguments));
 	}
 
-	@Specialization(guards = "proc.callTarget == cachedCallTarget", replaces = "callProcIdentity")
+	@Specialization(guards = "proc.callTarget == cachedCallTarget", replaces = "callProcIdentity", limit = "callTargetLimit()")
 	protected Object callDirect(OzProc proc, Object[] arguments,
 			@Cached("proc.callTarget") RootCallTarget cachedCallTarget,
 			@Cached("createDirectCallNode(cachedCallTarget)") DirectCallNode callNode) {

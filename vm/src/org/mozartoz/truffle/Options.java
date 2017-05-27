@@ -11,6 +11,7 @@ public abstract class Options {
 	public static final boolean SERIALIZER = !PROFILER && bool("oz.serializer", true);
 
 	public static final boolean TAIL_CALLS = bool("oz.tail.calls", true);
+	public static final boolean TAIL_CALLS_OSR = bool("oz.tail.calls.osr", true);
 
 	public static final boolean SELF_TAIL_CALLS = bool("oz.tail.selfcalls", true);
 	public static final boolean SELF_TAIL_CALLS_OSR = bool("oz.tail.selfcalls.osr", true);
@@ -28,6 +29,7 @@ public abstract class Options {
 	public static final boolean SPLIT_BUILTINS = bool("oz.builtins.split", true);
 
 	public static final int INLINE_FRAMES = integer("oz.frames.cache", 1);
+	public static final int INLINE_CALLTARGET = integer("oz.calltargets.cache", 3);
 	public static final boolean OPTIMIZE_METHODS = bool("oz.methods.cache", true);
 
 	public static final int CYCLE_THRESHOLD = integer("oz.thresholds.cycles", 20);

@@ -66,7 +66,11 @@ public class TailCallCatcherNode extends CallableNode {
 
 		TailCallLoopNode tailCallLoop = (TailCallLoopNode) loopNode.getRepeatingNode();
 		tailCallLoop.setTailCallException(frame, tailCall);
-		loopNode.executeLoop(frame);
+		if (Options.TAIL_CALLS_OSR) {
+			loopNode.executeLoop(frame);
+		} else {
+			tailCallLoop.execute(frame);
+		}
 		return unit;
 	}
 
@@ -103,6 +107,15 @@ public class TailCallCatcherNode extends CallableNode {
 			return arguments;
 		}
 
+		// normal
+		@Override
+		public Object execute(VirtualFrame frame) {
+			while (loopProfile.profile(loopBody(frame))) {
+			}
+			return unit;
+		}
+
+		// OSR
 		@Override
 		public boolean executeRepeating(VirtualFrame frame) {
 			return loopProfile.profile(loopBody(frame));
@@ -118,11 +131,6 @@ public class TailCallCatcherNode extends CallableNode {
 				setTailCallException(frame, exception);
 				return true;
 			}
-		}
-
-		@Override
-		public Object execute(VirtualFrame frame) {
-			throw new UnsupportedOperationException();
 		}
 
 		@Override
