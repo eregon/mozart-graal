@@ -48,6 +48,9 @@ public abstract class Variable {
 	}
 
 	public boolean isLinkedTo(Variable other) {
+		if (this.next == null) {
+			return this == other;
+		}
 		Variable var = this;
 		do {
 			if (var == other) {
@@ -85,6 +88,9 @@ public abstract class Variable {
 	}
 
 	public boolean isNeeded() {
+		if (this.next == null) {
+			return this.needed;
+		}
 		Variable var = this;
 		do {
 			if (var.needed) {
