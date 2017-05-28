@@ -12,7 +12,7 @@ import org.mozartoz.truffle.nodes.builtins.ObjectBuiltins.AttrPutNode;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.CatAccessOONodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.CatAssignOONodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.TypeNodeFactory;
-import org.mozartoz.truffle.nodes.local.GenericEqualNode;
+import org.mozartoz.truffle.nodes.local.DFSEqualNode;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzArray;
 import org.mozartoz.truffle.runtime.OzBacktrace;
@@ -51,7 +51,7 @@ public abstract class ValueBuiltins {
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class EqualNode extends OzNode {
 
-		@Child GenericEqualNode equalNode = GenericEqualNode.create();
+		@Child DFSEqualNode equalNode = DFSEqualNode.create();
 
 		@Specialization
 		boolean equal(Object left, Object right) {
@@ -65,7 +65,7 @@ public abstract class ValueBuiltins {
 	@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 	public static abstract class NotEqualNode extends OzNode {
 
-		@Child GenericEqualNode equalNode = GenericEqualNode.create();
+		@Child DFSEqualNode equalNode = DFSEqualNode.create();
 
 		@Specialization
 		boolean notEqual(Object left, Object right) {
