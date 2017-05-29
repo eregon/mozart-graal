@@ -260,10 +260,6 @@ public class Loader {
 
 		waitThreads();
 		shutdown();
-
-		if (Options.PRINT_NVARS) {
-			System.out.println("nvars --- " + Variable.variableCount);
-		}
 	}
 
 	private void waitThreads() {
@@ -297,6 +293,9 @@ public class Loader {
 	public void shutdown(int exitCode) {
 		for (Process process : childProcesses) {
 			process.destroyForcibly();
+		}
+		if (Options.PRINT_NVARS) {
+			System.out.println("nvars --- " + Variable.variableCount);
 		}
 		System.exit(exitCode);
 	}

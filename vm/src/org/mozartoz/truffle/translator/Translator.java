@@ -109,11 +109,11 @@ import org.mozartoz.truffle.nodes.literal.ProcDeclarationNode;
 import org.mozartoz.truffle.nodes.literal.RecordLiteralNode;
 import org.mozartoz.truffle.nodes.literal.UnboundLiteralNode;
 import org.mozartoz.truffle.nodes.local.BindNodeGen;
+import org.mozartoz.truffle.nodes.local.CopyVariableToFrameNode;
 import org.mozartoz.truffle.nodes.local.InitializeArgNode;
 import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.local.ResetSlotsNode;
-import org.mozartoz.truffle.nodes.local.CopyVariableToFrameNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchConsNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchDynamicArityNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNode;
@@ -326,7 +326,7 @@ public class Translator {
 				Symbol symbol = var.symbol();
 				FrameSlot slot = environment.addLocalVariable(symbol2identifier(symbol));
 				// No need to initialize captures, the slot will be set directly
-				if (!(symbol.isCapture() || var.onStack())) {
+				if (!((symbol.isCapture() && Options.DIRECT_PATTERN_VARS) || (var.onStack() && Options.DIRECT_VARS))) {
 					decls.add(t(variable, new InitializeVarNode(slot)));
 				}
 			}
