@@ -19,19 +19,28 @@ import com.oracle.truffle.api.dsl.Specialization;
 
 @NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 public abstract class GenericUnifyNode extends OzNode {
+
+	protected static boolean CYCLE_DETECTION = Options.CYCLE_DETECTION;
+
 	public abstract Object executeUnify(Object a, Object b);
 
 	public static GenericUnifyNode create() {
 		return GenericUnifyNodeGen.create(null, null);
 	}
 
-	@Specialization(rewriteOn = DeoptimizingException.class)
-	protected Object dummyUnify(Object a, Object b,
+	@Specialization(guards = "!CYCLE_DETECTION")
+	protected Object dfsUnify(Object a, Object b,
+			@Cached("create()") DFSUnifyNode unifyNode) {
+		return unifyNode.executeUnify(a, b, null);
+	}
+
+	@Specialization(guards = "CYCLE_DETECTION", rewriteOn = DeoptimizingException.class)
+	protected Object depthLimitedUnify(Object a, Object b,
 			@Cached("create()") DepthLimitedUnifyNode unifyNode) {
 		return unifyNode.executeUnify(a, b, null);
 	}
 
-	@Specialization(replaces = "dummyUnify")
+	@Specialization(guards = "CYCLE_DETECTION", replaces = "depthLimitedUnify")
 	protected Object cycleDetectingUnify(Object a, Object b,
 			@Cached("create()") CycleDetectingUnifyNode unifyNode) {
 		return unifyNode.executeUnify(a, b, null);

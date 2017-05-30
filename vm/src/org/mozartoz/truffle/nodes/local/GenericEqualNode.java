@@ -20,19 +20,27 @@ import com.oracle.truffle.api.dsl.Specialization;
 @NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 public abstract class GenericEqualNode extends OzNode {
 
+	protected static boolean CYCLE_DETECTION = Options.CYCLE_DETECTION;
+
 	public static GenericEqualNode create() {
 		return GenericEqualNodeGen.create(null, null);
 	}
 
 	public abstract boolean executeEqual(Object a, Object b);
 
-	@Specialization(rewriteOn = DeoptimizingException.class)
+	@Specialization(guards = "!CYCLE_DETECTION")
+	protected boolean dfsEqual(Object a, Object b,
+			@Cached("create()") DFSEqualNode equalNode) {
+		return equalNode.executeEqual(a, b, null);
+	}
+
+	@Specialization(guards = "CYCLE_DETECTION", rewriteOn = DeoptimizingException.class)
 	protected boolean depthLimitedEqual(Object a, Object b,
 			@Cached("create()") DepthLimitedEqualNode equalNode) {
 		return equalNode.executeEqual(a, b, null);
 	}
 
-	@Specialization(replaces = "depthLimitedEqual")
+	@Specialization(guards = "CYCLE_DETECTION", replaces = "depthLimitedEqual")
 	protected boolean cycleDetectingEqual(Object a, Object b,
 			@Cached("create()") CycleDetectingEqualNode equalNode) {
 		return equalNode.executeEqual(a, b, null);

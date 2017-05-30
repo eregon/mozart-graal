@@ -33,7 +33,8 @@ public abstract class Options {
 	public static final int INLINE_CALLTARGET = integer("oz.calltargets.cache", 3);
 	public static final boolean OPTIMIZE_METHODS = bool("oz.methods.cache", true);
 
-	public static final int CYCLE_THRESHOLD = integer("oz.thresholds.cycles", 20);
+	public static final boolean CYCLE_DETECTION = bool("oz.cycles", true);
+	public static final int CYCLE_THRESHOLD = integer("oz.cycles.threshold", 20);
 
 	// Truffle options
 	public static final int TruffleInvalidationReprofileCount = integer("graal.TruffleInvalidationReprofileCount", 3);
