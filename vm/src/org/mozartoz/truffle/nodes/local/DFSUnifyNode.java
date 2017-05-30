@@ -16,11 +16,11 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 
-@NodeChildren({ @NodeChild("left"), @NodeChild("right") })
+@NodeChildren({ @NodeChild("left"), @NodeChild("right"), @NodeChild("acc") })
 public abstract class DFSUnifyNode extends OzNode {
 
 	public static DFSUnifyNode create() {
-		return DFSUnifyNodeGen.create(null, null);
+		return DFSUnifyNodeGen.create(null, null, null);
 	}
 
 	// Should undo bindings if unification fails?
@@ -29,58 +29,74 @@ public abstract class DFSUnifyNode extends OzNode {
 	@Child DerefIfBoundNode derefIfBoundNode = DerefIfBoundNodeGen.create();
 	@Child DFSEqualNode equalNode;
 
-	public abstract Object executeUnify(Object a, Object b);
+	public abstract Object executeUnify(Object a, Object b, Object state);
+
+	/**
+	 * Put before recursive unification, to create state if it does not exist
+	 */
+	protected Object needState(Object state) {
+		if (state == null) {
+			return initState();
+		}
+		return state;
+	}
+
+	protected Object initState() {
+		return null;
+	}
 
 	@TruffleBoundary
-	protected Object unify(Object a, Object b) {
-		return executeUnify(deref(a), deref(b));
+	protected Object unify(Object a, Object b, Object state) {
+		return executeUnify(deref(a), deref(b), state);
 	}
 
 	@Specialization(guards = { "!a.isBound()", "!b.isBound()" })
-	Object unifyUnboundUnbound(Variable a, Variable b) {
+	Object unifyUnboundUnbound(Variable a, Variable b, Object state) {
 		a.link(b);
 		return a;
 	}
 
 	@Specialization(guards = { "isBound(a)", "!isBound(b)" })
-	Object unifyLeftBound(OzVar a, OzVar b) {
+	Object unifyLeftBound(OzVar a, OzVar b, Object state) {
 		Object value = a.getBoundValue(this);
 		b.bind(value);
 		return value;
 	}
 
 	@Specialization(guards = { "!isBound(a)", "isBound(b)" })
-	Object unifyRightBound(OzVar a, OzVar b) {
+	Object unifyRightBound(OzVar a, OzVar b, Object state) {
 		Object value = b.getBoundValue(this);
 		a.bind(value);
 		return value;
 	}
 
 	@Specialization(guards = { "!isVariable(a)", "!isBound(b)" })
-	Object unify(Object a, OzVar b) {
+	Object unify(Object a, OzVar b, Object state) {
 		b.bind(a);
 		return a;
 	}
 
 	@Specialization(guards = { "!isBound(a)", "!isVariable(b)" })
-	Object unify(OzVar a, Object b) {
+	Object unify(OzVar a, Object b, Object state) {
 		a.bind(b);
 		return b;
 	}
 
 	@Specialization
-	Object unify(OzCons a, OzCons b) {
-		unify(a.getHead(), b.getHead());
-		unify(a.getTail(), b.getTail());
+	Object unify(OzCons a, OzCons b, Object state) {
+		Object newState = needState(state);
+		unify(a.getHead(), b.getHead(), newState);
+		unify(a.getTail(), b.getTail(), newState);
 		return a;
 	}
 
 	@Specialization(guards = "a.getShape() == b.getShape()")
-	Object unify(DynamicObject a, DynamicObject b) {
+	Object unify(DynamicObject a, DynamicObject b, Object state) {
+		Object newState = needState(state);
 		for (Property property : a.getShape().getProperties()) {
 			Object aValue = property.get(a, a.getShape());
 			Object bValue = property.get(b, b.getShape());
-			unify(aValue, bValue);
+			unify(aValue, bValue, newState);
 		}
 		return a;
 	}
@@ -88,7 +104,7 @@ public abstract class DFSUnifyNode extends OzNode {
 	@Specialization(guards = { "!isVariable(a)", "!isVariable(b)",
 			"!isCons(a) || !isCons(b)", // not to conflict with other specializations
 			"!isRecord(a) || !isRecord(b)" })
-	Object unifyValues(Object a, Object b) {
+	Object unifyValues(Object a, Object b, Object state) {
 		if (!equal(a, b)) {
 			CompilerDirectives.transferToInterpreter();
 			failUnification(a, b);
@@ -105,7 +121,7 @@ public abstract class DFSUnifyNode extends OzNode {
 			CompilerDirectives.transferToInterpreter();
 			equalNode = insert(DFSEqualNode.create());
 		}
-		return equalNode.executeEqual(a, b);
+		return equalNode.executeEqual(a, b, null);
 	}
 
 	public void failUnification(Object a, Object b) {

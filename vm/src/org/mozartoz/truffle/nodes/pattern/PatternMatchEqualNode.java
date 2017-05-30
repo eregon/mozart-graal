@@ -35,7 +35,7 @@ public abstract class PatternMatchEqualNode extends OzNode {
 
 	@Specialization
 	boolean patternMatch(Object value) {
-		return equalNode.executeEqual(constant, value);
+		return equalNode.executeEqual(constant, value, null);
 	}
 
 }

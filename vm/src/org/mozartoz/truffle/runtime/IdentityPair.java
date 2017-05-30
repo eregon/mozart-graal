@@ -4,7 +4,7 @@ package org.mozartoz.truffle.runtime;
  * An identity pair class to be used in general unification and equality
  * algorithms. Allows recognizing identical pairs of objects within collections.
  */
-public class IdentityPair implements Comparable<IdentityPair> {
+public final class IdentityPair implements Comparable<IdentityPair> {
 	private final Object a, b;
 	private final int hashCode;
 
