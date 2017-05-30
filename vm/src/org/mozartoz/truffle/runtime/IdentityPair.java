@@ -11,17 +11,15 @@ public final class IdentityPair implements Comparable<IdentityPair> {
 	public IdentityPair(Object a, Object b) {
 		int ha = System.identityHashCode(a);
 		int hb = System.identityHashCode(b);
-		long hashCode64;
 		if (ha < hb) {
 			this.a = a;
 			this.b = b;
-			hashCode64 = ((long) ha << 32) | hb;
+			this.hashCode = 31 * ha + hb;
 		} else {
 			this.a = b;
 			this.b = a;
-			hashCode64 = ((long) hb << 32) | ha;
+			this.hashCode = 31 * hb + ha;
 		}
-		this.hashCode = (int) ((hashCode64 >> 16) ^ hashCode64); // TODO improve distribution?
 	}
 
 	@Override
