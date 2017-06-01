@@ -188,7 +188,10 @@ object Desugar extends Transformer with TreeDSL {
       treeCopy.MatchStatement(expr, value,
           clauses map(c => matchExpressionClauseToBindStatement(result, c)),
           exprToBindStatement(result, elseExpression))
-
+          
+    case TryExpression(body, exceptionVar, catchBody) =>
+      treeCopy.TryStatement(expr, exprToBindStatement(result, body), exceptionVar, exprToBindStatement(result, catchBody))
+          
     case Record(label, fields) =>
       var tailExpression: Option[(Variable, Expression)] = None
       def defer(expr: Expression) = {

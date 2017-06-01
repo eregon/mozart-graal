@@ -125,6 +125,39 @@ object VariableClearing extends Transformer with ReverseWalker with TreeDSL {
         BranchClearsMap(this.clearsMap, ClearSite(elseStatement, true))
       }): _*)
       
+    case TryStatement(body, exceptionVar, catchBody) =>
+      clearsMap.put(exceptionVar.asInstanceOf[Variable].symbol, null)
+      var tryClearsMap = withClearsMap(undecided) {
+        walkStat(body)
+        for((k, v) <- this.clearsMap if v != null) yield (k, v)
+      }
+      var catchClearsMap = withClearsMap(undecided) {
+        walkStat(catchBody)
+        for((k, v) <- this.clearsMap if v != null) yield (k, v)
+      }
+      
+      val map = HashMap[Symbol, Buffer[ClearSite]]()
+      val afterTrySite = ClearSite(body, false)
+      val beforeCatchSite = ClearSite(catchBody, true)
+      for (sym <- (tryClearsMap.keySet.union(catchClearsMap.keySet))) {
+        map.put(sym, Buffer[ClearSite]())
+      }
+      // In try, if no need in catch
+      for (t <- tryClearsMap.keys if !catchClearsMap.contains(t))
+        map(t) ++= tryClearsMap(t)
+      // After try, if needed in catch or cleared in catch only (but accessible by both)
+      for (t <- tryClearsMap.keys if catchClearsMap.contains(t))
+        map(t) += afterTrySite
+      for (c <- catchClearsMap.keys if !tryClearsMap.contains(c) && clearsMap.contains(c))
+        map(c) += afterTrySite
+      // In catch, keep all the clears as is
+      for (c <- catchClearsMap.keys)
+        map(c) ++= catchClearsMap(c)
+      // Before catch, if cleared in try but not in catch (but accessible by both)
+      for (t <- tryClearsMap.keys if !catchClearsMap.contains(t) && clearsMap.contains(t))
+        map(t) += beforeCatchSite
+      this.clearsMap ++= map
+      
     case _ => super.walkStat(statement)
   }
   
@@ -188,6 +221,39 @@ object VariableClearing extends Transformer with ReverseWalker with TreeDSL {
         clearVal(elseExpression)
         BranchClearsMap(this.clearsMap, ClearSite(elseExpression, true))
       }): _*)
+      
+    case TryExpression(body, exceptionVar, catchBody) =>
+      clearsMap.put(exceptionVar.asInstanceOf[Variable].symbol, null)
+      var tryClearsMap = withClearsMap(undecided) {
+        walkExpr(body)
+        for((k, v) <- this.clearsMap if v != null) yield (k, v)
+      }
+      var catchClearsMap = withClearsMap(undecided) {
+        walkExpr(catchBody)
+        for((k, v) <- this.clearsMap if v != null) yield (k, v)
+      }
+      
+      val map = HashMap[Symbol, Buffer[ClearSite]]()
+      val afterTrySite = ClearSite(body, false)
+      val beforeCatchSite = ClearSite(catchBody, true)
+      for (sym <- (tryClearsMap.keySet.union(catchClearsMap.keySet))) {
+        map.put(sym, Buffer[ClearSite]())
+      }
+      // In try, if no need in catch
+      for (t <- tryClearsMap.keys if !catchClearsMap.contains(t))
+        map(t) ++= tryClearsMap(t)
+      // After try, if needed in catch or cleared in catch only (but accessible by both)
+      for (t <- tryClearsMap.keys if catchClearsMap.contains(t))
+        map(t) += afterTrySite
+      for (c <- catchClearsMap.keys if !tryClearsMap.contains(c) && clearsMap.contains(c))
+        map(c) += afterTrySite
+      // In catch, keep all the clears as is
+      for (c <- catchClearsMap.keys)
+        map(c) ++= catchClearsMap(c)
+      // Before catch, if cleared in try but not in catch (even if not accessible in the catch)
+      for (t <- tryClearsMap.keys if !catchClearsMap.contains(t))
+        map(t) += beforeCatchSite
+      this.clearsMap ++= map
       
     case _ => super.walkExpr(expression)
   }

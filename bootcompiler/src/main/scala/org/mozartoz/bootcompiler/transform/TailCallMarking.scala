@@ -44,6 +44,9 @@ object TailCallMarking extends Transformer {
     case LocalStatement(declarations, stat) =>
       treeCopy.LocalStatement(statement, declarations, markTailCalls(stat))
       
+    case TryStatement(body, exceptionVar, catchBody) =>
+      treeCopy.TryStatement(statement, body, exceptionVar, markTailCalls(catchBody))
+      
     case _ => statement
   }
   
