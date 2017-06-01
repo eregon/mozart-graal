@@ -34,6 +34,7 @@ public class OzThread implements Runnable {
 		return CURRENT_OZ_THREAD.get();
 	}
 
+	private final Coroutine original;
 	private final Coroutine coroutine;
 	private OzProc proc;
 	private final String procLocation;
@@ -43,6 +44,7 @@ public class OzThread implements Runnable {
 	private boolean raiseOnBlock = false;
 
 	private OzThread() {
+		original = null;
 		coroutine = (Coroutine) Coroutine.current();
 		proc = null;
 		procLocation = null;
@@ -54,8 +56,10 @@ public class OzThread implements Runnable {
 		this.proc = proc;
 		this.procLocation = proc.toString();
 		this.initialCall = initialCall;
+		this.original = (Coroutine) Coroutine.current();
 		this.coroutine = new Coroutine(this, 1024 * 1024); // 256 seems OK if we parse outside the coro
 		threadsCreated++;
+		Coroutine.yieldTo(coroutine);
 	}
 
 	private void setInitialOzThread() {
@@ -90,6 +94,9 @@ public class OzThread implements Runnable {
 
 	@Override
 	public void run() {
+		if (original != null) {
+			Coroutine.yieldTo(original);
+		}
 		setInitialOzThread();
 		threadsRunnable++;
 		try {
