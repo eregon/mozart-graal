@@ -26,11 +26,21 @@ public abstract class ReadFrameSlotNode extends Node implements FrameSlotNode {
 	}
 
 	@Specialization(rewriteOn = FrameSlotTypeException.class)
+	protected double readDouble(Frame frame) throws FrameSlotTypeException {
+		return frame.getDouble(slot);
+	}
+
+	@Specialization(rewriteOn = FrameSlotTypeException.class)
+	protected boolean readBoolean(Frame frame) throws FrameSlotTypeException {
+		return frame.getBoolean(slot);
+	}
+
+	@Specialization(rewriteOn = FrameSlotTypeException.class)
 	protected Object readObject(Frame frame) throws FrameSlotTypeException {
 		return frame.getObject(slot);
 	}
 
-	@Specialization(replaces = { "readLong", "readObject" })
+	@Specialization(replaces = { "readLong", "readDouble", "readBoolean", "readObject" })
 	protected Object read(Frame frame) {
 		return frame.getValue(slot);
 	}
