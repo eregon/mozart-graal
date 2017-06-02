@@ -153,8 +153,8 @@ object VariableClearing extends Transformer with ReverseWalker with TreeDSL {
       // In catch, keep all the clears as is
       for (c <- catchClearsMap.keys)
         map(c) ++= catchClearsMap(c)
-      // Before catch, if cleared in try but not in catch (but accessible by both)
-      for (t <- tryClearsMap.keys if !catchClearsMap.contains(t) && clearsMap.contains(t))
+      // Before catch, if cleared in try but not in catch
+      for (t <- tryClearsMap.keys if !catchClearsMap.contains(t))
         map(t) += beforeCatchSite
       this.clearsMap ++= map
       

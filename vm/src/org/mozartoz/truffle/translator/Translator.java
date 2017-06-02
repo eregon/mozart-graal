@@ -340,6 +340,9 @@ public class Translator {
 			Expression left = bind.left();
 			Expression right = bind.right();
 			if (bind.onStack()) {
+				if (((Variable) left).clear()) {
+					return translate(right);
+				}
 				FrameSlot slot = findAndExtractVariable(((Variable) left).symbol()).slot;
 				return t(node, new InitializeTmpNode(slot, translate(right)));
 			}

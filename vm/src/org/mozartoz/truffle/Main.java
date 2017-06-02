@@ -25,6 +25,7 @@ public class Main {
 			BASE_TESTS + "future.oz",
 			BASE_TESTS + "tailrec.oz",
 			BASE_TESTS + "unification.oz",
+			BASE_TESTS + "onstack_clearing.oz",
 	};
 
 	public static void main(String[] args) {
