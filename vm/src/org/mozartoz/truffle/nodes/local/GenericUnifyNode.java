@@ -2,12 +2,12 @@ package org.mozartoz.truffle.nodes.local;
 
 import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.local.GenericUnifyNodeGen.CycleDetectingUnifyNodeGen;
 import org.mozartoz.truffle.nodes.local.GenericUnifyNodeGen.DepthLimitedUnifyNodeGen;
+import org.mozartoz.truffle.nodes.local.GenericUnifyNodeGen.OnHeapUnifyNodeGen;
 import org.mozartoz.truffle.runtime.DeoptimizingException;
-import org.mozartoz.truffle.runtime.EncounteredPairSet;
 import org.mozartoz.truffle.runtime.IdentityPair;
 import org.mozartoz.truffle.runtime.MutableInt;
+import org.mozartoz.truffle.runtime.OnHeapSearchState;
 import org.mozartoz.truffle.runtime.Variable;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -42,7 +42,7 @@ public abstract class GenericUnifyNode extends OzNode {
 
 	@Specialization(guards = "CYCLE_DETECTION", replaces = "depthLimitedUnify")
 	protected Object cycleDetectingUnify(Object a, Object b,
-			@Cached("create()") CycleDetectingUnifyNode unifyNode) {
+			@Cached("create()") OnHeapUnifyNode unifyNode) {
 		return unifyNode.executeUnify(a, b, null);
 	}
 
@@ -69,29 +69,39 @@ public abstract class GenericUnifyNode extends OzNode {
 		}
 	}
 
-	public static abstract class CycleDetectingUnifyNode extends DFSUnifyNode {
+	public static abstract class OnHeapUnifyNode extends DFSUnifyNode {
 		// No need to put it as CoroutineLocal, as unification cannot be interrupted.
 
-		public static CycleDetectingUnifyNode create() {
-			return CycleDetectingUnifyNodeGen.create(null, null, null);
+		public static OnHeapUnifyNode create() {
+			return OnHeapUnifyNodeGen.create(null, null, null);
 		}
 
 		@Override
 		protected Object initState() {
-			return new EncounteredPairSet();
+			return new OnHeapSearchState();
 		}
 
 		@Override
 		@TruffleBoundary
 		protected Object unify(Object a, Object b, Object state) {
-			EncounteredPairSet encountered = (EncounteredPairSet) state;
+			OnHeapSearchState searchState = (OnHeapSearchState) state;
+			IdentityPair pair = new IdentityPair(a, b);
 			if (a instanceof Variable || b instanceof Variable) {
-				IdentityPair pair = new IdentityPair(a, b);
-				if (!encountered.add(pair)) {
-					return a;
+				if (!searchState.encountered.add(pair)) {
+					return b;
 				}
 			}
-			return executeUnify(deref(a), deref(b), encountered);
+			searchState.toExplore.add(pair);
+
+			if (searchState.root) {
+				searchState.root = false;
+				while (!searchState.toExplore.isEmpty()) {
+					IdentityPair current = searchState.toExplore.removeLast();
+					executeUnify(deref(current.a), deref(current.b), searchState);
+				}
+				searchState.root = true;
+			}
+			return b;
 		}
 	}
 

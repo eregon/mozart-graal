@@ -5,7 +5,7 @@ package org.mozartoz.truffle.runtime;
  * algorithms. Allows recognizing identical pairs of objects within collections.
  */
 public final class IdentityPair implements Comparable<IdentityPair> {
-	private final Object a, b;
+	public final Object a, b;
 	private final int hashCode;
 
 	public IdentityPair(Object a, Object b) {

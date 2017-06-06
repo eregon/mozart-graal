@@ -2,12 +2,12 @@ package org.mozartoz.truffle.nodes.local;
 
 import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.OzNode;
-import org.mozartoz.truffle.nodes.local.GenericEqualNodeGen.CycleDetectingEqualNodeGen;
 import org.mozartoz.truffle.nodes.local.GenericEqualNodeGen.DepthLimitedEqualNodeGen;
+import org.mozartoz.truffle.nodes.local.GenericEqualNodeGen.OnHeapEqualNodeGen;
 import org.mozartoz.truffle.runtime.DeoptimizingException;
-import org.mozartoz.truffle.runtime.EncounteredPairSet;
 import org.mozartoz.truffle.runtime.IdentityPair;
 import org.mozartoz.truffle.runtime.MutableInt;
+import org.mozartoz.truffle.runtime.OnHeapSearchState;
 import org.mozartoz.truffle.runtime.Variable;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -42,7 +42,7 @@ public abstract class GenericEqualNode extends OzNode {
 
 	@Specialization(guards = "CYCLE_DETECTION", replaces = "depthLimitedEqual")
 	protected boolean cycleDetectingEqual(Object a, Object b,
-			@Cached("create()") CycleDetectingEqualNode equalNode) {
+			@Cached("create()") OnHeapEqualNode equalNode) {
 		return equalNode.executeEqual(a, b, null);
 	}
 
@@ -69,28 +69,40 @@ public abstract class GenericEqualNode extends OzNode {
 		}
 	}
 
-	public static abstract class CycleDetectingEqualNode extends DFSEqualNode {
+	public static abstract class OnHeapEqualNode extends DFSEqualNode {
 
-		public static CycleDetectingEqualNode create() {
-			return CycleDetectingEqualNodeGen.create(null, null, null);
+		public static OnHeapEqualNode create() {
+			return OnHeapEqualNodeGen.create(null, null, null);
 		}
 
 		@Override
 		protected Object initState() {
-			return new EncounteredPairSet();
+			return new OnHeapSearchState();
 		}
 
 		@Override
 		@TruffleBoundary
 		protected boolean equalRec(Object a, Object b, Object state) {
-			EncounteredPairSet encountered = (EncounteredPairSet) state;
+			OnHeapSearchState searchState = (OnHeapSearchState) state;
+			IdentityPair pair = new IdentityPair(a, b);
 			if (a instanceof Variable || b instanceof Variable) {
-				IdentityPair pair = new IdentityPair(a, b);
-				if (!encountered.add(pair)) {
+				if (!searchState.encountered.add(pair)) {
 					return true;
 				}
 			}
-			return executeEqual(deref(a), deref(b), encountered);
+			searchState.toExplore.add(pair);
+
+			if (searchState.root) {
+				searchState.root = false;
+				while (!searchState.toExplore.isEmpty()) {
+					IdentityPair current = searchState.toExplore.removeLast();
+					if (!executeEqual(deref(current.a), deref(current.b), searchState)) {
+						return false;
+					}
+				}
+				searchState.root = true;
+			}
+			return true;
 		}
 	}
 

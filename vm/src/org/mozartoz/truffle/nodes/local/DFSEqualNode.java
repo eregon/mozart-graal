@@ -7,7 +7,6 @@ import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzCons;
-import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzProc;
@@ -63,7 +62,7 @@ public abstract class DFSEqualNode extends OzNode {
 		if (a.isLinkedTo(b)) {
 			return true;
 		} else {
-			throw new OzException(this, "unimplemented");
+			return equalRec(a, b, state); // Either a or b is bound, at least one will be dereferenced
 		}
 	}
 
