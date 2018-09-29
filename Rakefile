@@ -3,6 +3,7 @@ require 'tempfile'
 
 TRUFFLE_RELEASE = "0.25"
 JVMCI_BASE = "1.8.0_121"
+MX_COMMIT = "fa891014d1f4a4a647641570406add177e031fc6"
 
 JDK8_ARCHIVE = "http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html"
 
@@ -73,6 +74,7 @@ namespace :build do
 
   file MX do
     sh "cd .. && git clone https://github.com/graalvm/mx.git"
+    sh "cd ../mx && git checkout #{MX_COMMIT}"
   end
 
   file TRUFFLE do
