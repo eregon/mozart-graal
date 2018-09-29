@@ -13,7 +13,7 @@ if MAIN_IMAGE.exist? and mtime = MAIN_IMAGE.mtime and
   MAIN_IMAGE.delete
 end
 
-bootclasspath = [TRUFFLE_API_JAR]
+bootclasspath = [SDK_JAR, TRUFFLE_API_JAR]
 classpath = oz_classpath
 
 java = 'java'

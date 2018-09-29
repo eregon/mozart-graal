@@ -1,7 +1,7 @@
 require_relative 'tool/common'
 require 'tempfile'
 
-TRUFFLE_RELEASE = "0.25"
+TRUFFLE_RELEASE = "1.0.0-rc6"
 JVMCI_BASE = "1.8.0_121"
 MX_COMMIT = "fa891014d1f4a4a647641570406add177e031fc6"
 
@@ -12,13 +12,9 @@ OZWISH_SRC = PROJECT_DIR / "wish/unixmain.cc"
 
 BOOTCOMPILER_ECLIPSE = BOOTCOMPILER / ".project"
 
-TRUFFLE_API_SRC = TRUFFLE / "mxbuild/dists/truffle-api.src.zip"
-TRUFFLE_DEBUG_SRC = TRUFFLE / "mxbuild/dists/truffle-debug.src.zip"
-TRUFFLE_DSL_PROCESSOR_JAR = TRUFFLE / "mxbuild/dists/truffle-dsl-processor.jar"
-
 JVMCI_HOME = JVMCI / "jdk#{JVMCI_BASE}/product"
 JVMCI_RELEASE = JVMCI_HOME / "release"
-GRAAL_MX_ENV = GRAAL / "mx.graal-core/env"
+GRAAL_MX_ENV = GRAAL / "mx.compiler/env"
 
 def erb(template, output)
   require 'erb'
@@ -77,10 +73,12 @@ namespace :build do
     sh "cd ../mx && git checkout #{MX_COMMIT}"
   end
 
-  file TRUFFLE do
-    sh "cd .. && git clone https://github.com/eregon/truffle.git"
-    sh "cd #{TRUFFLE} && git checkout coro-#{TRUFFLE_RELEASE}"
+  file GRAAL_REPO do
+    sh "cd .. && git clone https://github.com/eregon/truffle.git graal"
+    sh "cd #{GRAAL_REPO} && git checkout coro-#{TRUFFLE_RELEASE}"
   end
+
+  file TRUFFLE => GRAAL_REPO
 
   file TRUFFLE_API_JAR => [MX, TRUFFLE] do
     sh "cd #{TRUFFLE} && #{MX} build"
@@ -92,10 +90,7 @@ namespace :build do
     sh "cd #{JVMCI} && git checkout coro-#{TRUFFLE_RELEASE}"
   end
 
-  file GRAAL => TRUFFLE do
-    sh "git clone https://github.com/eregon/graal-core.git #{GRAAL}" unless GRAAL.directory?
-    sh "cd #{GRAAL} && git checkout coro-#{TRUFFLE_RELEASE}"
-  end
+  file GRAAL => GRAAL_REPO
 
   file JVMCI_RELEASE => [JVMCI, MX] do
     puts "Choose JDK #{JVMCI_BASE} when asked for JAVA_HOME"

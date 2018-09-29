@@ -18,14 +18,20 @@ BOOTCOMPILER_CLASSES = BOOTCOMPILER / "bin"
 SCALA_SOURCES = Dir[BOOTCOMPILER / "src/**/*.scala"]
 
 MX = Pathname("../mx/mx").expand_path(dir)
+GRAAL_REPO = Pathname("../graal").expand_path(dir)
 
 JVMCI = Pathname("../jvmci").expand_path(dir)
-GRAAL = Pathname("../graal-core").expand_path(dir)
+GRAAL = GRAAL_REPO / "compiler"
 GRAAL_JAR = GRAAL / "mxbuild/dists/graal.jar"
 
-TRUFFLE = Pathname("../truffle").expand_path(dir)
+SDK = GRAAL_REPO / "sdk"
+SDK_JAR = SDK / "mxbuild/dists/graal-sdk.jar"
+SDK_SRC = SDK / "mxbuild/dists/graal-sdk.src.zip"
+
+TRUFFLE = GRAAL_REPO / "truffle"
 TRUFFLE_API_JAR = TRUFFLE / "mxbuild/dists/truffle-api.jar"
-TRUFFLE_DEBUG_JAR = TRUFFLE / "mxbuild/dists/truffle-debug.jar"
+TRUFFLE_API_SRC = TRUFFLE / "mxbuild/dists/truffle-api.src.zip"
+TRUFFLE_DSL_PROCESSOR_JAR = TRUFFLE / "mxbuild/dists/truffle-dsl-processor.jar"
 
 VM = PROJECT_DIR / "vm"
 VM_CLASSES = (VM / "bin").to_s

@@ -20,7 +20,7 @@ object Preprocessor {
   }
 
   def preprocess(source: Source): (String, Seq[SourceMap]) = {
-    val input = source.getCode
+    val input = source.getCharacters.toString
     val tokens = Parser.t(Parser.tokens(input), source.getPath)
 
     var defines: Set[String] = Set()
