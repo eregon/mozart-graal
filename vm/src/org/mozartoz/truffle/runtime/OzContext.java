@@ -68,7 +68,16 @@ public class OzContext {
 
 	public void finalizeContext() {
 		waitThreads();
-		shutdown();
+
+		if (Options.STACKTRACE_ON_INTERRUPT) {
+			Runtime.getRuntime().removeShutdownHook(shutdownHook);
+		}
+	}
+
+	private void waitThreads() {
+		while (OzThread.getNumberOfThreadsRunnable() > 1) {
+			OzThread.getCurrent().yield(null);
+		}
 	}
 
 	private void loadMain() {
@@ -106,18 +115,6 @@ public class OzContext {
 		propertyRegistry.setApplicationArgs(env.getApplicationArguments());
 
 		main.rootCall("main");
-	}
-
-	private void waitThreads() {
-		while (OzThread.getNumberOfThreadsRunnable() > 1) {
-			OzThread.getCurrent().yield(null);
-		}
-	}
-
-	private void shutdown() {
-		if (Options.STACKTRACE_ON_INTERRUPT) {
-			Runtime.getRuntime().removeShutdownHook(shutdownHook);
-		}
 	}
 
 	// Base

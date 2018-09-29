@@ -41,7 +41,7 @@ public class OzLanguage extends TruffleLanguage<OzContext> {
 
 	@Override
 	protected CallTarget parse(ParsingRequest parsingRequest) {
-		final Source source = parsingRequest.getSource();
+		Source source = parsingRequest.getSource();
 		RunMainNode runMain = new RunMainNode(source);
 		OzRootNode rootNode = new OzRootNode(this,
 				Loader.MAIN_SOURCE_SECTION,
