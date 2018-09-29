@@ -7,8 +7,6 @@ import symtab._
 
 object TailCallMarking extends Transformer {
 
-  val SELF_TAIL_CALLS = System.getProperty("oz.tail.selfcalls", "true") == "true";
-
   var procExpr: ProcExpression = null
 
   private def withProc[A](proc: ProcExpression)(f: => A) = {
@@ -20,7 +18,7 @@ object TailCallMarking extends Transformer {
   
   def markTailCalls(statement: Statement): Statement = statement match {
     case call @ CallStatement(callable, args) =>
-      if (SELF_TAIL_CALLS && Some(callable) == procExpr.name) {
+      if (Options.SELF_TAIL_CALLS && Some(callable) == procExpr.name) {
         call.kind = CallKind.SelfTail
       } else {
         call.kind = CallKind.Tail
