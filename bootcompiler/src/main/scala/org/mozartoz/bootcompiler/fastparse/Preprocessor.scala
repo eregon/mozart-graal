@@ -7,6 +7,7 @@ import org.mozartoz.bootcompiler.fastparse.Tokens.Token
 import com.oracle.truffle.api.source.Source
 import fastparse.core.Parsed
 import scala.collection.mutable.ArrayBuffer
+import org.mozartoz.bootcompiler.BootCompiler
 
 object Preprocessor {
   case class SourceMap(fromOffset: Int, sourceOffset: Int, source: Source, toOffset: Int = 0) {
@@ -101,7 +102,7 @@ object Preprocessor {
               val file = resolve(new File(source.getPath), fileName)
               capture(token.pB)
 
-              val subSource = Source.newBuilder(file).name(file.getName).mimeType("application/x-oz").build
+              val subSource = BootCompiler.parserToVM.createSource(file.getPath)
               val (out, map) = preprocess(subSource)
               sourceMap ++= map.map {
                 case SourceMap(fromOffset, sourceOffset, source, toOffset) =>

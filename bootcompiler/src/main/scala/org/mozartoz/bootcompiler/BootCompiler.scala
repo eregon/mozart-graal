@@ -14,6 +14,13 @@ import com.oracle.truffle.api.source.Source
  * Main interface, called from Java
  */
 object BootCompiler {
+
+  var parserToVM: ParserToVM = null
+
+  def registerParserToVM(parserToVM: ParserToVM) = {
+    BootCompiler.parserToVM = parserToVM
+  }
+
   def buildMainProgram(source: Source, builtins: Builtins) = {
     val program = new Program(false, false, builtins)
     val statement = parseStatement(source, Set.empty)

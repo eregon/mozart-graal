@@ -27,6 +27,7 @@ public class TranslatorDriver {
 
 	public TranslatorDriver(OzLanguage language) {
 		this.language = language;
+		BootCompiler.registerParserToVM(ParserToVMImpl.INSTANCE);
 	}
 
 	public RootCallTarget parseBase(Source source) {
