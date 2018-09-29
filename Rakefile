@@ -3,7 +3,7 @@ require 'tempfile'
 
 TRUFFLE_RELEASE = "1.0.0-rc6"
 JVMCI_BASE = "1.8.0_121"
-MX_COMMIT = "fa891014d1f4a4a647641570406add177e031fc6"
+MX_COMMIT = "e2edc26d9f61fc62e28041dcb22fd55a90db4233"
 
 JDK8_ARCHIVE = "http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html"
 
