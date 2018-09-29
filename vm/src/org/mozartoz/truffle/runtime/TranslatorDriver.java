@@ -46,22 +46,6 @@ public class TranslatorDriver {
 		});
 	}
 
-	public RootCallTarget parseMain(Source source) {
-		DynamicObject base = OzContext.getInstance().getBase();
-
-		String fileName = new File(source.getPath()).getName();
-		Program program = BootCompiler.buildMainProgram(source, BuiltinsRegistry.getBuiltins());
-		Statement ast = CompilerPipeline.compile(program, fileName);
-
-		Translator translator = new Translator(language, base);
-		FrameSlot baseSlot = translator.addRootSymbol(program.baseEnvSymbol());
-		return translator.translateAST(fileName, ast, node -> {
-			return SequenceNode.sequence(
-					new InitializeTmpNode(baseSlot, new LiteralNode(base)),
-					node);
-		});
-	}
-
 	public RootCallTarget parseFunctor(Source source) {
 		DynamicObject base = OzContext.getInstance().getBase();
 
