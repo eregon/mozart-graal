@@ -14,6 +14,8 @@ public abstract class PatternMatchEqualNode extends OzNode {
 
 	private final Object constant;
 
+	// Cyclic patterns are only possible using variables which
+	// are handled through equality, so it should not cause problems.
 	@Child DFSEqualNode equalNode = DFSEqualNode.create();
 
 	@CreateCast("value")

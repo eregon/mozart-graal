@@ -20,7 +20,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 @NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 public abstract class GenericUnifyNode extends OzNode {
 
-	protected static boolean CYCLE_DETECTION = Options.CYCLE_DETECTION;
+	protected static final boolean CYCLE_DETECTION = Options.CYCLE_DETECTION;
 
 	public abstract Object executeUnify(Object a, Object b);
 

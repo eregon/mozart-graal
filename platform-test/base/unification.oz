@@ -5,7 +5,6 @@ export
    Return
 define
    proc{MustFail X P}
-      skip
       try
          {P}
          raise {VirtualString.toAtom '  '#X#' should have failed'} end
