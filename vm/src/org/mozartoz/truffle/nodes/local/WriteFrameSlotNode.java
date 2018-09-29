@@ -49,19 +49,20 @@ public abstract class WriteFrameSlotNode extends Node implements WriteNode, Fram
 
 	@Specialization(replaces = { "writeLong", "writeDouble", "writeBoolean" })
 	protected void write(Frame frame, Object value) {
-		if (slot.getKind() != FrameSlotKind.Object) {
+		if (frame.getFrameDescriptor().getFrameSlotKind(slot) != FrameSlotKind.Object) {
 			CompilerDirectives.transferToInterpreterAndInvalidate();
-			slot.setKind(FrameSlotKind.Object);
+			frame.getFrameDescriptor().setFrameSlotKind(slot, FrameSlotKind.Object);
 		}
 		frame.setObject(slot, value);
 	}
 
 	protected boolean isKind(Frame frame, FrameSlotKind kind) {
-		if (slot.getKind() == kind) {
+		FrameSlotKind actual = frame.getFrameDescriptor().getFrameSlotKind(slot);
+		if (actual == kind) {
 			return true;
-		} else if (slot.getKind() == FrameSlotKind.Illegal) {
+		} else if (actual == FrameSlotKind.Illegal) {
 			CompilerDirectives.transferToInterpreterAndInvalidate();
-			slot.setKind(kind);
+			frame.getFrameDescriptor().setFrameSlotKind(slot, kind);
 			return true;
 		} else {
 			return false;
