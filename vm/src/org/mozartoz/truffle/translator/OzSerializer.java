@@ -284,6 +284,7 @@ public class OzSerializer implements AutoCloseable {
 	}
 
 	private static class FrameSlotSerializer extends Serializer<FrameSlot> {
+		@SuppressWarnings("deprecation")
 		public void write(Kryo kryo, Output output, FrameSlot frameSlot) {
 			kryo.writeObject(output, frameSlot.getFrameDescriptor());
 			output.writeString((String) frameSlot.getIdentifier());
