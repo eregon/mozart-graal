@@ -1,7 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.mozartoz.bootcompiler.BootCompiler;
 import org.mozartoz.bootcompiler.ast.Statement;
@@ -13,7 +12,6 @@ import org.mozartoz.truffle.nodes.local.InitializeTmpNode;
 import org.mozartoz.truffle.nodes.local.InitializeVarNode;
 import org.mozartoz.truffle.nodes.local.ReadLocalVariableNode;
 import org.mozartoz.truffle.translator.BuiltinsRegistry;
-import org.mozartoz.truffle.translator.Loader;
 import org.mozartoz.truffle.translator.Translator;
 
 import com.oracle.truffle.api.RootCallTarget;
@@ -31,11 +29,9 @@ public class TranslatorDriver {
 		this.language = language;
 	}
 
-	public RootCallTarget parseBase() {
+	public RootCallTarget parseBase(Source source) {
 		Metrics.tick("enter parseBase");
-		Program program = BootCompiler.buildBaseEnvProgram(
-				createSource(Loader.BASE_FILE_NAME),
-				BuiltinsRegistry.getBuiltins());
+		Program program = BootCompiler.buildBaseEnvProgram(source, BuiltinsRegistry.getBuiltins());
 		Metrics.tick("parse Base");
 		Statement ast = CompilerPipeline.compile(program, "the base environment");
 
@@ -92,15 +88,6 @@ public class TranslatorDriver {
 
 	public void setEagerLoad(boolean value) {
 		this.eagerLoad = value;
-	}
-
-	public static Source createSource(String path) {
-		File file = new File(path);
-		try {
-			return Source.newBuilder(file).name(file.getName()).mimeType(OzLanguage.MIME_TYPE).build();
-		} catch (IOException e) {
-			throw new Error(e);
-		}
 	}
 
 }

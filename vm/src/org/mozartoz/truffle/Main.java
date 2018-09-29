@@ -38,7 +38,7 @@ public class Main {
 			appArgs = Arrays.copyOfRange(args, 1, args.length);
 		}
 
-		try (Context context = Context.newBuilder().arguments("oz", appArgs).build()) {
+		try (Context context = Context.newBuilder().allowAllAccess(true).arguments("oz", appArgs).build()) {
 			if (args.length == 0) {
 				context.eval(createSource(TEST_RUNNER));
 			} else {

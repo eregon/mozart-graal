@@ -74,7 +74,7 @@ public class OzContext {
 	private void loadMain() {
 		Metrics.tick("start loading Main");
 		if (Options.SERIALIZER && new File(MAIN_IMAGE).exists()) {
-			try (OzSerializer serializer = new OzSerializer(language)) {
+			try (OzSerializer serializer = new OzSerializer(env, language)) {
 				main = serializer.deserialize(MAIN_IMAGE, OzProc.class);
 			} catch (Throwable t) {
 				System.err.println("Got " + t.getClass().getSimpleName() + " while deserializing, removing Main.image");
@@ -85,13 +85,13 @@ public class OzContext {
 		} else {
 			translatorDriver.setEagerLoad(true);
 			try {
-				Source initSource = TranslatorDriver.createSource(Loader.INIT_FUNCTOR);
+				Source initSource = Loader.createSource(env, Loader.INIT_FUNCTOR);
 				RootCallTarget initCallTarget = translatorDriver.parseFunctor(initSource);
 				Object initFunctor = execute(initCallTarget);
 				Object applied = applyInitFunctor(initFunctor);
 				main = (OzProc) ((DynamicObject) applied).get("main");
 				if (Options.SERIALIZER) {
-					try (OzSerializer serializer = new OzSerializer(language)) {
+					try (OzSerializer serializer = new OzSerializer(env, language)) {
 						serializer.serialize(main, MAIN_IMAGE);
 					}
 				}
@@ -129,7 +129,7 @@ public class OzContext {
 	private DynamicObject loadBase() {
 		if (base == null) {
 			Metrics.tick("start loading Base");
-			RootCallTarget baseFunctorTarget = translatorDriver.parseBase();
+			RootCallTarget baseFunctorTarget = translatorDriver.parseBase(Loader.createSource(env, Loader.BASE_FILE_NAME));
 			Metrics.tick("translated Base");
 			Object baseFunctor = execute(baseFunctorTarget);
 
@@ -168,10 +168,6 @@ public class OzContext {
 		return value;
 	}
 
-	public TranslatorDriver getTranslatorDriver() {
-		return translatorDriver;
-	}
-
 	// Shutdown
 
 	public void registerChildProcess(Process process) {
@@ -187,6 +183,16 @@ public class OzContext {
 			System.out.println("nvars --- " + Variable.variableCount);
 		}
 		System.exit(exitCode);
+	}
+
+	// Getters
+
+	public Env getEnv() {
+		return env;
+	}
+
+	public TranslatorDriver getTranslatorDriver() {
+		return translatorDriver;
 	}
 
 }

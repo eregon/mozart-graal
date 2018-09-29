@@ -109,6 +109,7 @@ import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.FieldSerializer;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.TruffleRuntime;
 import com.oracle.truffle.api.dsl.GeneratedBy;
 import com.oracle.truffle.api.dsl.NodeFactory;
@@ -391,6 +392,13 @@ public class OzSerializer implements AutoCloseable {
 	}
 
 	private static class FileSourceSerializer extends Serializer<Source> {
+
+		private final Env env;
+
+		public FileSourceSerializer(Env env) {
+			this.env = env;
+		}
+
 		public void write(Kryo kryo, Output output, Source source) {
 			assert source.getPath() != null || source == Loader.MAIN_SOURCE;
 			output.writeString(source.getPath());
@@ -401,7 +409,7 @@ public class OzSerializer implements AutoCloseable {
 			if (path == null) {
 				return Loader.MAIN_SOURCE;
 			} else {
-				return Loader.createSource(path);
+				return Loader.createSource(env, path);
 			}
 		}
 	}
@@ -670,7 +678,7 @@ public class OzSerializer implements AutoCloseable {
 
 	private final Kryo kryo;
 
-	public OzSerializer(OzLanguage language) {
+	public OzSerializer(Env env, OzLanguage language) {
 		kryo = new Kryo();
 		kryo.setRegistrationRequired(true);
 		kryo.setReferences(true);
@@ -775,8 +783,8 @@ public class OzSerializer implements AutoCloseable {
 		kryo.register(ConsLiteralNodeGen.class);
 
 		// sources
-		Source fileSource = Loader.createSource(Loader.INIT_FUNCTOR);
-		kryo.register(fileSource.getClass(), new FileSourceSerializer());
+		Source fileSource = Loader.createSource(env, Loader.INIT_FUNCTOR);
+		kryo.register(fileSource.getClass(), new FileSourceSerializer(env));
 		kryo.register(SourceSection.class, new SourceSectionSerializer(fileSource.getClass()));
 		kryo.register(String[].class);
 
