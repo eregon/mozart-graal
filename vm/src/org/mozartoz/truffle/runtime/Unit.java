@@ -1,6 +1,9 @@
 package org.mozartoz.truffle.runtime;
 
-public class Unit {
+import com.oracle.truffle.api.interop.ForeignAccess;
+import com.oracle.truffle.api.interop.TruffleObject;
+
+public class Unit implements TruffleObject {
 
 	public static final Unit INSTANCE = new Unit();
 
@@ -11,4 +14,10 @@ public class Unit {
 	public String toString() {
 		return "unit";
 	}
+
+	@Override
+	public ForeignAccess getForeignAccess() {
+		return null;
+	}
+
 }

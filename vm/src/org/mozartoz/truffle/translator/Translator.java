@@ -121,6 +121,7 @@ import org.mozartoz.truffle.nodes.pattern.PatternMatchOpenRecordNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzContext;
 import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.Unit;
 
@@ -417,7 +418,7 @@ public class Translator {
 			if (isSelfTailRec) { // Set when translating a self tail call
 				procBody = SelfTailCallCatcherNode.create(procBody, environment.frameDescriptor);
 			}
-			boolean forceSplitting = Loader.getInstance().isLoadingBase();
+			boolean forceSplitting = OzContext.getInstance().isLoadingBase();
 			OzRootNode rootNode = new OzRootNode(language, sourceSection, identifier, environment.frameDescriptor, procBody, arity, forceSplitting);
 
 			if (Options.FRAME_FILTERING) {

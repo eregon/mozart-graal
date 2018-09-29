@@ -8,7 +8,6 @@ import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.NumberBuiltinsFactory.MulNodeFactory;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.ExactMath;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -144,7 +143,7 @@ public abstract class NumberBuiltins {
 
 		@Specialization(rewriteOn = ArithmeticException.class)
 		long add(long a, long b) {
-			return ExactMath.addExact(a, b);
+			return Math.addExact(a, b);
 		}
 
 		@Specialization
@@ -167,7 +166,7 @@ public abstract class NumberBuiltins {
 
 		@Specialization(rewriteOn = ArithmeticException.class)
 		long sub(long a, long b) {
-			return ExactMath.subtractExact(a, b);
+			return Math.subtractExact(a, b);
 		}
 
 		@Specialization
@@ -196,7 +195,7 @@ public abstract class NumberBuiltins {
 
 		@Specialization(rewriteOn = ArithmeticException.class)
 		long mul(long a, long b) {
-			return ExactMath.multiplyExact(a, b);
+			return Math.multiplyExact(a, b);
 		}
 
 		@TruffleBoundary

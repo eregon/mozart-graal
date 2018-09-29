@@ -1,10 +1,12 @@
 package org.mozartoz.truffle;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Source;
 import org.mozartoz.truffle.translator.Loader;
-
-import com.oracle.truffle.api.source.Source;
 
 public class Main {
 
@@ -29,17 +31,30 @@ public class Main {
 	};
 
 	public static void main(String[] args) {
-		// Source source = Loader.createSource("test.oz");
-		// Loader.getInstance().run(source);
-
+		final String[] appArgs;
 		if (args.length == 0) {
-			Source source = Loader.createSource(TEST_RUNNER);
-			Loader.getInstance().runFunctor(source, PASSING_TESTS);
+			appArgs = PASSING_TESTS;
 		} else {
-			String functor = args[0];
-			Source source = Loader.createSource(functor);
-			String[] appArgs = Arrays.copyOfRange(args, 1, args.length);
-			Loader.getInstance().runFunctor(source, appArgs);
+			appArgs = Arrays.copyOfRange(args, 1, args.length);
+		}
+
+		try (Context context = Context.newBuilder().arguments("oz", appArgs).build()) {
+			if (args.length == 0) {
+				context.eval(createSource(TEST_RUNNER));
+			} else {
+				String functor = args[0];
+				context.eval(createSource(functor));
+			}
+		}
+
+	}
+
+	private static Source createSource(String path) {
+		File file = new File(path);
+		try {
+			return Source.newBuilder("oz", file).name(file.getName()).build();
+		} catch (IOException e) {
+			throw new Error(e);
 		}
 	}
 

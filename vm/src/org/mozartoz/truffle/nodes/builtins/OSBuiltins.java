@@ -20,6 +20,7 @@ import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNo
 import org.mozartoz.truffle.nodes.local.BindNode;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzContext;
 import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzVar;
@@ -69,8 +70,8 @@ public abstract class OSBuiltins {
 
 			if (new File(path).exists()) {
 				Source source = Loader.createSource(path);
-				Loader loader = Loader.getInstance();
-				return loader.execute(loader.parseFunctor(source));
+				OzContext context = OzContext.getInstance();
+				return context.execute(context.getTranslatorDriver().parseFunctor(source));
 			} else {
 				throw notFound(url);
 			}
@@ -530,7 +531,7 @@ public abstract class OSBuiltins {
 			try {
 				Process process = builder.start();
 				outPid.bind(process);
-				Loader.getInstance().registerChildProcess(process);
+				OzContext.getInstance().registerChildProcess(process);
 				InputStream input = process.getInputStream();
 				OutputStream output = process.getOutputStream();
 				return new OzCons(input, output);

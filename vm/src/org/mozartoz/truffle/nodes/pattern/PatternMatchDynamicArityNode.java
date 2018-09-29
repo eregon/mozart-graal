@@ -15,7 +15,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 @NodeChild("value")
 public abstract class PatternMatchDynamicArityNode extends OzNode {
 
-	@CompilationFinal Object[] features;
+	@CompilationFinal(dimensions = 1) final Object[] features;
 
 	public PatternMatchDynamicArityNode(Object[] features) {
 		this.features = features;

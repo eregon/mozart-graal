@@ -8,7 +8,7 @@ public abstract class Options {
 
 	public static final boolean PROFILER = bool("oz.profiler", false);
 
-	public static final boolean SERIALIZER = !PROFILER && bool("oz.serializer", true);
+	public static final boolean SERIALIZER = bool("oz.serializer", true);
 
 	public static final boolean TAIL_CALLS = bool("oz.tail.calls", true);
 	public static final boolean TAIL_CALLS_OSR = bool("oz.tail.calls.osr", true);
@@ -47,7 +47,9 @@ public abstract class Options {
 		} else if (value.equalsIgnoreCase("false")) {
 			return false;
 		}
-		throw new RuntimeException(property + " was expected to be true or false, got '" + value + "'");
+		System.err.println(property + " was expected to be true or false, got '" + value + "'");
+		System.exit(1);
+		return false;
 	}
 
 	private static int integer(String property, int defaultValue) {

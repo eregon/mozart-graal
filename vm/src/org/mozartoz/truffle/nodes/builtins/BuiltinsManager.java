@@ -15,7 +15,6 @@ import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.translator.BuiltinsRegistry;
-import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -66,12 +65,12 @@ public abstract class BuiltinsManager {
 	private static final Map<String, OzProc> BUILTINS = new HashMap<>();
 	private static final Map<String, DynamicObject> BOOT_MODULES = new HashMap<>();
 
-	private static final Source BUILTINS_SOURCE = Loader.buildInternalSource("builtin");
+	private static final Source BUILTINS_SOURCE = Source.newBuilder("oz", "", "builtin").internal(true).build();
 	private static final SourceSection BUILTINS_SOURCE_SECTION = BUILTINS_SOURCE.createUnavailableSection();
 
 	private static SourceSection builtinSourceSection(String builtinName) {
 		if (Options.PROFILER) {
-			return Loader.buildInternalSource(builtinName).createUnavailableSection();
+			return Source.newBuilder("oz", "", builtinName).internal(true).build().createUnavailableSection();
 		} else {
 			return BUILTINS_SOURCE_SECTION;
 		}
