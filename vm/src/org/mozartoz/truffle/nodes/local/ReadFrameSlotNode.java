@@ -1,11 +1,14 @@
 package org.mozartoz.truffle.nodes.local;
 
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.frame.FrameUtil;
 import com.oracle.truffle.api.nodes.Node;
 
+@ImportStatic(FrameSlotKind.class)
 public abstract class ReadFrameSlotNode extends Node implements FrameSlotNode {
 
 	private final FrameSlot slot;
@@ -20,29 +23,34 @@ public abstract class ReadFrameSlotNode extends Node implements FrameSlotNode {
 
 	public abstract Object executeRead(Frame frame);
 
-	@Specialization(rewriteOn = FrameSlotTypeException.class)
-	protected long readLong(Frame frame) throws FrameSlotTypeException {
-		return frame.getLong(slot);
+	@Specialization(guards = "isKind(frame, Long)")
+	protected long readLong(Frame frame) {
+		return FrameUtil.getLongSafe(frame, slot);
 	}
 
-	@Specialization(rewriteOn = FrameSlotTypeException.class)
-	protected double readDouble(Frame frame) throws FrameSlotTypeException {
-		return frame.getDouble(slot);
+	@Specialization(guards = "isKind(frame, Double)")
+	protected double readDouble(Frame frame) {
+		return FrameUtil.getDoubleSafe(frame, slot);
 	}
 
-	@Specialization(rewriteOn = FrameSlotTypeException.class)
-	protected boolean readBoolean(Frame frame) throws FrameSlotTypeException {
-		return frame.getBoolean(slot);
+	@Specialization(guards = "isKind(frame, Boolean)")
+	protected boolean readBoolean(Frame frame) {
+		return FrameUtil.getBooleanSafe(frame, slot);
 	}
 
-	@Specialization(rewriteOn = FrameSlotTypeException.class)
-	protected Object readObject(Frame frame) throws FrameSlotTypeException {
-		return frame.getObject(slot);
+	@Specialization(guards = "isKind(frame, Object)")
+	protected Object readObject(Frame frame) {
+		return FrameUtil.getObjectSafe(frame, slot);
 	}
 
 	@Specialization(replaces = { "readLong", "readDouble", "readBoolean", "readObject" })
 	protected Object read(Frame frame) {
 		return frame.getValue(slot);
+	}
+
+	protected boolean isKind(Frame frame, FrameSlotKind kind) {
+		return frame.getFrameDescriptor().getFrameSlotKind(slot) == kind;
+
 	}
 
 	@Override
