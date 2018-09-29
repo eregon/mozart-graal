@@ -10,7 +10,9 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.Instrumentable;
+import com.oracle.truffle.api.instrumentation.GenerateWrapper;
+import com.oracle.truffle.api.instrumentation.InstrumentableNode;
+import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.instrumentation.StandardTags.RootTag;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -18,8 +20,8 @@ import com.oracle.truffle.api.source.SourceSection;
 
 @TypeSystemReference(OzTypes.class)
 @ImportStatic(OzGuards.class)
-@Instrumentable(factory = OzNodeWrapper.class)
-public abstract class OzNode extends Node {
+@GenerateWrapper
+public abstract class OzNode extends Node implements InstrumentableNode {
 
 	boolean hasRootTag = false;
 
@@ -45,6 +47,16 @@ public abstract class OzNode extends Node {
 			return hasRootTag;
 		}
 		return false;
+	}
+
+	@Override
+	public WrapperNode createWrapper(ProbeNode probeNode) {
+		return new OzNodeWrapper(this, probeNode);
+	}
+
+	@Override
+	public boolean isInstrumentable() {
+		return true;
 	}
 
 	protected Object unimplemented() {
