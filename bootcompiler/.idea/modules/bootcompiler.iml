@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.linked.project.id="bootcompiler [file:/home/eregon/code/mozart-dev/mozart-graal/bootcompiler/]" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="SBT" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
+    <output url="file://$MODULE_DIR$/../../target/scala-2.11/classes" />
+    <output-test url="file://$MODULE_DIR$/../../target/scala-2.11/test-classes" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../..">
+      <sourceFolder url="file://$MODULE_DIR$/../../src/main/scala" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../target/scala-2.11/src_managed/main" isTestSource="false" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../../target/scala-2.11/src_managed/test" isTestSource="true" generated="true" />
+      <excludeFolder url="file://$MODULE_DIR$/../../target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="sbt: com.lihaoyi:fastparse-utils_2.11:0.3.7:jar" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library name="sbt: unmanaged-jars">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../graal/sdk/mxbuild/dists/graal-sdk.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../graal/truffle/mxbuild/dists/truffle-api.jar!/" />
+          <root url="file://$MODULE_DIR$/../../doesnotexist" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="sbt: com.lihaoyi:fastparse_2.11:0.3.7:jar" level="project" />
+    <orderEntry type="library" name="sbt: com.lihaoyi:sourcecode_2.11:0.1.1:jar" level="project" />
+    <orderEntry type="library" exported="" name="sbt: org.scala-lang:scala-library:2.11.7:jar" level="project" />
+  </component>
+</module>

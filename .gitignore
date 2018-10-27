@@ -3,6 +3,7 @@
 /vm/.factorypath
 /vm/bin/
 /vm/jvmci/jdk-8u*-linux-x64.tar.gz
+/.idea/workspace.xml
 
 /wish/ozwish
 
