@@ -68,14 +68,6 @@ public abstract class BuiltinsManager {
 	private static final Source BUILTINS_SOURCE = Source.newBuilder("oz", "", "builtin").internal(true).build();
 	private static final SourceSection BUILTINS_SOURCE_SECTION = BUILTINS_SOURCE.createUnavailableSection();
 
-	private static SourceSection builtinSourceSection(String builtinName) {
-		if (Options.PROFILER) {
-			return Source.newBuilder("oz", "", builtinName).internal(true).build().createUnavailableSection();
-		} else {
-			return BUILTINS_SOURCE_SECTION;
-		}
-	}
-
 	public static OzProc getBuiltin(String moduleName, String builtinName) {
 		return getBuiltin(moduleName + "." + builtinName);
 	}
@@ -159,8 +151,7 @@ public abstract class BuiltinsManager {
 			}
 			String name = module + "." + builtinName;
 
-			SourceSection sourceSection = builtinSourceSection(builtinName);
-			OzRootNode rootNode = new OzRootNode(language, sourceSection, name, new FrameDescriptor(), node, arity, true);
+			OzRootNode rootNode = new OzRootNode(language, BUILTINS_SOURCE_SECTION, name, new FrameDescriptor(), node, arity, true);
 			OzProc function = new OzProc(rootNode.toCallTarget(), null, arity);
 
 			assert !BUILTINS.containsKey(name) : name;
