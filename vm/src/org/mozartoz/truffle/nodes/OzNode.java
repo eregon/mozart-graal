@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes;
 
+import com.oracle.truffle.api.instrumentation.Tag;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.RecordFactory;
@@ -42,7 +43,7 @@ public abstract class OzNode extends Node implements InstrumentableNode {
 	public abstract Object execute(VirtualFrame frame);
 
 	@Override
-	protected boolean isTaggedWith(Class<?> tag) {
+	public boolean hasTag(Class<? extends Tag> tag) {
 		if (tag == RootTag.class) {
 			return hasRootTag;
 		}

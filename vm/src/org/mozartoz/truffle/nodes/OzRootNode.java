@@ -38,7 +38,7 @@ public class OzRootNode extends RootNode {
 		this.sourceSection = sourceSection;
 		this.forceSplitting = forceSplitting;
 
-		// Mark the body with the RootTag and make it has a source section
+		// Mark the body with the RootTag and ensure it has a source section
 		body.hasRootTag = true;
 		if (body.getSourceSection() == null) {
 			body.setSourceSection(sourceSection);
