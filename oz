@@ -23,6 +23,9 @@ rest = []
 
 while arg = argv.shift
   case arg
+  when '-da'
+    java_opts.delete('-ea')
+    java_opts.delete('-esa')
   when '--help:graal'
     java_opts << "-Dgraal.PrintFlags=true"
     argv << "--graal"
