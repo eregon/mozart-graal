@@ -18,70 +18,56 @@ classpath = oz_classpath
 
 java = 'java'
 java_opts = %w[-ea -esa]
-vm_options = []
+argv = ARGV.dup
+rest = []
 
-args = ARGV.drop_while { |arg|
-  if arg.start_with? '-'
-    vm_options << arg
+while arg = argv.shift
+  case arg
+  when '--help'
+    java_opts << "-Dgraal.PrintFlags=true"
+    argv << "--graal"
+  when '--graal'
+    jvmci_home = (GRAAL / "mx.graal-core/env").read.scan(/^JAVA_HOME=(.+)/)[0][0]
+    java = File.expand_path("#{jvmci_home}/bin/java")
+    java_opts += %w[-server -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -d64]
+    java_opts << "-Djvmci.class.path.append=#{GRAAL_JAR}"
+    java_opts << "-Djvmci.Compiler=graal"
+  when '--trace'
+    java_opts << "-Dgraal.TraceTruffleCompilation=true"
+  when '--fg'
+    java_opts << "-Dgraal.TruffleBackgroundCompilation=false"
+  when '--stress'
+    java_opts << '-Dgraal.TruffleCompileImmediately=true'
+    java_opts << '-Dgraal.TruffleBackgroundCompilation=false'
+    java_opts << '-Dgraal.TruffleCompilationExceptionsAreFatal=true'
+  when '--igv'
+    java_opts << "-Dgraal.Dump=TruffleTree,PartialEscape,RemoveValueProxy"
+    java_opts << "-Dgraal.PrintBackendCFG=false"
+    java_opts << "-Dgraal.TruffleBackgroundCompilation=false"
+  when '--igvcfg'
+    java_opts << "-Dgraal.Dump="
+    java_opts << "-Dgraal.PrintBackendCFG=true"
+    java_opts << "-Dgraal.TruffleBackgroundCompilation=false"
+  when '--infopoints'
+    java_opts << "-XX:+UnlockDiagnosticVMOptions" << "-XX:+DebugNonSafepoints"
+    java_opts << "-Dgraal.TruffleEnableInfopoints=true"
+  when '--jdebug'
+    java_opts << "-agentlib:jdwp=transport=dt_socket,server=y,address=51819,suspend=y"
+  when /^-[DX](.+)/
+    java_opts << arg
+  else
+    rest = [arg, *argv]
+    break
   end
-}
-
-if vm_options.delete('--help')
-  java_opts << "-Dgraal.PrintFlags=true"
-  vm_options << "--graal"
-end
-
-if vm_options.delete('--graal')
-  jvmci_home = (GRAAL / "mx.graal-core/env").read.scan(/^JAVA_HOME=(.+)/)[0][0]
-  java = File.expand_path("#{jvmci_home}/bin/java")
-  java_opts += %w[-server -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -d64]
-  java_opts << "-Djvmci.class.path.append=#{GRAAL_JAR}"
-  java_opts << "-Djvmci.Compiler=graal"
-end
-
-if vm_options.delete('--trace')
-  java_opts << "-Dgraal.TraceTruffleCompilation=true"
-end
-
-if vm_options.delete('--fg')
-  java_opts << "-Dgraal.TruffleBackgroundCompilation=false"
-end
-
-if vm_options.delete('--stress')
-  java_opts << '-Dgraal.TruffleCompileImmediately=true'
-  java_opts << '-Dgraal.TruffleBackgroundCompilation=false'
-  java_opts << '-Dgraal.TruffleCompilationExceptionsAreFatal=true'
-end
-
-if vm_options.delete('--igv')
-  java_opts << "-Dgraal.Dump=TruffleTree,PartialEscape,RemoveValueProxy"
-  java_opts << "-Dgraal.PrintBackendCFG=false"
-  java_opts << "-Dgraal.TruffleBackgroundCompilation=false"
-end
-
-if vm_options.delete('--igvcfg')
-  java_opts << "-Dgraal.Dump="
-  java_opts << "-Dgraal.PrintBackendCFG=true"
-  java_opts << "-Dgraal.TruffleBackgroundCompilation=false"
-end
-
-if vm_options.delete('--infopoints')
-  java_opts << "-XX:+UnlockDiagnosticVMOptions" << "-XX:+DebugNonSafepoints"
-  java_opts << "-Dgraal.TruffleEnableInfopoints=true"
-end
-
-if vm_options.delete('--jdebug')
-  java_opts << "-agentlib:jdwp=transport=dt_socket,server=y,address=51819,suspend=y"
 end
 
 cmd = [
   java,
   *java_opts,
-  *vm_options,
   "-Xbootclasspath/p:" + bootclasspath.join(':'),
   '-cp', classpath.join(':'),
   'org.mozartoz.truffle.Main'
-] + args
+] + rest
 
 puts "$ #{cmd.join(' ')}"
 exec(*cmd)
