@@ -86,19 +86,7 @@ import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchIdentityNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchOpenRecordNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
-import org.mozartoz.truffle.runtime.Arity;
-import org.mozartoz.truffle.runtime.ArrayUtils;
-import org.mozartoz.truffle.runtime.OzCell;
-import org.mozartoz.truffle.runtime.OzChunk;
-import org.mozartoz.truffle.runtime.OzCons;
-import org.mozartoz.truffle.runtime.OzDict;
-import org.mozartoz.truffle.runtime.OzLanguage;
-import org.mozartoz.truffle.runtime.OzName;
-import org.mozartoz.truffle.runtime.OzObject;
-import org.mozartoz.truffle.runtime.OzProc;
-import org.mozartoz.truffle.runtime.OzUniqueName;
-import org.mozartoz.truffle.runtime.OzVar;
-import org.mozartoz.truffle.runtime.Unit;
+import org.mozartoz.truffle.runtime.*;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -812,6 +800,7 @@ public class OzSerializer implements AutoCloseable {
 		kryo.register(OzObject.class);
 
 		// I/O
+		kryo.register(OzIO.class);
 		kryo.register(PrintStream.class, new PrintStreamSerializer());
 		kryo.register(System.in.getClass(), new InputStreamSerializer());
 	}

@@ -18,13 +18,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltins.ToAtomNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
 import org.mozartoz.truffle.nodes.local.BindNode;
-import org.mozartoz.truffle.runtime.Arity;
-import org.mozartoz.truffle.runtime.OzCons;
-import org.mozartoz.truffle.runtime.OzContext;
-import org.mozartoz.truffle.runtime.OzException;
-import org.mozartoz.truffle.runtime.OzThread;
-import org.mozartoz.truffle.runtime.OzVar;
-import org.mozartoz.truffle.runtime.RecordFactory;
+import org.mozartoz.truffle.runtime.*;
 import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -348,9 +342,11 @@ public abstract class OSBuiltins {
 	@GenerateNodeFactory
 	public static abstract class StdinNode extends OzNode {
 
+		private static final OzIO IN = new OzIO(System.in);
+
 		@Specialization
 		Object stdin() {
-			return System.in;
+			return IN;
 		}
 
 	}
@@ -358,9 +354,11 @@ public abstract class OSBuiltins {
 	@GenerateNodeFactory
 	public static abstract class StdoutNode extends OzNode {
 
+		private static final OzIO OUT = new OzIO(System.out);
+
 		@Specialization
 		Object stdout() {
-			return System.out;
+			return OUT;
 		}
 
 	}
@@ -368,9 +366,11 @@ public abstract class OSBuiltins {
 	@GenerateNodeFactory
 	public static abstract class StderrNode extends OzNode {
 
+		private static final OzIO ERR = new OzIO(System.err);
+
 		@Specialization
 		Object stderr() {
-			return System.err;
+			return ERR;
 		}
 
 	}
