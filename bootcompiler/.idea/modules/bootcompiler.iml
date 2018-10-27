@@ -18,7 +18,7 @@
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../../../../graal/sdk/mxbuild/dists/graal-sdk.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../graal/truffle/mxbuild/dists/truffle-api.jar!/" />
-          <root url="file://$MODULE_DIR$/../../doesnotexist" />
+          <root url="jar://$MODULE_DIR$/../../lib/launcher-common.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

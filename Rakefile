@@ -27,7 +27,7 @@ namespace :build do
   task :bootcompiler => [BOOTCOMPILER_JAR, BOOTCOMPILER_ECLIPSE]
   task :ozwish => OZWISH
 
-  task :truffle => TRUFFLE_API_JAR
+  task :truffle => [TRUFFLE_API_JAR, PROFILER_JAR, INSPECTOR_JAR]
 
   desc "Build Graal"
   task :graal => GRAAL_JAR
@@ -79,11 +79,16 @@ namespace :build do
   end
 
   file TRUFFLE => GRAAL_REPO
-
   file TRUFFLE_API_JAR => [MX, TRUFFLE] do
     sh "cd #{TRUFFLE} && #{MX} build"
   end
   file TRUFFLE_DSL_PROCESSOR_JAR => TRUFFLE_API_JAR
+
+  file TOOLS => GRAAL_REPO
+  file PROFILER_JAR => [MX, TOOLS] do
+    sh "cd #{TOOLS} && #{MX} build"
+  end
+  file INSPECTOR_JAR => PROFILER_JAR
 
   file JVMCI do
     sh "cd .. && git clone https://github.com/eregon/jvmci.git"

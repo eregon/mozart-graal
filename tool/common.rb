@@ -33,6 +33,10 @@ TRUFFLE_API_JAR = TRUFFLE / "mxbuild/dists/truffle-api.jar"
 TRUFFLE_API_SRC = TRUFFLE / "mxbuild/dists/truffle-api.src.zip"
 TRUFFLE_DSL_PROCESSOR_JAR = TRUFFLE / "mxbuild/dists/truffle-dsl-processor.jar"
 
+TOOLS = GRAAL_REPO / "tools"
+PROFILER_JAR = TOOLS / "mxbuild/dists/truffle-profiler.jar"
+INSPECTOR_JAR = TOOLS / "mxbuild/dists/chromeinspector.jar"
+
 VM = PROJECT_DIR / "vm"
 VM_CLASSES = (VM / "bin").to_s
 MAIN_CLASS = VM / "bin/org/mozartoz/truffle/Main.class"
@@ -52,5 +56,6 @@ def oz_classpath
     cp << BOOTCOMPILER_CLASSES
   end
   cp << BOOTCOMPILER_JAR
+  cp << PROFILER_JAR << INSPECTOR_JAR
   cp + maven_classpath
 end

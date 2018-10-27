@@ -23,7 +23,7 @@ rest = []
 
 while arg = argv.shift
   case arg
-  when '--help'
+  when '--help:graal'
     java_opts << "-Dgraal.PrintFlags=true"
     argv << "--graal"
   when '--graal'
@@ -66,7 +66,7 @@ cmd = [
   *java_opts,
   "-Xbootclasspath/p:" + bootclasspath.join(':'),
   '-cp', classpath.join(':'),
-  'org.mozartoz.truffle.Main'
+  'org.mozartoz.truffle.OzLauncher'
 ] + rest
 
 puts "$ #{cmd.join(' ')}"

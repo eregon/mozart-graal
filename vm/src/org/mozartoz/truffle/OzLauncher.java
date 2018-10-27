@@ -1,14 +1,16 @@
 package org.mozartoz.truffle;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-
+import org.graalvm.launcher.AbstractLanguageLauncher;
+import org.graalvm.options.OptionCategory;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
 import org.mozartoz.truffle.translator.Loader;
 
-public class Main {
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
+public class OzLauncher extends AbstractLanguageLauncher {
 
 	private static final String BASE_TESTS = Loader.PROJECT_ROOT + "/platform-test/base/";
 	private static final String TEST_RUNNER = Loader.PROJECT_ROOT + "/platform-test/simple_runner.oz";
@@ -31,22 +33,56 @@ public class Main {
 	};
 
 	public static void main(String[] args) {
-		final String[] appArgs;
-		if (args.length == 0) {
-			appArgs = PASSING_TESTS;
-		} else {
-			appArgs = Arrays.copyOfRange(args, 1, args.length);
-		}
+		new OzLauncher().launch(args);
+	}
 
-		try (Context context = Context.newBuilder().allowAllAccess(true).arguments("oz", appArgs).build()) {
-			if (args.length == 0) {
-				context.eval(createSource(TEST_RUNNER));
+	private String[] args = new String[0];
+
+	@Override
+	protected List<String> preprocessArguments(List<String> arguments, Map<String, String> polyglotOptions) {
+		List<String> unrecognized = new ArrayList<>();
+
+		for (int i = 0; i < arguments.size(); i++) {
+			String argument = arguments.get(i);
+			if (argument.startsWith("-")) {
+				unrecognized.add(argument);
 			} else {
-				String functor = args[0];
-				context.eval(createSource(functor));
+				args = arguments.subList(i, arguments.size()).toArray(new String[0]);
+				break;
 			}
 		}
 
+		return unrecognized;
+	}
+
+	@Override
+	protected void launch(Context.Builder contextBuilder) {
+		final String functor;
+		final String[] appArgs;
+		if (args.length == 0) {
+			functor = TEST_RUNNER;
+			appArgs = PASSING_TESTS;
+		} else {
+			functor = args[0];
+			appArgs = Arrays.copyOfRange(args, 1, args.length);
+		}
+
+		try (Context context = contextBuilder.arguments("oz", appArgs).build()) {
+			context.eval(createSource(functor));
+		}
+	}
+
+	@Override
+	protected String getLanguageId() {
+		return "oz";
+	}
+
+	@Override
+	protected void printHelp(OptionCategory maxCategory) {
+	}
+
+	@Override
+	protected void collectArguments(Set<String> options) {
 	}
 
 	private static Source createSource(String path) {
