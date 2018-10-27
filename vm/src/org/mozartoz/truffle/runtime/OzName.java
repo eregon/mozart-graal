@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
-public class OzName implements Comparable<OzName> {
+public class OzName extends OzValue implements Comparable<OzName> {
 
 	private static long currentID = 0;
 

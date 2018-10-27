@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
-public class OzString {
+public class OzString extends OzValue {
 
 	private final String chars;
 

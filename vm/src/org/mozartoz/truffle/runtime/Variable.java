@@ -7,7 +7,7 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.SourceSection;
 
-public abstract class Variable {
+public abstract class Variable extends OzValue {
 
 	private @CompilationFinal Object value = null;
 	private boolean needed = false;

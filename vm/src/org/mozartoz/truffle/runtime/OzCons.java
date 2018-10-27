@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 
 import org.mozartoz.truffle.nodes.DerefNode;
 
-public class OzCons {
+public class OzCons extends OzValue {
 
 	final Object head;
 	final Object tail;

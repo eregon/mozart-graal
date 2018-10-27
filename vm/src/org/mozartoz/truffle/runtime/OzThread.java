@@ -11,7 +11,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.coro.Coroutine;
 import com.oracle.truffle.coro.CoroutineLocal;
 
-public class OzThread implements Runnable {
+public class OzThread extends OzValue implements Runnable {
 
 	private static final CoroutineLocal<OzThread> CURRENT_OZ_THREAD = new CoroutineLocal<>();
 

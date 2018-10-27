@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
-public class OzCell {
+public class OzCell extends OzValue {
 
 	Object value;
 

@@ -10,7 +10,7 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 
-public class OzProc {
+public class OzProc extends OzValue {
 
 	public @CompilationFinal RootCallTarget callTarget;
 	public @CompilationFinal MaterializedFrame declarationFrame;

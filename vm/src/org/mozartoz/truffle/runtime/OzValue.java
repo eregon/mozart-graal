@@ -3,16 +3,11 @@ package org.mozartoz.truffle.runtime;
 import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.interop.TruffleObject;
 
-public class Unit extends OzValue {
-
-	public static final Unit INSTANCE = new Unit();
-
-	private Unit() {
-	}
+public class OzValue implements TruffleObject {
 
 	@Override
-	public String toString() {
-		return "unit";
+	public ForeignAccess getForeignAccess() {
+		return null;
 	}
 
 }

@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
-public class OzArray {
+public class OzArray extends OzValue {
 
 	private final int low;
 	private final Object[] store;

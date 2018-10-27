@@ -2,7 +2,7 @@ package org.mozartoz.truffle.runtime;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class OzChunk {
+public class OzChunk extends OzValue {
 
 	private final DynamicObject underlying;
 

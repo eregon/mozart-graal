@@ -1,6 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
-public class OzPort {
+public class OzPort extends OzValue {
 
 	private OzFuture stream;
 
