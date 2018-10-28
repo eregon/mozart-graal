@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import org.mozartoz.truffle.nodes.OzGuards;
-import org.mozartoz.truffle.translator.Loader;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
@@ -20,6 +19,7 @@ public class PropertyRegistry {
 	private final Map<String, Accessor> properties = new HashMap<>();
 
 	private PropertyRegistry() {
+		GarbageCollectionNotifier.register();
 	}
 
 	public void initialize(String home) {
@@ -102,8 +102,6 @@ public class PropertyRegistry {
 			return total;
 		});
 		registerValue("time.detailed", false);
-
-		GarbageCollectionNotifier.register();
 	}
 
 	@TruffleBoundary
