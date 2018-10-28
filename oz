@@ -18,6 +18,8 @@ classpath = oz_classpath
 
 java = 'java'
 java_opts = %w[-ea -esa]
+java_opts << "-Doz.home=#{dir}"
+
 argv = ARGV.dup
 rest = []
 

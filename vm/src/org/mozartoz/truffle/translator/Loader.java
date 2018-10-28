@@ -9,7 +9,7 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class Loader {
 
-	public static final String PROJECT_ROOT = getProjectRoot();
+	public static final String PROJECT_ROOT = System.getProperty("oz.home");
 	public static final String LIB_DIR = PROJECT_ROOT + "/lib";
 	public static final String MAIN_LIB_DIR = LIB_DIR + "/main";
 

@@ -14,7 +14,6 @@ PROJECT_DIR = dir = Pathname(File.expand_path('../..', __FILE__))
 
 BOOTCOMPILER = PROJECT_DIR / "bootcompiler"
 BOOTCOMPILER_JAR = BOOTCOMPILER / "target/scala-2.11/bootcompiler-assembly-2.0-SNAPSHOT.jar"
-BOOTCOMPILER_CLASSES = BOOTCOMPILER / "bin"
 SCALA_SOURCES = Dir[BOOTCOMPILER / "src/**/*.scala"]
 
 MX = Pathname("../mx/mx").expand_path(dir)
@@ -38,24 +37,18 @@ PROFILER_JAR = TOOLS / "mxbuild/dists/truffle-profiler.jar"
 INSPECTOR_JAR = TOOLS / "mxbuild/dists/chromeinspector.jar"
 
 VM = PROJECT_DIR / "vm"
-VM_CLASSES = (VM / "bin").to_s
+VM_CLASSES = "#{PROJECT_DIR}/mxbuild/org.mozartoz.truffle/bin"
 MAIN_CLASS = "#{VM_CLASSES}/org/mozartoz/truffle/OzLauncher.class"
 JAVA_SOURCES = Dir["#{VM}/src/**/*.java"]
 
+FULL_JAR = PROJECT_DIR / "mxbuild/dists/jdk1.8/mozart-graal.jar"
+
 MAIN_IMAGE = PROJECT_DIR / "Main.image"
 
-def maven_classpath
-  (VM / ".classpath").read.scan(%r{kind="lib" path="([^"]+/\.m2/repository/[^"]+)"}).map(&:first)
-end
-
 def oz_classpath
-  cp = []
-  cp << VM_CLASSES
-  newest_bootcompiler_class = Dir[BOOTCOMPILER_CLASSES / "**/*.class"].max_by { |f| File.mtime(f) }
-  if newest_bootcompiler_class and File.mtime(newest_bootcompiler_class) > BOOTCOMPILER_JAR.mtime
-    cp << BOOTCOMPILER_CLASSES
-  end
-  cp << BOOTCOMPILER_JAR
-  cp << PROFILER_JAR << INSPECTOR_JAR
-  cp + maven_classpath
+  [
+    FULL_JAR,
+    PROFILER_JAR,
+    INSPECTOR_JAR,
+  ]
 end

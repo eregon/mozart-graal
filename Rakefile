@@ -122,14 +122,8 @@ namespace :build do
     erb 'tool/factorypath.erb', 'vm/.factorypath'
   end
 
-  directory VM_CLASSES
-
-  file MAIN_CLASS => [VM_CLASSES, TRUFFLE_API_JAR, TRUFFLE_DSL_PROCESSOR_JAR, BOOTCOMPILER_JAR, "vm/.classpath", *JAVA_SOURCES] do
-    Tempfile.open("sources") do |f|
-      f.puts JAVA_SOURCES
-      f.close
-      sh "javac", "-cp", "#{TRUFFLE_API_JAR}:#{TRUFFLE_DSL_PROCESSOR_JAR}:#{BOOTCOMPILER_JAR}:#{maven_classpath.join(':')}", "-d", VM_CLASSES, "@#{f.path}"
-    end
+  file MAIN_CLASS => [TRUFFLE_API_JAR, TRUFFLE_DSL_PROCESSOR_JAR, BOOTCOMPILER_JAR, "vm/.classpath", *JAVA_SOURCES] do
+    sh "cd #{PROJECT_DIR} && #{MX} build"
   end
 end
 
