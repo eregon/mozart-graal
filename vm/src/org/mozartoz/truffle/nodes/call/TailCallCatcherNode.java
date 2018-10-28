@@ -3,6 +3,7 @@ package org.mozartoz.truffle.nodes.call;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import com.oracle.truffle.api.TruffleOptions;
 import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzBacktrace;
@@ -145,7 +146,13 @@ public class TailCallCatcherNode extends CallableNode {
 				return loopNode;
 			}
 			try {
-				Method createOSRLoop = loopNode.getClass().getMethod("createOSRLoop",
+				final Class<?> klass;
+				if (TruffleOptions.AOT) {
+					klass = Class.forName("org.graalvm.compiler.truffle.runtime.OptimizedOSRLoopNode$OptimizedDefaultOSRLoopNode");
+				} else {
+					klass = loopNode.getClass();
+				}
+				Method createOSRLoop = klass.getMethod("createOSRLoop",
 						RepeatingNode.class, int.class, int.class, FrameSlot[].class, FrameSlot[].class);
 				FrameSlot[] slots = new FrameSlot[] { repeatingNode.receiverSlot, repeatingNode.argumentsSlot };
 				return (LoopNode) createOSRLoop.invoke(null,
@@ -154,7 +161,7 @@ public class TailCallCatcherNode extends CallableNode {
 						Options.TruffleInvalidationReprofileCount,
 						slots,
 						slots);
-			} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+			} catch (ReflectiveOperationException e) {
 				throw new Error(e);
 			}
 		}
