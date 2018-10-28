@@ -113,19 +113,16 @@ public class Arity {
 			OzUniqueName.class,
 			OzName.class);
 
-	private static final Comparator<Object> COMPARE_FEATURES = new Comparator<Object>() {
-		@SuppressWarnings("unchecked")
-		@Override
-		public int compare(Object a, Object b) {
-			if (a.getClass() == b.getClass()) {
-				return ((Comparable<Object>) a).compareTo((Comparable<Object>) b);
-			} else {
-				assert FEATURES_TYPES_ORDER.contains(a.getClass());
-				assert FEATURES_TYPES_ORDER.contains(b.getClass());
-				return Integer.compare(
-						FEATURES_TYPES_ORDER.indexOf(a.getClass()),
-						FEATURES_TYPES_ORDER.indexOf(b.getClass()));
-			}
+	@SuppressWarnings("unchecked")
+	private static final Comparator<Object> COMPARE_FEATURES = (a, b) -> {
+		if (a.getClass() == b.getClass()) {
+			return ((Comparable<Object>) a).compareTo(b);
+		} else {
+			assert FEATURES_TYPES_ORDER.contains(a.getClass());
+			assert FEATURES_TYPES_ORDER.contains(b.getClass());
+			return Integer.compare(
+					FEATURES_TYPES_ORDER.indexOf(a.getClass()),
+					FEATURES_TYPES_ORDER.indexOf(b.getClass()));
 		}
 	};
 
