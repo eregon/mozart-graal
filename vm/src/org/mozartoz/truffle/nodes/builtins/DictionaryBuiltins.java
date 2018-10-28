@@ -220,14 +220,12 @@ public abstract class DictionaryBuiltins {
 	@NodeChild("dict")
 	public static abstract class EntriesNode extends OzNode {
 
-		static final RecordFactory PAIR_FACTORY = Arity.build("#", 1L, 2L).createFactory();
-
 		@TruffleBoundary
 		@Specialization
 		Object entries(OzDict dict) {
 			Object entries = "nil";
 			for (Entry<Object, Object> entry : dict.entrySet()) {
-				Object pair = PAIR_FACTORY.newRecord(entry.getKey(), entry.getValue());
+				Object pair = Arity.PAIR_FACTORY.newRecord(entry.getKey(), entry.getValue());
 				entries = new OzCons(pair, entries);
 			}
 			return entries;
