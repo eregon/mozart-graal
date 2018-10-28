@@ -1,5 +1,6 @@
 require_relative 'tool/common'
 require 'tempfile'
+require 'json'
 
 TRUFFLE_RELEASE = "1.0.0-rc6"
 JVMCI_BASE = "1.8.0_121"
@@ -123,8 +124,19 @@ namespace :build do
     erb 'tool/factorypath.erb', 'vm/.factorypath'
   end
 
-  file MAIN_CLASS => [TRUFFLE_API_JAR, TRUFFLE_DSL_PROCESSOR_JAR, BOOTCOMPILER_JAR, "vm/.classpath", *JAVA_SOURCES] do
+  file MAIN_CLASS => [TRUFFLE_API_JAR, TRUFFLE_DSL_PROCESSOR_JAR, BOOTCOMPILER_JAR,
+                      "vm/.classpath", *JAVA_SOURCES, REFLECTION_JSON] do
     sh "cd #{PROJECT_DIR} && #{MX} build"
+  end
+
+  file REFLECTION_JSON => [BOOTCOMPILER_JAR, __FILE__] do
+    config = Dir.chdir(BOOTCOMPILER_CLASSES) do
+      Dir["org/mozartoz/bootcompiler/ast/TreeDSL$$*.class"].sort.map do |file|
+        java_class = file.sub(/\.class$/, '').tr('/', '.')
+        { name: java_class, allPublicMethods: true }
+      end
+    end
+    File.write(REFLECTION_JSON, JSON.pretty_generate(config))
   end
 end
 

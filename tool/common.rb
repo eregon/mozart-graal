@@ -15,6 +15,7 @@ PROJECT_DIR = dir = Pathname(File.expand_path('../..', __FILE__))
 BOOTCOMPILER = PROJECT_DIR / "bootcompiler"
 BOOTCOMPILER_JAR = BOOTCOMPILER / "target/scala-2.11/bootcompiler-assembly-2.0-SNAPSHOT.jar"
 SCALA_SOURCES = Dir[BOOTCOMPILER / "src/**/*.scala"]
+BOOTCOMPILER_CLASSES = BOOTCOMPILER / "target/scala-2.11/classes"
 
 MX = Pathname("../mx/mx").expand_path(dir)
 GRAAL_REPO = Pathname("../graal").expand_path(dir)
@@ -41,6 +42,7 @@ VM = PROJECT_DIR / "vm"
 VM_CLASSES = "#{PROJECT_DIR}/mxbuild/org.mozartoz.truffle/bin"
 MAIN_CLASS = "#{VM_CLASSES}/org/mozartoz/truffle/OzLauncher.class"
 JAVA_SOURCES = Dir["#{VM}/**/*.java"]
+REFLECTION_JSON = "#{VM}/src/org/mozartoz/truffle/reflection.json"
 
 FULL_JAR = PROJECT_DIR / "mxbuild/dists/jdk1.8/mozart-graal.jar"
 LAUNCHER_JAR = PROJECT_DIR / "mxbuild/dists/jdk1.8/mozart-graal-launcher.jar"
