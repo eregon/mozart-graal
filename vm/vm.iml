@@ -10,5 +10,32 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="bootcompiler" />
     <orderEntry type="library" name="com.esotericsoftware:kryo:3.0.3" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/graal-sdk.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/launcher-common.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../graal/truffle/mxbuild/dists/truffle-api.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
