@@ -121,8 +121,12 @@ suite = {
                 "./": [
                     "file:README.md",
                     "file:mx.mozart-graal/native-image.properties",
+                    "file:examples",
                     "file:lib",
                     "file:platform-test",
+                ],
+                "wish/": [
+                    "file:wish/ozwish",
                 ],
                 "LICENSE_MOZART_GRAAL.txt": "file:LICENSE.txt",
             },
