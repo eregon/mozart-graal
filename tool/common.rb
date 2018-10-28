@@ -26,6 +26,7 @@ GRAAL_JAR = GRAAL / "mxbuild/dists/graal.jar"
 SDK = GRAAL_REPO / "sdk"
 SDK_JAR = SDK / "mxbuild/dists/graal-sdk.jar"
 SDK_SRC = SDK / "mxbuild/dists/graal-sdk.src.zip"
+LAUNCHER_COMMON_JAR = SDK / "mxbuild/dists/launcher-common.jar"
 
 TRUFFLE = GRAAL_REPO / "truffle"
 TRUFFLE_API_JAR = TRUFFLE / "mxbuild/dists/truffle-api.jar"

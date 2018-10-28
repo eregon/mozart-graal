@@ -95,7 +95,6 @@ suite = {
             "dir": "vm",
             "sourceDirs": ["launcher"],
             "dependencies": [
-                "sdk:GRAAL_SDK",
                 "sdk:LAUNCHER_COMMON",
             ],
             "javaCompliance": "1.8",
@@ -107,11 +106,17 @@ suite = {
             "dependencies": [
                 "org.mozartoz.truffle",
             ],
+            "distDependencies": [
+                "truffle:TRUFFLE_API",
+            ],
         },
 
         "MOZART_GRAAL_LAUNCHER": {
             "dependencies": [
                 "org.mozartoz.truffle.launcher",
+            ],
+            "distDependencies": [
+                "sdk:LAUNCHER_COMMON",
             ],
         },
 
