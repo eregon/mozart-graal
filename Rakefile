@@ -3,7 +3,7 @@ require 'tempfile'
 
 TRUFFLE_RELEASE = "1.0.0-rc6"
 JVMCI_BASE = "1.8.0_121"
-MX_COMMIT = "e2edc26d9f61fc62e28041dcb22fd55a90db4233"
+MX_TAG = "5.190.8"
 
 JDK8_ARCHIVE = "http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html"
 
@@ -70,7 +70,7 @@ namespace :build do
 
   file MX do
     sh "cd .. && git clone https://github.com/graalvm/mx.git"
-    sh "cd ../mx && git checkout #{MX_COMMIT}"
+    sh "cd ../mx && git checkout #{MX_TAG}"
   end
 
   file GRAAL_REPO do
