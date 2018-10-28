@@ -303,6 +303,7 @@ public abstract class VirtualStringBuiltins {
 			return ToAtomNodeFactory.create(value);
 		}
 
+		@TruffleBoundary
 		@Specialization
 		double toFloat(String atom) {
 			try {

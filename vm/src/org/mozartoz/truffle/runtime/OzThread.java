@@ -30,6 +30,7 @@ public class OzThread extends OzValue implements Runnable {
 		return threadsCreated;
 	}
 
+	@TruffleBoundary
 	public static OzThread getCurrent() {
 		return CURRENT_OZ_THREAD.get();
 	}

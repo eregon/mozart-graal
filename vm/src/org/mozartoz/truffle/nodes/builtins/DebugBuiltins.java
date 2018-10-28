@@ -39,6 +39,7 @@ public abstract class DebugBuiltins {
 	@NodeChildren({ @NodeChild("thread"), @NodeChild("value") })
 	public static abstract class SetRaiseOnBlockNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		Object setRaiseOnBlock(OzThread thread, boolean value) {
 			if (value) {

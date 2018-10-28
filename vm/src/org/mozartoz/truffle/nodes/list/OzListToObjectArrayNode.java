@@ -3,6 +3,7 @@ package org.mozartoz.truffle.nodes.list;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -45,6 +46,7 @@ public abstract class OzListToObjectArrayNode extends OzNode {
 		return array;
 	}
 
+	@TruffleBoundary
 	@Specialization(replaces = "fixedLengthList")
 	protected Object[] uncachedWithArrayList(OzCons list) {
 		List<Object> array = new ArrayList<>();

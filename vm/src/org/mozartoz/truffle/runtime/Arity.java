@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.mozartoz.truffle.nodes.OzGuards;
 
 import com.oracle.truffle.api.object.DynamicObject;
@@ -94,6 +95,7 @@ public class Arity {
 		return new RecordFactory(label, shape.createFactory());
 	}
 
+	@TruffleBoundary
 	public Object asOzList() {
 		Object features = "nil";
 		for (Property property : shape.getPropertyListInternal(false)) {

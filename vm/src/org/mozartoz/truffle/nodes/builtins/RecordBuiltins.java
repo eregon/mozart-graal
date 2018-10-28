@@ -191,6 +191,7 @@ public abstract class RecordBuiltins {
 
 		@Child DerefIfBoundNode derefNode = DerefIfBoundNodeGen.create();
 
+		@TruffleBoundary
 		@Specialization
 		Object waitOr(DynamicObject record) {
 			Iterable<Property> properties = record.getShape().getProperties();

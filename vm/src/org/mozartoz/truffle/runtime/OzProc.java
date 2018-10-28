@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.call.CallNode;
@@ -22,6 +23,7 @@ public class OzProc extends OzValue {
 		this.arity = arity;
 	}
 
+	@TruffleBoundary
 	public Object rootCall(String identifier, Object... arguments) {
 		final OzLanguage language = callTarget.getRootNode().getLanguage(OzLanguage.class);
 		final CallTarget target = wrap(language, identifier, new LiteralNode(this), arguments);

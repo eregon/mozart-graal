@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes.control;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -19,8 +20,13 @@ public class NoElseNode extends OzNode {
 		SourceSection sourceSection = getSourceSection();
 		throw kernelError("noElse",
 				sourceSection.getSource().getName(),
-				(long) sourceSection.getStartLine(),
+				(long) getStartLine(sourceSection),
 				value);
+	}
+
+	@TruffleBoundary
+	private int getStartLine(SourceSection sourceSection) {
+		return sourceSection.getStartLine();
 	}
 
 }

@@ -90,6 +90,7 @@ public abstract class DFSUnifyNode extends OzNode {
 		return a;
 	}
 
+	@TruffleBoundary
 	@Specialization(guards = "a.getShape() == b.getShape()")
 	Object unify(DynamicObject a, DynamicObject b, Object state) {
 		Object newState = needState(state);

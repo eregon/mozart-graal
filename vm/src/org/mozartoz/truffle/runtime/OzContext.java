@@ -110,6 +110,7 @@ public class OzContext {
 		}
 	}
 
+	@TruffleBoundary
 	public void run(Source source) {
 		propertyRegistry.setApplicationURL(source.getPath());
 		propertyRegistry.setApplicationArgs(env.getApplicationArguments());
