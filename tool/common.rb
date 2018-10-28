@@ -39,7 +39,7 @@ INSPECTOR_JAR = TOOLS / "mxbuild/dists/chromeinspector.jar"
 
 VM = PROJECT_DIR / "vm"
 VM_CLASSES = (VM / "bin").to_s
-MAIN_CLASS = VM / "bin/org/mozartoz/truffle/Main.class"
+MAIN_CLASS = "#{VM_CLASSES}/org/mozartoz/truffle/OzLauncher.class"
 JAVA_SOURCES = Dir["#{VM}/src/**/*.java"]
 
 MAIN_IMAGE = PROJECT_DIR / "Main.image"
