@@ -45,6 +45,11 @@ public class OzCons extends OzValue {
 	}
 
 	@Override
+	public int hashCode() {
+		throw new UnsupportedOperationException("OzCons has structural equality");
+	}
+
+	@Override
 	public boolean equals(Object obj) {
 		throw new UnsupportedOperationException("OzCons has structural equality");
 	}

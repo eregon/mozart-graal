@@ -12,7 +12,7 @@ public class OzPort extends OzValue {
 	public void send(Object value) {
 		OzFuture newTail = new OzFuture();
 		OzCons cons = new OzCons(value, newTail);
-		((OzFuture) stream).bind(cons);
+		stream.bind(cons);
 		stream = newTail;
 	}
 

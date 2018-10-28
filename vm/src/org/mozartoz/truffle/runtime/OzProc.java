@@ -31,6 +31,11 @@ public class OzProc extends OzValue {
 	}
 
 	@Override
+	public int hashCode() {
+		return callTarget.getRootNode().getSourceSection().hashCode();
+	}
+
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;

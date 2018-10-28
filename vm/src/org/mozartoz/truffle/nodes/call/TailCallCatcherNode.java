@@ -145,8 +145,8 @@ public class TailCallCatcherNode extends CallableNode {
 				return loopNode;
 			}
 			try {
-				Method createOSRLoop = loopNode.getClass().getMethod("createOSRLoop", new Class[] {
-						RepeatingNode.class, int.class, int.class, FrameSlot[].class, FrameSlot[].class });
+				Method createOSRLoop = loopNode.getClass().getMethod("createOSRLoop",
+						RepeatingNode.class, int.class, int.class, FrameSlot[].class, FrameSlot[].class);
 				FrameSlot[] slots = new FrameSlot[] { repeatingNode.receiverSlot, repeatingNode.argumentsSlot };
 				return (LoopNode) createOSRLoop.invoke(null,
 						repeatingNode,

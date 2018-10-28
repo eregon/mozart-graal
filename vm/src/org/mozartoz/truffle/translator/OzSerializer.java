@@ -554,7 +554,7 @@ public class OzSerializer implements AutoCloseable {
 			}
 
 			fields = toSave.toArray(new Field[toSave.size()]);
-			Class<?>[] parameterTypes = new Class[fields.length];
+			Class<?>[] parameterTypes = new Class<?>[fields.length];
 
 			for (int i = 0; i < fields.length; i++) {
 				fields[i].setAccessible(true);
