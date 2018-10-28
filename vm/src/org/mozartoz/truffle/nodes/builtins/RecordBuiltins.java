@@ -5,10 +5,7 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.mozartoz.truffle.nodes.DerefIfBoundNode;
-import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
-import org.mozartoz.truffle.nodes.OzGuards;
-import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.nodes.*;
 import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.IsRecordNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.LabelNodeFactory;
 import org.mozartoz.truffle.runtime.Arity;
@@ -223,7 +220,8 @@ public abstract class RecordBuiltins {
 	@NodeChildren({ @NodeChild("label"), @NodeChild("contents") })
 	public static abstract class MakeDynamicNode extends OzNode {
 
-		@Child DerefIfBoundNode derefNode = DerefIfBoundNode.create();
+		@Child DerefNode derefNode = DerefNode.create();
+		@Child DerefIfBoundNode derefIfBoundNode = DerefIfBoundNode.create();
 
 		@Specialization
 		protected String makeDynamic(String label, String emptyContents) {
@@ -241,12 +239,12 @@ public abstract class RecordBuiltins {
 			int width = OzRecord.getArity(contents).getWidth();
 			assert width % 2 == 0;
 			int size = width / 2;
-			Map<Object, Object> map = new HashMap<Object, Object>(size);
+			Map<Object, Object> map = new HashMap<>(size);
 
 			for (int i = 0; i < size; i++) {
-				Object feature = derefNode.executeDerefIfBound(contents.get((long) i * 2 + 1));
-				Object value = derefNode.executeDerefIfBound(contents.get((long) i * 2 + 2));
-				if (map.containsKey(feature)) {
+				Object feature = derefNode.executeDeref(contents.get((long) i * 2 + 1));
+				Object value = derefIfBoundNode.executeDerefIfBound(contents.get((long) i * 2 + 2));
+				if (!OzGuards.isFeature(feature) || map.containsKey(feature)) {
 					throw kernelError("recordConstruction", label, buildPairs(contents));
 				}
 				map.put(feature, value);
@@ -263,8 +261,8 @@ public abstract class RecordBuiltins {
 			int size = OzRecord.getArity(contents).getWidth() / 2;
 			Object list = "nil";
 			for (int i = size - 1; i >= 0; i--) {
-				Object feature = derefNode.executeDerefIfBound(contents.get((long) i * 2 + 1));
-				Object value = derefNode.executeDerefIfBound(contents.get((long) i * 2 + 2));
+				Object feature = contents.get((long) i * 2 + 1);
+				Object value = contents.get((long) i * 2 + 2);
 				list = new OzCons(Arity.PAIR_FACTORY.newRecord(feature, value), list);
 			}
 			return list;

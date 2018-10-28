@@ -92,6 +92,7 @@ public class Arity {
 	}
 
 	public RecordFactory createFactory() {
+		assert !isConsArity();
 		return new RecordFactory(label, shape.createFactory());
 	}
 
@@ -147,7 +148,7 @@ public class Arity {
 		assert isSortedFeatures(features);
 		Shape shape = Arity.BASE;
 		for (Object feature : features) {
-			assert OzGuards.isFeature(feature);
+			assert OzGuards.isFeature(feature) : feature;
 			assert !shape.hasProperty(feature) : "duplicated feature " + feature;
 			shape = shape.defineProperty(feature, SOME_OBJECT, 0);
 		}
