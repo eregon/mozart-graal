@@ -24,6 +24,10 @@ public class OzLanguage extends TruffleLanguage<OzContext> {
 		return getCurrentContext(OzLanguage.class);
 	}
 
+	public String getHome() {
+		return getLanguageHome();
+	}
+
 	@Override
 	protected OzContext createContext(Env env) {
 		return new OzContext(this, env);

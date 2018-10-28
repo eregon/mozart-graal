@@ -39,6 +39,20 @@ public abstract class OSBuiltins {
 	@NodeChild("url")
 	public static abstract class BootURLLoadNode extends OzNode {
 
+		private static final String[] SYSTEM_LOAD_PATH = new String[]{
+				"lib/main/sys",
+				"lib/main/support",
+				"lib/main/sp",
+				"lib/main/op",
+				"lib/main/cp",
+				"lib/main/ap",
+				"lib/main/wp",
+				"lib/tools/panel",
+				"lib/tools/browser",
+				"lib/compiler",
+				"stdlib/wp/qtk",
+		};
+
 		@CreateCast("url")
 		protected OzNode castURL(OzNode url) {
 			return ToAtomNodeFactory.create(url);
@@ -72,10 +86,11 @@ public abstract class OSBuiltins {
 		}
 
 		private String findSystemFunctor(String url, String name) {
-			for (String loadPath : Loader.SYSTEM_LOAD_PATH) {
-				File file = new File(loadPath, name);
+			String home = OzContext.getInstance().getHome();
+			for (String loadPath : SYSTEM_LOAD_PATH) {
+				File file = new File(home + "/" + loadPath, name);
 				if (file.exists()) {
-					return file.toString();
+					return file.getPath();
 				}
 			}
 			throw notFound(url);
@@ -518,7 +533,7 @@ public abstract class OSBuiltins {
 		@Specialization
 		Object pipe(String executable, OzCons argv, OzVar outPid) {
 			if (executable.endsWith("/ozwish")) {
-				executable = Loader.OZWISH;
+				executable = OzContext.getInstance().getHome() + "/wish/ozwish";
 				argv = new OzCons(executable, argv.getTail());
 			}
 

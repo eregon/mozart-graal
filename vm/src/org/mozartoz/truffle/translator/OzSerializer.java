@@ -667,7 +667,7 @@ public class OzSerializer implements AutoCloseable {
 
 	private final Kryo kryo;
 
-	public OzSerializer(Env env, OzLanguage language) {
+	public OzSerializer(Env env, OzLanguage language, String initFunctorPath) {
 		kryo = new Kryo();
 		kryo.setRegistrationRequired(true);
 		kryo.setReferences(true);
@@ -772,7 +772,7 @@ public class OzSerializer implements AutoCloseable {
 		kryo.register(ConsLiteralNodeGen.class);
 
 		// sources
-		Source fileSource = Loader.createSource(env, Loader.INIT_FUNCTOR);
+		Source fileSource = Loader.createSource(env, initFunctorPath);
 		kryo.register(fileSource.getClass(), new FileSourceSerializer(env));
 		kryo.register(SourceSection.class, new SourceSectionSerializer(fileSource.getClass()));
 		kryo.register(String[].class);

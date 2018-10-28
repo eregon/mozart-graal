@@ -18,8 +18,6 @@ import com.oracle.truffle.api.source.Source;
 
 public class OzContext {
 
-	static final String MAIN_IMAGE = Loader.MAIN_IMAGE;
-
 	static OzContext instance = null;
 
 	public static OzContext getInstance() {
@@ -28,9 +26,12 @@ public class OzContext {
 
 	private final Env env;
 	private final OzLanguage language;
-	private final TranslatorDriver translatorDriver;
+	private final String home;
 
+	private final TranslatorDriver translatorDriver;
 	private final PropertyRegistry propertyRegistry;
+	private final File mainImage;
+
 	private final List<Process> childProcesses = new LinkedList<>();
 	private final StacktraceThread shutdownHook;
 
@@ -46,13 +47,16 @@ public class OzContext {
 
 		this.env = env;
 		this.language = language;
+		this.home = language.getHome();
 
 		this.translatorDriver = new TranslatorDriver(language);
 
 		BuiltinsManager.defineBuiltins(language);
 
 		propertyRegistry = PropertyRegistry.INSTANCE;
-		propertyRegistry.initialize();
+		propertyRegistry.initialize(home);
+
+		mainImage = new File(home, "Main.image");
 
 		if (Options.STACKTRACE_ON_INTERRUPT) {
 			this.shutdownHook = new StacktraceThread();
@@ -60,6 +64,10 @@ public class OzContext {
 		} else {
 			this.shutdownHook = null;
 		}
+	}
+
+	public String getHome() {
+		return home;
 	}
 
 	public void initialize() {
@@ -82,26 +90,29 @@ public class OzContext {
 
 	private void loadMain() {
 		Metrics.tick("start loading Main");
-		if (Options.SERIALIZER && new File(MAIN_IMAGE).exists()) {
-			try (OzSerializer serializer = new OzSerializer(env, language)) {
-				main = serializer.deserialize(MAIN_IMAGE, OzProc.class);
+		String initFunctorPath = home + "/lib/main/init/Init.oz";
+
+		if (Options.SERIALIZER && mainImage.exists()) {
+			try (OzSerializer serializer = new OzSerializer(env, language, initFunctorPath)) {
+				main = serializer.deserialize(mainImage.getPath(), OzProc.class);
 			} catch (Throwable t) {
 				System.err.println("Got " + t.getClass().getSimpleName() + " while deserializing, removing Main.image");
-				new File(MAIN_IMAGE).delete();
+				mainImage.delete();
 				throw t;
 			}
 			Metrics.tick("deserialized Main");
 		} else {
 			translatorDriver.setEagerLoad(true);
 			try {
-				Source initSource = Loader.createSource(env, Loader.INIT_FUNCTOR);
+				Source initSource = Loader.createSource(env, initFunctorPath);
 				RootCallTarget initCallTarget = translatorDriver.parseFunctor(initSource);
 				Object initFunctor = execute(initCallTarget);
 				Object applied = applyInitFunctor(initFunctor);
 				main = (OzProc) ((DynamicObject) applied).get("main");
+
 				if (Options.SERIALIZER) {
-					try (OzSerializer serializer = new OzSerializer(env, language)) {
-						serializer.serialize(main, MAIN_IMAGE);
+					try (OzSerializer serializer = new OzSerializer(env, language, initFunctorPath)) {
+						serializer.serialize(main, mainImage.getPath());
 					}
 				}
 			} finally {
@@ -127,7 +138,8 @@ public class OzContext {
 	private DynamicObject loadBase() {
 		if (base == null) {
 			Metrics.tick("start loading Base");
-			RootCallTarget baseFunctorTarget = translatorDriver.parseBase(Loader.createSource(env, Loader.BASE_FILE_NAME));
+			Source source = Loader.createSource(env, home + "/lib/main/base/Base.oz");
+			RootCallTarget baseFunctorTarget = translatorDriver.parseBase(source);
 			Metrics.tick("translated Base");
 			Object baseFunctor = execute(baseFunctorTarget);
 

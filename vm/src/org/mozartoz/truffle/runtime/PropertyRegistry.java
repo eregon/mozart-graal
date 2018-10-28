@@ -22,14 +22,14 @@ public class PropertyRegistry {
 	private PropertyRegistry() {
 	}
 
-	public void initialize() {
-		registerValue("oz.home", Loader.PROJECT_ROOT.intern());
+	public void initialize(String home) {
+		registerValue("oz.home", home.intern());
 		registerConstant("oz.version", "3.0.0-alpha");
 		registerConstant("oz.date", "oz.date");
 
 		registerValue("oz.search.path", ".");
-		String libCache = "cache=" + Loader.LIB_DIR;
-		String libImages = Loader.LIB_DIR + "/x-oz/system/images";
+		String libCache = "cache=" + home + "/lib";
+		String libImages = home + "/lib/x-oz/system/images";
 		registerValue("oz.search.load", (libCache + ":" + libImages).intern());
 
 		registerConstant("application.gui", false);
