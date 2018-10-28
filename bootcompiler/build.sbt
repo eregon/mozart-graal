@@ -8,6 +8,9 @@ scalacOptions ++= Seq("-deprecation", "-optimize")
 
 libraryDependencies += "com.lihaoyi" %% "fastparse" % "0.3.7"
 
+// native-image needs it
+libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
+
 seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
 EclipseKeys.withSource := true
