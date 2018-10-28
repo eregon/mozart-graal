@@ -2,8 +2,10 @@
 <module type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
+    <content url="file://$MODULE_DIR$/../mxbuild/org.mozartoz.truffle/src_gen">
+      <sourceFolder url="file://$MODULE_DIR$/../mxbuild/org.mozartoz.truffle/src_gen" isTestSource="false" />
+    </content>
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/.apt_generated" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/launcher" isTestSource="false" />
     </content>
