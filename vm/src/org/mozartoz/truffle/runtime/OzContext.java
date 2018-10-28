@@ -30,6 +30,7 @@ public class OzContext {
 
 	private final TranslatorDriver translatorDriver;
 	private final PropertyRegistry propertyRegistry;
+	private final OzThread mainThread;
 	private final File mainImage;
 
 	private final List<Process> childProcesses = new LinkedList<>();
@@ -55,6 +56,7 @@ public class OzContext {
 
 		propertyRegistry = PropertyRegistry.INSTANCE;
 		propertyRegistry.initialize(home);
+		mainThread = new OzThread();
 
 		mainImage = new File(home, "Main.image");
 

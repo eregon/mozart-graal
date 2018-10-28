@@ -15,8 +15,6 @@ public class OzThread extends OzValue implements Runnable {
 
 	private static final CoroutineLocal<OzThread> CURRENT_OZ_THREAD = new CoroutineLocal<>();
 
-	public static final OzThread MAIN_THREAD = new OzThread();
-
 	public static final Map<OzThread, OzBacktrace> BACKTRACES = Options.STACKTRACE_ON_INTERRUPT ? new ConcurrentHashMap<>() : null;
 
 	private static long threadsCreated = 1L;
@@ -44,7 +42,7 @@ public class OzThread extends OzValue implements Runnable {
 	private String status = "runnable";
 	private boolean raiseOnBlock = false;
 
-	private OzThread() {
+	public OzThread() {
 		original = null;
 		coroutine = (Coroutine) Coroutine.current();
 		proc = null;
@@ -77,10 +75,6 @@ public class OzThread extends OzValue implements Runnable {
 		return procLocation;
 	}
 
-	public Coroutine getCoroutine() {
-		return coroutine;
-	}
-
 	public String getStatus() {
 		return status;
 	}
@@ -95,9 +89,9 @@ public class OzThread extends OzValue implements Runnable {
 
 	@Override
 	public void run() {
-		if (original != null) {
-			Coroutine.yieldTo(original);
-		}
+		assert original != null;
+		Coroutine.yieldTo(original);
+
 		setInitialOzThread();
 		threadsRunnable++;
 		try {
