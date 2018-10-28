@@ -752,8 +752,8 @@ public class Translator {
 	}
 
 	private SourceSection t(Node node) {
-		assert node.section() != null;
-		return node.section();
+		assert node.pos() != null;
+		return node.pos();
 	}
 
 }

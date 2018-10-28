@@ -8,12 +8,13 @@ import scala.collection.mutable.Buffer
 import org.mozartoz.bootcompiler.symtab.Builtins
 import org.mozartoz.bootcompiler.symtab.Program
 import org.mozartoz.bootcompiler.fastparse.Parser
-import com.oracle.truffle.api.source.Source
 
 /**
  * Main interface, called from Java
  */
 object BootCompiler {
+
+  type Source = SourceInterface
 
   var parserToVM: ParserToVM = null
 
@@ -58,7 +59,7 @@ object BootCompiler {
       for ((message, pos) <- prog.errors) {
         Console.err.println(
           "Error at %s\n".format(pos.toString) +
-            message + "\n" + pos.getSource().getPath() + ":" + pos.getStartLine())
+            message + "\n" + parserToVM.sectionFileLine(pos))
       }
 
       sys.exit(2)

@@ -32,7 +32,7 @@ public class TranslatorDriver {
 
 	public RootCallTarget parseBase(Source source) {
 		Metrics.tick("enter parseBase");
-		Program program = BootCompiler.buildBaseEnvProgram(source, BuiltinsRegistry.getBuiltins());
+		Program program = BootCompiler.buildBaseEnvProgram(new SourceWrapper(source), BuiltinsRegistry.getBuiltins());
 		Metrics.tick("parse Base");
 		Statement ast = CompilerPipeline.compile(program, "the base environment");
 
@@ -52,7 +52,7 @@ public class TranslatorDriver {
 		String fileName = new File(source.getPath()).getName();
 		System.out.println("Loading " + fileName);
 		Metrics.tick("start parse");
-		Program program = BootCompiler.buildProgram(source, false, eagerLoad, BuiltinsRegistry.getBuiltins());
+		Program program = BootCompiler.buildProgram(new SourceWrapper(source), false, eagerLoad, BuiltinsRegistry.getBuiltins());
 		Metrics.tick("parse functor " + fileName);
 		Statement ast = CompilerPipeline.compile(program, fileName);
 		Metrics.tick("compiled functor " + fileName);

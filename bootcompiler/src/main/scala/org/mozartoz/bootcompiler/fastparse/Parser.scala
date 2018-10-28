@@ -1,14 +1,16 @@
 package org.mozartoz.bootcompiler.fastparse
 
-import com.oracle.truffle.api.source.Source
 import fastparse.WhitespaceApi
 import java.io.File
+
 import org.mozartoz.bootcompiler.ast._
 import org.mozartoz.bootcompiler.ast.Node.Pos
 import org.mozartoz.bootcompiler.oz._
 import org.mozartoz.bootcompiler.fastparse.Preprocessor.SourceMap
 import org.mozartoz.bootcompiler.fastparse.Tokens._
 import org.mozartoz.bootcompiler.BootCompiler
+import org.mozartoz.bootcompiler.BootCompiler.Source
+
 import scala.collection.mutable.ListBuffer
 
 object Whitespace {

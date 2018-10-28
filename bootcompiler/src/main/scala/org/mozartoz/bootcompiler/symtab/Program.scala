@@ -1,10 +1,8 @@
 package org.mozartoz.bootcompiler
 package symtab
 
-import scala.collection.mutable.{ Buffer, ArrayBuffer, HashMap }
+import scala.collection.mutable.{ ArrayBuffer, HashMap }
 import ast._
-import util._
-import com.oracle.truffle.api.source.SourceSection
 
 /** Program to be compiled */
 class Program(
@@ -37,7 +35,7 @@ class Program(
     new Symbol("<Result>", synthetic = true, formal = true)
 
   /** Compile errors */
-  val errors = new ArrayBuffer[(String, SourceSection)]
+  val errors = new ArrayBuffer[(String, Node.Pos)]
 
   /** Returns `true` if at least one compile error was reported */
   def hasErrors = !errors.isEmpty
@@ -47,7 +45,7 @@ class Program(
    *  @param message error message
    *  @param pos position of the error
    */
-  def reportError(message: String, section: SourceSection) {
+  def reportError(message: String, section: Node.Pos) {
     errors += ((message, section))
   }
 

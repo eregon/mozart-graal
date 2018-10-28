@@ -1,7 +1,6 @@
 package org.mozartoz.bootcompiler
 package ast
 
-import com.oracle.truffle.api.source.Source
 import com.oracle.truffle.api.source.SourceSection
 
 object Node {
@@ -9,14 +8,7 @@ object Node {
 
   val noPos: Pos = null
 
-  def extend(left: Pos, right: Pos) = {
-    if (left.getSource == right.getSource) {
-      val len = right.getCharEndIndex - left.getCharIndex
-      left.getSource.createSection(left.getCharIndex, len)
-    } else {
-      left
-    }
-  }
+  def extend(left: Node, right: Node) = BootCompiler.parserToVM.extendSection(left.pos, right.pos)
 
   def extend[T <: Node](seq: Seq[T]): Pos = extend(seq(0), seq.last)
 
@@ -35,14 +27,12 @@ object Node {
  * Node of an Oz AST
  *
  *  There are two important subclasses of `Node`:
- *  [[org.mozartz.bootcompiler.ast.Statement]] and
- *  [[org.mozartz.bootcompiler.ast.Expression]], with obvious meanings.
+ *  [[org.mozartoz.bootcompiler.ast.Statement]] and
+ *  [[org.mozartoz.bootcompiler.ast.Expression]], with obvious meanings.
  */
 abstract class Node extends Product {
 
   val pos: Node.Pos
-
-  def section = pos
 
   /**
    * Returns a pretty-printed representation of this `Node`

@@ -4,7 +4,7 @@ import java.io.File
 import org.mozartoz.bootcompiler.fastparse.Tokens.PreprocessorDirective
 import org.mozartoz.bootcompiler.fastparse.Tokens.PreprocessorDirectiveWithArg
 import org.mozartoz.bootcompiler.fastparse.Tokens.Token
-import com.oracle.truffle.api.source.Source
+import org.mozartoz.bootcompiler.BootCompiler.Source
 import fastparse.core.Parsed
 import scala.collection.mutable.ArrayBuffer
 import org.mozartoz.bootcompiler.BootCompiler
@@ -21,7 +21,7 @@ object Preprocessor {
   }
 
   def preprocess(source: Source): (String, Seq[SourceMap]) = {
-    val input = source.getCharacters.toString
+    val input = source.getCode
     val tokens = Parser.t(Parser.tokens(input), source.getPath)
 
     var defines: Set[String] = Set()

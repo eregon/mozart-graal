@@ -4,9 +4,7 @@ package ast
 import org.mozartoz.bootcompiler.fastparse.TypeAST
 import Node.Pos
 
-trait Phrase extends StatOrExpr {
-  val pos: Pos
-}
+trait Phrase extends StatOrExpr
 
 abstract class PhraseNode extends Phrase {
   def syntax(indent: String) = "<phrase>"
