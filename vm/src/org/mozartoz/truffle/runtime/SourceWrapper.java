@@ -6,7 +6,7 @@ import org.mozartoz.bootcompiler.SourceInterface;
 
 public class SourceWrapper implements SourceInterface {
 
-	private final Source source;
+	public final Source source;
 
 	public SourceWrapper(Source source) {
 		this.source = source;
@@ -27,8 +27,4 @@ public class SourceWrapper implements SourceInterface {
 		return source.getCharacters().toString();
 	}
 
-	@Override
-	public SourceSection createSection(int charIndex, int length) {
-		return source.createSection(charIndex, length);
-	}
 }

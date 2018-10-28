@@ -119,11 +119,7 @@ import org.mozartoz.truffle.nodes.pattern.PatternMatchDynamicArityNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchOpenRecordNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
-import org.mozartoz.truffle.runtime.Arity;
-import org.mozartoz.truffle.runtime.OzCons;
-import org.mozartoz.truffle.runtime.OzContext;
-import org.mozartoz.truffle.runtime.OzLanguage;
-import org.mozartoz.truffle.runtime.Unit;
+import org.mozartoz.truffle.runtime.*;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.NodeFactory;
@@ -752,8 +748,9 @@ public class Translator {
 	}
 
 	private SourceSection t(Node node) {
-		assert node.pos() != null;
-		return node.pos();
+		Node.Pos pos = node.pos();
+		assert pos != null;
+		return ((SourceWrapper) pos.source()).source.createSection(pos.charIndex(), pos.length());
 	}
 
 }

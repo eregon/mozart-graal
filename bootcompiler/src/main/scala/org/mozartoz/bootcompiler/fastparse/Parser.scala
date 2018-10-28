@@ -338,7 +338,7 @@ object Parser {
         len += (pE - map(i).fromOffset)
       }
     }
-    source.createSection(start, len)
+    Node.Pos(source, start, len)
   }
 
   def pos[T, U <: Phrase](p: P[T])(map: Pos => U) = P(Index ~~ p ~~ Index).map {

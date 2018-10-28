@@ -1,14 +1,19 @@
 package org.mozartoz.bootcompiler
 package ast
 
-import com.oracle.truffle.api.source.SourceSection
-
 object Node {
-  type Pos = SourceSection
+  case class Pos(source: SourceInterface, charIndex: Int, length: Int)
 
   val noPos: Pos = null
 
-  def extend(left: Node, right: Node) = BootCompiler.parserToVM.extendSection(left.pos, right.pos)
+  def extend(left: Pos, right: Pos) = {
+    if (left.source == right.source) {
+      val len = right.charIndex + right.length - left.charIndex
+      Pos(left.source, left.charIndex, len)
+    } else {
+      left
+    }
+  }
 
   def extend[T <: Node](seq: Seq[T]): Pos = extend(seq(0), seq.last)
 
