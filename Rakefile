@@ -51,6 +51,7 @@ namespace :build do
       sh "cc -o #{OZWISH} -ltcl -ltk #{flags} #{OZWISH_SRC}"
     rescue
       puts "WARNING: Failed to build ozwish"
+      touch OZWISH
     end
   end
 
