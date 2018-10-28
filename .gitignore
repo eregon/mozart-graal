@@ -1,9 +1,8 @@
-/vm/.apt_generated
 /vm/.classpath
 /vm/.factorypath
-/vm/bin/
 /vm/jvmci/jdk-8u*-linux-x64.tar.gz
 /.idea/workspace.xml
+/mxbuild
 
 *.pyc
 *.ozf
