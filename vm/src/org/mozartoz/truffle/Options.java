@@ -1,12 +1,14 @@
 package org.mozartoz.truffle;
 
+import com.oracle.truffle.api.TruffleOptions;
+
 public abstract class Options {
 
 	public static final boolean MEASURE_STARTUP = bool("oz.measure.startup", false);
 
 	public static final String SHOW_PROC_AST = System.getProperty("oz.show.ast");
 
-	public static final boolean SERIALIZER = bool("oz.serializer", true);
+	public static final boolean SERIALIZER = bool("oz.serializer", !TruffleOptions.AOT);
 
 	public static final boolean TAIL_CALLS = bool("oz.tail.calls", true);
 	public static final boolean TAIL_CALLS_OSR = bool("oz.tail.calls.osr", true);
