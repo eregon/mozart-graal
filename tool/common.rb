@@ -39,15 +39,17 @@ INSPECTOR_JAR = TOOLS / "mxbuild/dists/chromeinspector.jar"
 VM = PROJECT_DIR / "vm"
 VM_CLASSES = "#{PROJECT_DIR}/mxbuild/org.mozartoz.truffle/bin"
 MAIN_CLASS = "#{VM_CLASSES}/org/mozartoz/truffle/OzLauncher.class"
-JAVA_SOURCES = Dir["#{VM}/src/**/*.java"]
+JAVA_SOURCES = Dir["#{VM}/**/*.java"]
 
 FULL_JAR = PROJECT_DIR / "mxbuild/dists/jdk1.8/mozart-graal.jar"
+LAUNCHER_JAR = PROJECT_DIR / "mxbuild/dists/jdk1.8/mozart-graal-launcher.jar"
 
 MAIN_IMAGE = PROJECT_DIR / "Main.image"
 
 def oz_classpath
   [
     FULL_JAR,
+    LAUNCHER_JAR,
     PROFILER_JAR,
     INSPECTOR_JAR,
   ]

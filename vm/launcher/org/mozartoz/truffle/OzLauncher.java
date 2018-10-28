@@ -4,33 +4,12 @@ import org.graalvm.launcher.AbstractLanguageLauncher;
 import org.graalvm.options.OptionCategory;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
-import org.mozartoz.truffle.translator.Loader;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 public class OzLauncher extends AbstractLanguageLauncher {
-
-	private static final String BASE_TESTS = Loader.PROJECT_ROOT + "/platform-test/base/";
-	private static final String TEST_RUNNER = Loader.PROJECT_ROOT + "/platform-test/simple_runner.oz";
-
-	private static final String[] PASSING_TESTS = {
-			BASE_TESTS + "int.oz",
-			BASE_TESTS + "proc.oz",
-			BASE_TESTS + "dictionary.oz",
-			BASE_TESTS + "record.oz",
-			BASE_TESTS + "state.oz",
-			BASE_TESTS + "exception.oz",
-			BASE_TESTS + "float.oz",
-			BASE_TESTS + "conversion.oz",
-			BASE_TESTS + "type.oz",
-			BASE_TESTS + "byneed.oz",
-			BASE_TESTS + "future.oz",
-			BASE_TESTS + "tailrec.oz",
-			BASE_TESTS + "unification.oz",
-			BASE_TESTS + "onstack_clearing.oz",
-	};
 
 	public static void main(String[] args) {
 		new OzLauncher().launch(args);
@@ -57,18 +36,19 @@ public class OzLauncher extends AbstractLanguageLauncher {
 
 	@Override
 	protected void launch(Context.Builder contextBuilder) {
-		final String functor;
+		final boolean runTests = args.length == 0;
+		final Source source;
 		final String[] appArgs;
-		if (args.length == 0) {
-			functor = TEST_RUNNER;
-			appArgs = PASSING_TESTS;
+		if (runTests) {
+			source = Source.create("oz", "RUN_TESTS");
+			appArgs = new String[0];
 		} else {
-			functor = args[0];
+			source = createSource(args[0]);
 			appArgs = Arrays.copyOfRange(args, 1, args.length);
 		}
 
 		try (Context context = contextBuilder.arguments("oz", appArgs).build()) {
-			context.eval(createSource(functor));
+			context.eval(source);
 		}
 	}
 

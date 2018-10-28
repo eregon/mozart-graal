@@ -7,6 +7,23 @@ dir = File.expand_path('..', __FILE__)
 OZ_MAIN_SOURCES = Dir["lib/main/**/*.oz"]
 ALL_SOURCES = JAVA_SOURCES + SCALA_SOURCES + OZ_MAIN_SOURCES
 
+PASSING_TESTS = %w[
+  int.oz
+  proc.oz
+  dictionary.oz
+  record.oz
+  state.oz
+  exception.oz
+  float.oz
+  conversion.oz
+  type.oz
+  byneed.oz
+  future.oz
+  tailrec.oz
+  unification.oz
+  onstack_clearing.oz
+].map { |file| "platform-test/base/#{file}" }
+
 if MAIN_IMAGE.exist? and mtime = MAIN_IMAGE.mtime and
     f = ALL_SOURCES.find { |src| File.mtime(src) > mtime }
   $stderr.puts "Removing Main.image because #{File.basename(f)} is more recent"
@@ -64,6 +81,10 @@ while arg = argv.shift
     rest = [arg, *argv]
     break
   end
+end
+
+if rest.empty?
+  rest = ["platform-test/simple_runner.oz", *PASSING_TESTS]
 end
 
 cmd = [

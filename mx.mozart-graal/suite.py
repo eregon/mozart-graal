@@ -79,7 +79,6 @@ suite = {
             "dependencies": [
                 "BOOTCOMPILER",
                 "truffle:TRUFFLE_API",
-                "sdk:LAUNCHER_COMMON",
                 "KRYO",
                 "REFLECTASM",
                 "ASM",
@@ -91,13 +90,42 @@ suite = {
             ],
             "javaCompliance": "1.8",
         },
+
+        "org.mozartoz.truffle.launcher": {
+            "dir": "vm",
+            "sourceDirs": ["launcher"],
+            "dependencies": [
+                "sdk:GRAAL_SDK",
+                "sdk:LAUNCHER_COMMON",
+            ],
+            "javaCompliance": "1.8",
+        },
     },
 
     "distributions": {
         "MOZART_GRAAL": {
             "dependencies": [
-                "org.mozartoz.truffle"
+                "org.mozartoz.truffle",
             ],
+        },
+
+        "MOZART_GRAAL_LAUNCHER": {
+            "dependencies": [
+                "org.mozartoz.truffle.launcher",
+            ],
+        },
+
+        "MOZART_GRAAL_GRAALVM_SUPPORT": {
+            "native": True,
+            "layout": {
+                "./": [
+                    "file:README.md",
+                    "file:mx.mozart-graal/native-image.properties",
+                    "file:lib",
+                    "file:platform-test",
+                ],
+                "LICENSE_MOZART_GRAAL.txt": "file:LICENSE.txt",
+            },
         },
     },
 }
