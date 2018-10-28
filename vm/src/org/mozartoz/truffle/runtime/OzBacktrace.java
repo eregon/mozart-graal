@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
@@ -16,8 +17,8 @@ public class OzBacktrace {
 		this.backtrace = backtrace;
 	}
 
+	@TruffleBoundary
 	public void showUserBacktrace() {
-		CompilerAsserts.neverPartOfCompilation();
 		for (Node node : backtrace) {
 			System.out.println(formatFrom(node));
 
@@ -35,6 +36,7 @@ public class OzBacktrace {
 		return "from " + formatNode(node);
 	}
 
+	@TruffleBoundary
 	public static String formatNode(Node node) {
 		SourceSection section = node.getEncapsulatingSourceSection();
 		String identifier = node.getRootNode().getName();
@@ -61,6 +63,7 @@ public class OzBacktrace {
 		return builder.toString();
 	}
 
+	@TruffleBoundary
 	public static OzBacktrace capture(Node currentNode) {
 		List<Node> backtrace = new ArrayList<>();
 		if (currentNode != null) {
