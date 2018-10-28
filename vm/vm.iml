@@ -16,7 +16,9 @@
           <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/graal-sdk.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/graal-sdk.src.zip!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
@@ -25,7 +27,9 @@
           <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/launcher-common.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/launcher-common.src.zip!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
@@ -34,7 +38,9 @@
           <root url="jar://$MODULE_DIR$/../../graal/truffle/mxbuild/dists/truffle-api.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../../graal/truffle/mxbuild/dists/truffle-api.src.zip!/" />
+        </SOURCES>
       </library>
     </orderEntry>
   </component>
