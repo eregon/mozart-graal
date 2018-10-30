@@ -34,7 +34,7 @@ namespace :build do
   task :graal => GRAAL_JAR
 
   task :project => [:javac, "vm/.classpath", "vm/.factorypath"]
-  task :javac => MAIN_CLASS
+  task :javac => [PROJECT_JAR, LAUNCHER_JAR]
 
   task :stdlib => "stdlib/README"
 
@@ -124,10 +124,11 @@ namespace :build do
     erb 'tool/factorypath.erb', 'vm/.factorypath'
   end
 
-  file MAIN_CLASS => [TRUFFLE_API_JAR, TRUFFLE_DSL_PROCESSOR_JAR, BOOTCOMPILER_JAR,
+  file PROJECT_JAR => [TRUFFLE_API_JAR, TRUFFLE_DSL_PROCESSOR_JAR, BOOTCOMPILER_JAR,
                       "vm/.classpath", *JAVA_SOURCES, REFLECTION_JSON] do
     sh "cd #{PROJECT_DIR} && #{MX} build"
   end
+  file LAUNCHER_JAR => PROJECT_JAR
 
   file REFLECTION_JSON => [BOOTCOMPILER_JAR, __FILE__] do
     config = Dir.chdir(BOOTCOMPILER_CLASSES) do
@@ -148,7 +149,7 @@ task :clean do
   rm_rf BOOTCOMPILER_ECLIPSE
   rm_rf BOOTCOMPILER / ".classpath"
 
-  rm_rf VM_CLASSES
+  rm_rf "mxbuild"
   rm_rf "vm/.classpath"
   rm_rf "vm/.factorypath"
 end
