@@ -24,9 +24,9 @@ public class OzContext {
 		return OzLanguage.getContext();
 	}
 
-	private final Env env;
+	private Env env;
 	private final OzLanguage language;
-	private final String home;
+	private String home;
 
 	private final TranslatorDriver translatorDriver;
 	private final PropertyRegistry propertyRegistry;
@@ -46,8 +46,8 @@ public class OzContext {
 			OzContext.instance = this;
 		}
 
-		this.env = env;
 		this.language = language;
+		this.env = env;
 		this.home = language.getHome();
 
 		this.translatorDriver = new TranslatorDriver(language);
@@ -74,6 +74,13 @@ public class OzContext {
 
 	public void initialize() {
 		loadMain();
+	}
+
+	public boolean patchContext(Env newEnv) {
+		this.env = newEnv;
+		this.home = language.getHome();
+
+		return true;
 	}
 
 	public void finalizeContext() {

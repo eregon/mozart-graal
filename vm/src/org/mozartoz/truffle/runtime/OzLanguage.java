@@ -44,6 +44,11 @@ public class OzLanguage extends TruffleLanguage<OzContext> {
 	}
 
 	@Override
+	protected boolean patchContext(OzContext context, Env newEnv) {
+		return context.patchContext(newEnv);
+	}
+
+	@Override
 	protected boolean isThreadAccessAllowed(Thread thread, boolean singleThreaded) {
 		return true;
 	}
