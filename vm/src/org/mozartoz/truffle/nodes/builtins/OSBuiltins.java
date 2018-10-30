@@ -79,7 +79,7 @@ public abstract class OSBuiltins {
 			if (new File(path).exists()) {
 				OzContext context = OzContext.getInstance();
 				Source source = Loader.createSource(context.getEnv(), path);
-				return context.execute(context.getTranslatorDriver().parseFunctor(source));
+				return context.execute(context.getTranslatorDriver().parseFunctor(source, context.isLoadingMain()));
 			} else {
 				throw notFound(url);
 			}

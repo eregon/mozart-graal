@@ -23,8 +23,6 @@ public class TranslatorDriver {
 
 	private final OzLanguage language;
 
-	private boolean eagerLoad = false;
-
 	public TranslatorDriver(OzLanguage language) {
 		this.language = language;
 		BootCompiler.registerParserToVM(ParserToVMImpl.INSTANCE);
@@ -46,7 +44,7 @@ public class TranslatorDriver {
 		});
 	}
 
-	public RootCallTarget parseFunctor(Source source) {
+	public RootCallTarget parseFunctor(Source source, boolean eagerLoad) {
 		DynamicObject base = OzContext.getInstance().getBase();
 
 		String fileName = new File(source.getPath()).getName();
@@ -69,10 +67,6 @@ public class TranslatorDriver {
 		});
 		Metrics.tick("translated functor " + fileName);
 		return callTarget;
-	}
-
-	public void setEagerLoad(boolean value) {
-		this.eagerLoad = value;
 	}
 
 }

@@ -90,6 +90,12 @@ public class OzContext {
 		}
 	}
 
+	// Main
+
+	public boolean isLoadingMain() {
+		return main == null;
+	}
+
 	private void loadMain() {
 		Metrics.tick("start loading Main");
 		String initFunctorPath = home + "/lib/main/init/Init.oz";
@@ -104,21 +110,16 @@ public class OzContext {
 			}
 			Metrics.tick("deserialized Main");
 		} else {
-			translatorDriver.setEagerLoad(true);
-			try {
-				Source initSource = Loader.createSource(env, initFunctorPath);
-				RootCallTarget initCallTarget = translatorDriver.parseFunctor(initSource);
-				Object initFunctor = execute(initCallTarget);
-				Object applied = applyInitFunctor(initFunctor);
-				main = (OzProc) ((DynamicObject) applied).get("main");
+			Source initSource = Loader.createSource(env, initFunctorPath);
+			RootCallTarget initCallTarget = translatorDriver.parseFunctor(initSource, true);
+			Object initFunctor = execute(initCallTarget);
+			Object applied = applyInitFunctor(initFunctor);
+			main = (OzProc) ((DynamicObject) applied).get("main");
 
-				if (Options.SERIALIZER) {
-					try (OzSerializer serializer = new OzSerializer(env, language, initFunctorPath)) {
-						serializer.serialize(main, mainImage.getPath());
-					}
+			if (Options.SERIALIZER) {
+				try (OzSerializer serializer = new OzSerializer(env, language, initFunctorPath)) {
+					serializer.serialize(main, mainImage.getPath());
 				}
-			} finally {
-				translatorDriver.setEagerLoad(false);
 			}
 		}
 	}
