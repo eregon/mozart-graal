@@ -8,6 +8,11 @@ MX_TAG = "5.190.8"
 
 JDK8_ARCHIVE = "http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html"
 
+v = "0.49"
+OPENJDK_JVMCI_URL = "https://github.com/graalvm/openjdk8-jvmci-builder/releases/download/jvmci-#{v}/openjdk-8u192-jvmci-#{v}-linux-amd64.tar.gz"
+OPENJDK_JVMCI_ARCHIVE = PROJECT_DIR / ".." / File.basename(OPENJDK_JVMCI_URL)
+OPENJDK_JVMCI_DIR = PROJECT_DIR / ".." / "openjdk1.8.0_192-jvmci-#{v}"
+
 OZWISH = PROJECT_DIR / "wish/ozwish"
 OZWISH_SRC = PROJECT_DIR / "wish/unixmain.cc"
 
@@ -89,15 +94,24 @@ namespace :build do
     File.write(REFLECTION_JSON, JSON.pretty_generate(config))
   end
 
-  file "graalvm" => :project do
-    build = %w[
-      --disable-polyglot
-      --disable-libpolyglot
-      --force-bash-launchers=native-image
-      --dynamicimports mozart-graal,/substratevm
-      build
-    ].join(' ')
-    sh "cd #{GRAAL_REPO}/vm && #{MX} #{build}"
+  file OPENJDK_JVMCI_ARCHIVE do
+    sh "wget -O #{OPENJDK_JVMCI_ARCHIVE} #{OPENJDK_JVMCI_URL}"
+  end
+
+  file OPENJDK_JVMCI_DIR => OPENJDK_JVMCI_ARCHIVE do
+    sh "cd .. && tar xf #{OPENJDK_JVMCI_ARCHIVE}"
+  end
+
+  file "graalvm" => [:project, OPENJDK_JVMCI_DIR] do
+    build = [
+      MX,
+      "--java-home", OPENJDK_JVMCI_DIR,
+      "--disable-polyglot", "--disable-libpolyglot",
+      "--force-bash-launchers=native-image",
+      "--dynamicimports", "mozart-graal,/substratevm",
+      "build"
+    ]
+    sh "cd #{GRAAL_REPO}/vm && #{build.join(' ')}"
 
     graalvm = Dir["../graal/vm/latest_graalvm/*/jre/languages/oz"].first
     rm_f "graalvm"
