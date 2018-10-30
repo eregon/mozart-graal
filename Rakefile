@@ -23,12 +23,10 @@ def erb(template, output)
 end
 
 namespace :build do
-  task :all => [:truffle, :bootcompiler, :ozwish, :stdlib, :project]
+  task :all => [:bootcompiler, :ozwish, :stdlib, :project]
 
   task :bootcompiler => [BOOTCOMPILER_JAR, BOOTCOMPILER_ECLIPSE]
   task :ozwish => OZWISH
-
-  task :truffle => [TRUFFLE_API_JAR, PROFILER_JAR, INSPECTOR_JAR]
 
   desc "Build Graal"
   task :graal => GRAAL_JAR
@@ -75,29 +73,10 @@ namespace :build do
     sh "cd ../mx && git checkout #{MX_TAG}"
   end
 
-  file GRAAL_REPO do
-    sh "cd .. && git clone https://github.com/eregon/truffle.git graal"
-    sh "cd #{GRAAL_REPO} && git checkout coro-#{TRUFFLE_RELEASE}"
-  end
-
-  file TRUFFLE => GRAAL_REPO
-  file TRUFFLE_API_JAR => [MX, TRUFFLE] do
-    sh "cd #{TRUFFLE} && #{MX} build"
-  end
-  file TRUFFLE_DSL_PROCESSOR_JAR => TRUFFLE_API_JAR
-
-  file TOOLS => GRAAL_REPO
-  file PROFILER_JAR => [MX, TOOLS] do
-    sh "cd #{TOOLS} && #{MX} build"
-  end
-  file INSPECTOR_JAR => PROFILER_JAR
-
   file JVMCI do
     sh "cd .. && git clone https://github.com/eregon/jvmci.git"
     sh "cd #{JVMCI} && git checkout coro-#{TRUFFLE_RELEASE}"
   end
-
-  file GRAAL => GRAAL_REPO
 
   file JVMCI_RELEASE => [JVMCI, MX] do
     puts "Choose JDK #{JVMCI_BASE} when asked for JAVA_HOME"
@@ -111,7 +90,7 @@ namespace :build do
     GRAAL_MX_ENV.write("JAVA_HOME=#{JVMCI_HOME}\n") unless GRAAL_MX_ENV.exist?
   end
 
-  file GRAAL_JAR => [GRAAL, MX, GRAAL_MX_ENV] do
+  file GRAAL_JAR => [:project, GRAAL_MX_ENV] do
     sh "cd #{GRAAL} && #{MX} build"
   end
 
@@ -124,8 +103,7 @@ namespace :build do
     erb 'tool/factorypath.erb', 'vm/.factorypath'
   end
 
-  file PROJECT_JAR => [TRUFFLE_API_JAR, TRUFFLE_DSL_PROCESSOR_JAR, BOOTCOMPILER_JAR,
-                      "vm/.classpath", *JAVA_SOURCES, REFLECTION_JSON] do
+  file PROJECT_JAR => [BOOTCOMPILER_JAR, "vm/.classpath", *JAVA_SOURCES, REFLECTION_JSON] do
     sh "cd #{PROJECT_DIR} && #{MX} build"
   end
   file LAUNCHER_JAR => PROJECT_JAR

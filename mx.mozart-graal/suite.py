@@ -9,8 +9,7 @@ suite = {
                 "subdir": True,
                 "version": "3bcb64e7cbd845b6dbd73f15c37f65b005d9b16a",
                 "urls": [
-                    {"url": "https://github.com/oracle/graal.git", "kind": "git"},
-                    {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
+                    {"url": "https://github.com/eregon/graal.git", "kind": "git"},
                 ],
             },
         ],
