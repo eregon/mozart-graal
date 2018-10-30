@@ -69,8 +69,7 @@ namespace :build do
   end
 
   file MX do
-    sh "cd .. && git clone https://github.com/graalvm/mx.git"
-    sh "cd ../mx && git checkout #{MX_TAG}"
+    sh "cd .. && git clone --branch #{MX_TAG} https://github.com/graalvm/mx.git"
   end
 
   file JVMCI do
