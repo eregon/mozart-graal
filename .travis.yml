@@ -8,6 +8,7 @@ install:
   - rake build
 script:
   - ./oz
+  - rake build:graalvm
 cache:
   directories:
     - $HOME/.mx/cache
