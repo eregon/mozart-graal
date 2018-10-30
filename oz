@@ -30,7 +30,6 @@ if MAIN_IMAGE.exist? and mtime = MAIN_IMAGE.mtime and
   MAIN_IMAGE.delete
 end
 
-bootclasspath = [SDK_JAR, LAUNCHER_COMMON_JAR, TRUFFLE_API_JAR]
 classpath = oz_classpath
 
 java = 'java'
@@ -90,7 +89,7 @@ end
 cmd = [
   java,
   *java_opts,
-  "-Xbootclasspath/p:" + bootclasspath.join(':'),
+  "-Xbootclasspath/p:" + oz_bootclasspath.join(':'),
   '-cp', classpath.join(':'),
   'org.mozartoz.truffle.OzLauncher'
 ] + rest

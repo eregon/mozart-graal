@@ -47,14 +47,7 @@ rake build:graal
 
 On recent Linux, you need to do part of the build manually, see [Building JVMCI](vm/jvmci/README.md).
 
-## IDE: Scala IDE for Eclipse
+## IDE: IntelliJ IDEA
 
-Eclipse files are auto-generated for the two projects.
-We recommend using `mozart-dev` as the workspace.
-You can then import the projects with:
-`File` => `Import...` => `General` => `Existing Projects into Workspace`.
-Click `Browse...`, select `mozart-graal` and click `Finish`.
-
-If you want to run inside Eclipse, look for the `Main` class
-in the `mozart-graal` project and add in the User Entries of the Classpath tab the Scala library jar,
-`org.scala-lang.scala-library_*.jar` which you can find under your Eclipse installation `plugins/` directory.
+IntelliJ IDEA configuration are checked in the repository and should work out of the box.
+Import `mozart-dev` as a project.

@@ -21,6 +21,7 @@ MX = Pathname("../mx/mx").expand_path(dir)
 GRAAL_REPO = Pathname("../graal").expand_path(dir)
 
 JVMCI = Pathname("../jvmci").expand_path(dir)
+
 GRAAL = GRAAL_REPO / "compiler"
 GRAAL_JAR = GRAAL / "mxbuild/dists/graal.jar"
 
@@ -31,8 +32,6 @@ LAUNCHER_COMMON_JAR = SDK / "mxbuild/dists/launcher-common.jar"
 
 TRUFFLE = GRAAL_REPO / "truffle"
 TRUFFLE_API_JAR = TRUFFLE / "mxbuild/dists/truffle-api.jar"
-TRUFFLE_API_SRC = TRUFFLE / "mxbuild/dists/truffle-api.src.zip"
-TRUFFLE_DSL_PROCESSOR_JAR = TRUFFLE / "mxbuild/dists/truffle-dsl-processor.jar"
 
 TOOLS = GRAAL_REPO / "tools"
 PROFILER_JAR = TOOLS / "mxbuild/dists/truffle-profiler.jar"
@@ -46,6 +45,14 @@ PROJECT_JAR = PROJECT_DIR / "mxbuild/dists/jdk1.8/mozart-graal.jar"
 LAUNCHER_JAR = PROJECT_DIR / "mxbuild/dists/jdk1.8/mozart-graal-launcher.jar"
 
 MAIN_IMAGE = PROJECT_DIR / "Main.image"
+
+def oz_bootclasspath
+  [
+    SDK_JAR,
+    LAUNCHER_COMMON_JAR,
+    TRUFFLE_API_JAR
+  ]
+end
 
 def oz_classpath
   [

@@ -11,8 +11,6 @@ JDK8_ARCHIVE = "http://www.oracle.com/technetwork/java/javase/downloads/java-arc
 OZWISH = PROJECT_DIR / "wish/ozwish"
 OZWISH_SRC = PROJECT_DIR / "wish/unixmain.cc"
 
-BOOTCOMPILER_ECLIPSE = BOOTCOMPILER / ".project"
-
 JVMCI_HOME = JVMCI / "jdk#{JVMCI_BASE}/product"
 JVMCI_RELEASE = JVMCI_HOME / "release"
 GRAAL_MX_ENV = GRAAL / "mx.compiler/env"
@@ -23,15 +21,15 @@ def erb(template, output)
 end
 
 namespace :build do
-  task :all => [:bootcompiler, :ozwish, :stdlib, :project]
+  task :all => [:ozwish, :stdlib, :project]
 
-  task :bootcompiler => [BOOTCOMPILER_JAR, BOOTCOMPILER_ECLIPSE]
+  task :bootcompiler => BOOTCOMPILER_JAR
   task :ozwish => OZWISH
 
   desc "Build Graal"
   task :graal => GRAAL_JAR
 
-  task :project => [:javac, "vm/.classpath", "vm/.factorypath"]
+  task :project => [:javac]
   task :javac => [PROJECT_JAR, LAUNCHER_JAR]
 
   task :stdlib => "stdlib/README"
@@ -59,15 +57,6 @@ namespace :build do
     touch BOOTCOMPILER_JAR # sbt might not update mtime
   end
 
-  file BOOTCOMPILER_ECLIPSE do
-    sh "cd #{BOOTCOMPILER} && ./sbt eclipse eclipse-with-source"
-    # Export the Scala stdlib to mozart-graal
-    classpath = (BOOTCOMPILER / ".classpath")
-    classpath.write classpath.read.sub!(
-      /(<classpathentry) (kind="con" path=".*SCALA_CONTAINER)/,
-      '\1 exported="true" \2')
-  end
-
   file MX do
     sh "cd .. && git clone --branch #{MX_TAG} https://github.com/graalvm/mx.git"
   end
@@ -93,16 +82,7 @@ namespace :build do
     sh "cd #{GRAAL} && #{MX} build"
   end
 
-  file "vm/.classpath" => "tool/classpath.erb" do
-    sh "cd vm && mvn dependency:build-classpath"
-    erb 'tool/classpath.erb', 'vm/.classpath'
-  end
-
-  file "vm/.factorypath" => "tool/factorypath.erb" do
-    erb 'tool/factorypath.erb', 'vm/.factorypath'
-  end
-
-  file PROJECT_JAR => [BOOTCOMPILER_JAR, MX, "vm/.classpath", *JAVA_SOURCES, REFLECTION_JSON] do
+  file PROJECT_JAR => [BOOTCOMPILER_JAR, MX, *JAVA_SOURCES, REFLECTION_JSON] do
     sh "cd #{PROJECT_DIR} && #{MX} build"
   end
   file LAUNCHER_JAR => PROJECT_JAR
@@ -123,12 +103,8 @@ task :build => "build:all"
 
 task :clean do
   rm_rf BOOTCOMPILER / 'target'
-  rm_rf BOOTCOMPILER_ECLIPSE
-  rm_rf BOOTCOMPILER / ".classpath"
 
   rm_rf "mxbuild"
-  rm_rf "vm/.classpath"
-  rm_rf "vm/.factorypath"
 end
 
 desc "Run tests"

@@ -1,5 +1,3 @@
-/vm/.classpath
-/vm/.factorypath
 /vm/jvmci/jdk-8u*-linux-x64.tar.gz
 /vm/src/org/mozartoz/truffle/reflection.json
 /.idea/workspace.xml

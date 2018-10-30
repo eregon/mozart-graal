@@ -12,5 +12,3 @@ libraryDependencies += "com.lihaoyi" %% "fastparse" % "0.3.7"
 libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
 
 seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
-
-EclipseKeys.withSource := true
