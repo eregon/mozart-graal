@@ -15,11 +15,6 @@ JVMCI_HOME = JVMCI / "jdk#{JVMCI_BASE}/product"
 JVMCI_RELEASE = JVMCI_HOME / "release"
 GRAAL_MX_ENV = GRAAL / "mx.compiler/env"
 
-def erb(template, output)
-  require 'erb'
-  File.write output, ERB.new(File.read(template), nil, '<>').result(binding)
-end
-
 namespace :build do
   task :all => [:ozwish, :stdlib, :project]
 
