@@ -13,7 +13,6 @@ OZWISH_SRC = PROJECT_DIR / "wish/unixmain.cc"
 
 JVMCI_HOME = JVMCI / "jdk#{JVMCI_BASE}/product"
 JVMCI_RELEASE = JVMCI_HOME / "release"
-GRAAL_MX_ENV = GRAAL / "mx.compiler/env"
 
 namespace :build do
   task :all => [:ozwish, :stdlib, :project]
@@ -71,12 +70,8 @@ namespace :build do
     sh "cd #{JVMCI_HOME} && bin/java -version"
   end
 
-  file GRAAL_MX_ENV => JVMCI_RELEASE do
-    GRAAL_MX_ENV.write("JAVA_HOME=#{JVMCI_HOME}\n") unless GRAAL_MX_ENV.exist?
-  end
-
-  file GRAAL_JAR => [:project, GRAAL_MX_ENV] do
-    sh "cd #{GRAAL} && #{MX} build"
+  file GRAAL_JAR => :project do
+    sh "cd #{GRAAL} && #{MX} --java-home #{JVMCI_HOME} build"
   end
 
   file PROJECT_JAR => [BOOTCOMPILER_JAR, MX, *JAVA_SOURCES, REFLECTION_JSON] do
