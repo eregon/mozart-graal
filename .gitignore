@@ -2,6 +2,7 @@
 /vm/src/org/mozartoz/truffle/reflection.json
 /.idea/workspace.xml
 /mxbuild
+/graalvm
 
 *.pyc
 *.ozf

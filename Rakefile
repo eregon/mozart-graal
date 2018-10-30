@@ -29,6 +29,8 @@ namespace :build do
 
   task :stdlib => "stdlib/README"
 
+  task :graalvm => "graalvm"
+
   file "stdlib/README" do
     sh "git submodule update --init"
   end
@@ -82,7 +84,7 @@ namespace :build do
   end
   file LAUNCHER_JAR => PROJECT_JAR
 
-  file REFLECTION_JSON => [BOOTCOMPILER_JAR, __FILE__] do
+  file REFLECTION_JSON => BOOTCOMPILER_JAR do
     config = Dir.chdir(BOOTCOMPILER_CLASSES) do
       Dir["org/mozartoz/bootcompiler/ast/TreeDSL$$*.class"].sort.map do |file|
         java_class = file.sub(/\.class$/, '').tr('/', '.')
@@ -90,6 +92,21 @@ namespace :build do
       end
     end
     File.write(REFLECTION_JSON, JSON.pretty_generate(config))
+  end
+
+  file "graalvm" => :project do
+    build = %w[
+      --disable-polyglot
+      --disable-libpolyglot
+      --force-bash-launchers=native-image
+      --dynamicimports mozart-graal,/substratevm
+      build
+    ].join(' ')
+    sh "cd #{GRAAL_REPO}/vm && #{MX} #{build}"
+
+    graalvm = Dir["../graal/vm/latest_graalvm/*/jre/languages/oz"].first
+    rm_f "graalvm"
+    File.symlink(graalvm, "graalvm")
   end
 end
 
