@@ -21,7 +21,7 @@ public class OzContext {
 	static OzContext instance = null;
 
 	public static OzContext getInstance() {
-		return instance;
+		return OzLanguage.getContext();
 	}
 
 	private final Env env;

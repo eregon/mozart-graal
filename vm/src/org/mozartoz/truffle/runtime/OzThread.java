@@ -3,6 +3,8 @@ package org.mozartoz.truffle.runtime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.oracle.truffle.api.TruffleContext;
+import com.oracle.truffle.api.TruffleLanguage.Env;
 import org.mozartoz.truffle.Options;
 
 import com.oracle.truffle.api.CallTarget;
@@ -33,6 +35,7 @@ public class OzThread extends OzValue implements Runnable {
 		return CURRENT_OZ_THREAD.get();
 	}
 
+	private final Env env;
 	private final Coroutine original;
 	private final Coroutine coroutine;
 	private OzProc proc;
@@ -43,6 +46,7 @@ public class OzThread extends OzValue implements Runnable {
 	private boolean raiseOnBlock = false;
 
 	public OzThread() {
+		env = null;
 		original = null;
 		coroutine = (Coroutine) Coroutine.current();
 		proc = null;
@@ -51,7 +55,8 @@ public class OzThread extends OzValue implements Runnable {
 		setInitialOzThread();
 	}
 
-	public OzThread(OzProc proc, CallTarget initialCall) {
+	public OzThread(OzProc proc, CallTarget initialCall, Env env) {
+		this.env = env;
 		this.proc = proc;
 		this.procLocation = proc.toString();
 		this.initialCall = initialCall;
@@ -89,14 +94,26 @@ public class OzThread extends OzValue implements Runnable {
 
 	@Override
 	public void run() {
+		try {
+			runThread();
+		} catch (Error | RuntimeException e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private void runThread() {
 		assert original != null;
 		Coroutine.yieldTo(original);
 
+		final TruffleContext truffleContext = env.getContext();
 		setInitialOzThread();
 		threadsRunnable++;
+		final Object prev = truffleContext.enter();
 		try {
 			initialCall.call(OzArguments.pack(null, ArrayUtils.EMPTY));
 		} finally {
+			truffleContext.leave(prev);
 			threadsRunnable--;
 			status = "terminated";
 			if (Options.STACKTRACE_ON_INTERRUPT) {

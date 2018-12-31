@@ -44,6 +44,11 @@ public class OzLanguage extends TruffleLanguage<OzContext> {
 	}
 
 	@Override
+	protected boolean isThreadAccessAllowed(Thread thread, boolean singleThreaded) {
+		return true;
+	}
+
+	@Override
 	protected CallTarget parse(ParsingRequest parsingRequest) {
 		Source source = parsingRequest.getSource();
 		RunMainNode runMain = new RunMainNode(source);

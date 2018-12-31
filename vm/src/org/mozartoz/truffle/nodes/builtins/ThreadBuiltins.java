@@ -5,6 +5,7 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.call.GetThreadProcNode;
 import org.mozartoz.truffle.runtime.ArrayUtils;
+import org.mozartoz.truffle.runtime.OzContext;
 import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzThread;
@@ -28,7 +29,7 @@ public abstract class ThreadBuiltins {
 		@Specialization
 		OzThread createThread(OzProc target,
 				@Cached("createStartThreadCallTarget()") CallTarget startThread) {
-			return new OzThread(target, startThread);
+			return new OzThread(target, startThread, OzContext.getInstance().getEnv());
 		}
 
 		protected CallTarget createStartThreadCallTarget() {
