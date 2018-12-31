@@ -88,6 +88,12 @@ public abstract class CoroutineSupport {
         return COROUTINE_SUPPORT.get();
     }
 
+    public static void resetThreadPool() {
+        if (!NATIVE) {
+            ThreadCoroutineSupport.resetThreadPool();
+        }
+    }
+
     // Controls debugging and tracing, for maximum performance the actual if(DEBUG/TRACE) code needs
     // to be commented out
     static final boolean DEBUG = false;

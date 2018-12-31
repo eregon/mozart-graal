@@ -25,6 +25,8 @@
 
 package com.oracle.truffle.coro;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -105,7 +107,11 @@ class ThreadCoroutineSupport extends CoroutineSupport {
 
     }
 
-    static final ExecutorService THREAD_POOL = Executors.newCachedThreadPool(new CoroutineThreadFactory());
+    @CompilationFinal static ExecutorService THREAD_POOL = Executors.newCachedThreadPool(new CoroutineThreadFactory());
+
+    public static void resetThreadPool() {
+        THREAD_POOL = Executors.newCachedThreadPool(new CoroutineThreadFactory());
+    }
 
     @SuppressWarnings("unused")
     ThreadCoroutineSupport(Thread thread) {
