@@ -52,7 +52,7 @@ public class OzThread extends OzValue implements Runnable {
 		proc = null;
 		procLocation = null;
 		initialCall = null;
-		setInitialOzThread();
+		setCurrentOzThread(this);
 	}
 
 	public OzThread(OzProc proc, CallTarget initialCall, Env env) {
@@ -66,8 +66,8 @@ public class OzThread extends OzValue implements Runnable {
 		Coroutine.yieldTo(coroutine);
 	}
 
-	private void setInitialOzThread() {
-		CURRENT_OZ_THREAD.set(this);
+	public static void setCurrentOzThread(OzThread thread) {
+		CURRENT_OZ_THREAD.set(thread);
 	}
 
 	public OzProc getAndClearInitialProc() {
@@ -107,7 +107,7 @@ public class OzThread extends OzValue implements Runnable {
 		Coroutine.yieldTo(original);
 
 		final TruffleContext truffleContext = env.getContext();
-		setInitialOzThread();
+		setCurrentOzThread(this);
 		threadsRunnable++;
 		final Object prev = truffleContext.enter();
 		try {

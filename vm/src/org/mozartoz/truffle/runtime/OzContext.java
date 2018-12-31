@@ -80,6 +80,8 @@ public class OzContext {
 		this.env = newEnv;
 		this.home = language.getHome();
 
+		OzThread.setCurrentOzThread(mainThread);
+
 		return true;
 	}
 
