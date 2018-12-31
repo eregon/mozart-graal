@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.oracle.truffle.coro.CoroutineSupport;
 import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
 import org.mozartoz.truffle.translator.ApplyFunctor;
@@ -74,6 +75,11 @@ public class OzContext {
 
 	public void initialize() {
 		loadMain();
+		waitThreads();
+
+		if (Options.PRE_INITIALIZE_CONTEXTS) {
+			CoroutineSupport.resetThreadPool();
+		}
 	}
 
 	public boolean patchContext(Env newEnv) {

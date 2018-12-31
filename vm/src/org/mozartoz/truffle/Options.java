@@ -40,6 +40,8 @@ public abstract class Options {
 	public static final int TruffleInvalidationReprofileCount = integer("graal.TruffleInvalidationReprofileCount", 3);
 	public static final int TruffleOSRCompilationThreshold = integer("graal.TruffleOSRCompilationThreshold", 100_000);
 
+	public static final boolean PRE_INITIALIZE_CONTEXTS = System.getProperty("polyglot.engine.PreinitializeContexts") != null;
+
 	private static boolean bool(String property, boolean defaultValue) {
 		String value = System.getProperty(property, Boolean.toString(defaultValue));
 		if (value.equalsIgnoreCase("true")) {
