@@ -16,33 +16,33 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/graal-sdk.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/jdk1.8/graal-sdk.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/graal-sdk.src.zip!/" />
+          <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/jdk1.8/graal-sdk.src.zip!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/launcher-common.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/jdk1.8/launcher-common.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/launcher-common.src.zip!/" />
+          <root url="jar://$MODULE_DIR$/../../graal/sdk/mxbuild/dists/jdk1.8/launcher-common.src.zip!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../graal/truffle/mxbuild/dists/truffle-api.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../graal/truffle/mxbuild/dists/jdk1.8/truffle-api.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../graal/truffle/mxbuild/dists/truffle-api.src.zip!/" />
+          <root url="jar://$MODULE_DIR$/../../graal/truffle/mxbuild/dists/jdk1.8/truffle-api.src.zip!/" />
         </SOURCES>
       </library>
     </orderEntry>

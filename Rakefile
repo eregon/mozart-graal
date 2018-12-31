@@ -2,9 +2,9 @@ require_relative 'tool/common'
 require 'tempfile'
 require 'json'
 
-TRUFFLE_RELEASE = "1.0.0-rc6"
+TRUFFLE_RELEASE = "1.0.0-rc10"
 JVMCI_BASE = "1.8.0_121"
-MX_TAG = "5.190.8"
+MX_TAG = "5.199.1"
 
 JDK8_ARCHIVE = "http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html"
 

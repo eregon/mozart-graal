@@ -22,27 +22,29 @@ GRAAL_REPO = Pathname("../graal").expand_path(dir)
 
 JVMCI = Pathname("../jvmci").expand_path(dir)
 
+dists = "mxbuild/dists/jdk1.8"
+
 GRAAL = GRAAL_REPO / "compiler"
-GRAAL_JAR = GRAAL / "mxbuild/dists/graal.jar"
+GRAAL_JAR = GRAAL / "#{dists}/graal.jar"
 
 SDK = GRAAL_REPO / "sdk"
-SDK_JAR = SDK / "mxbuild/dists/graal-sdk.jar"
-SDK_SRC = SDK / "mxbuild/dists/graal-sdk.src.zip"
-LAUNCHER_COMMON_JAR = SDK / "mxbuild/dists/launcher-common.jar"
+SDK_JAR = SDK / "#{dists}/graal-sdk.jar"
+SDK_SRC = SDK / "#{dists}/graal-sdk.src.zip"
+LAUNCHER_COMMON_JAR = SDK / "#{dists}/launcher-common.jar"
 
 TRUFFLE = GRAAL_REPO / "truffle"
-TRUFFLE_API_JAR = TRUFFLE / "mxbuild/dists/truffle-api.jar"
+TRUFFLE_API_JAR = TRUFFLE / "#{dists}/truffle-api.jar"
 
 TOOLS = GRAAL_REPO / "tools"
-PROFILER_JAR = TOOLS / "mxbuild/dists/truffle-profiler.jar"
-INSPECTOR_JAR = TOOLS / "mxbuild/dists/chromeinspector.jar"
+PROFILER_JAR = TOOLS / "#{dists}/truffle-profiler.jar"
+INSPECTOR_JAR = TOOLS / "#{dists}/chromeinspector.jar"
 
 VM = PROJECT_DIR / "vm"
 JAVA_SOURCES = Dir["#{VM}/**/*.java"]
 REFLECTION_JSON = "#{VM}/src/org/mozartoz/truffle/reflection.json"
 
-PROJECT_JAR = PROJECT_DIR / "mxbuild/dists/jdk1.8/mozart-graal.jar"
-LAUNCHER_JAR = PROJECT_DIR / "mxbuild/dists/jdk1.8/mozart-graal-launcher.jar"
+PROJECT_JAR = PROJECT_DIR / "#{dists}/mozart-graal.jar"
+LAUNCHER_JAR = PROJECT_DIR / "#{dists}/mozart-graal-launcher.jar"
 
 MAIN_IMAGE = PROJECT_DIR / "Main.image"
 
