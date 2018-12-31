@@ -272,9 +272,25 @@ public class OzSerializer implements AutoCloseable {
 	}
 
 	private static class FrameSlotSerializer extends Serializer<FrameSlot> {
-		@SuppressWarnings("deprecation")
+
+		private final Field FRAME_DESCRIPTOR;
+
+		public FrameSlotSerializer() {
+			try {
+				FRAME_DESCRIPTOR = FrameSlot.class.getDeclaredField("descriptor");
+				FRAME_DESCRIPTOR.setAccessible(true);
+			} catch (ReflectiveOperationException e) {
+				throw new Error(e);
+			}
+		}
+
 		public void write(Kryo kryo, Output output, FrameSlot frameSlot) {
-			kryo.writeObject(output, frameSlot.getFrameDescriptor());
+			try {
+				FrameDescriptor frameDescriptor = (FrameDescriptor) FRAME_DESCRIPTOR.get(frameSlot);
+				kryo.writeObject(output, frameDescriptor);
+			} catch (ReflectiveOperationException e) {
+				throw new Error(e);
+			}
 			output.writeString((String) frameSlot.getIdentifier());
 		}
 
