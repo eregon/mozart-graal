@@ -6,6 +6,20 @@ An implementation of the [Oz programming language](https://en.wikipedia.org/wiki
 
 The bootcompiler and Oz libraries are imported from [Mozart 2](https://github.com/mozart/mozart2).
 
+## Interesting Points
+
+* A [master thesis](https://www.info.ucl.ac.be/~pvr/MemoireMaximeIstasse.pdf) was made with this project to optimize performance. It details many static and dynamic optimizations.
+
+* Tail calls are optimized and compiled as loops, see `TailCallCatcherNode`.
+  Self-recursion is optimized further in `SelfTailCallCatcherNode`.
+
+* There is a Truffle AST serializer in `OzSerializer` using [Kryo](https://github.com/EsotericSoftware/kryo) able to serialize Oz code.
+
+* The project uses the Coroutine patch for HotSpot to be able to create many lightweight threads.
+
+* The parser, typer, and some optimizations are written in Scala (`bootcompiler/`)
+  and the AST produced by Scala is then translated to a Truffle AST in `Translator`.
+
 ## Current Status
 
 Early stage but the Panel and Browser are working.
