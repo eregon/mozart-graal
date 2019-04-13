@@ -102,6 +102,7 @@ namespace :build do
     sh "cd .. && tar xf #{OPENJDK_JVMCI_ARCHIVE}"
   end
 
+  desc "Build a GraalVM with a Mozart-Graal native image"
   file "graalvm" => [:project, OPENJDK_JVMCI_DIR] do
     build = [
       MX,
