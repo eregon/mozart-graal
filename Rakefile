@@ -114,7 +114,7 @@ namespace :build do
     ]
     sh "cd #{GRAAL_REPO}/vm && #{build.join(' ')}"
 
-    graalvm = Dir["../graal/vm/latest_graalvm/*/jre/languages/oz"].first
+    graalvm = "../graal/vm/latest_graalvm_home/jre/languages/oz"
     rm_f "graalvm"
     File.symlink(graalvm, "graalvm")
   end
