@@ -790,7 +790,8 @@ public class OzSerializer implements AutoCloseable {
 		// sources
 		Source fileSource = Loader.createSource(env, initFunctorPath);
 		kryo.register(fileSource.getClass(), new FileSourceSerializer(env));
-		kryo.register(SourceSection.class, new SourceSectionSerializer(fileSource.getClass()));
+		Class<? extends SourceSection> sourceSection = fileSource.createSection(0, 0).getClass();
+		kryo.register(sourceSection, new SourceSectionSerializer(fileSource.getClass()));
 		kryo.register(String[].class);
 
 		// frames
