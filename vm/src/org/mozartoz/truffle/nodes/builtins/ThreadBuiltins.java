@@ -33,8 +33,7 @@ public abstract class ThreadBuiltins {
 		}
 
 		protected CallTarget createStartThreadCallTarget() {
-			final OzLanguage language = getRootNode().getLanguage(OzLanguage.class);
-			return OzProc.wrap(language, "Thread.create", new GetThreadProcNode(), ArrayUtils.EMPTY);
+			return OzProc.wrap(OzLanguage.getLanguage(), "Thread.create", new GetThreadProcNode(), ArrayUtils.EMPTY);
 		}
 
 	}

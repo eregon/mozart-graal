@@ -25,8 +25,7 @@ public class OzProc extends OzValue {
 
 	@TruffleBoundary
 	public Object rootCall(String identifier, Object... arguments) {
-		final OzLanguage language = callTarget.getRootNode().getLanguage(OzLanguage.class);
-		final CallTarget target = wrap(language, identifier, new LiteralNode(this), arguments);
+		final CallTarget target = wrap(OzLanguage.getLanguage(), identifier, new LiteralNode(this), arguments);
 		return target.call(OzArguments.pack(null, ArrayUtils.EMPTY));
 	}
 
