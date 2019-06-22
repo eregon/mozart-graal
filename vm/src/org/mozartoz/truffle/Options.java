@@ -20,7 +20,8 @@ public abstract class Options {
 	@Option(name = "show-ast", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<String> SHOW_AST = new OptionKey<>(null, OptionType.defaultType(""));
 
-	public static final boolean SERIALIZER = bool("oz.serializer", !TruffleOptions.AOT);
+	@Option(name = "serializer", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> SERIALIZER = new OptionKey<>(!TruffleOptions.AOT);
 
 	public static final boolean TAIL_CALLS = bool("oz.tail.calls", true);
 	public static final boolean TAIL_CALLS_OSR = bool("oz.tail.calls.osr", true);

@@ -25,9 +25,9 @@ public class OzContext {
 		return OzLanguage.getContext();
 	}
 
-	private Env env;
 	private final OzLanguage language;
 	private String home;
+	private Env env;
 
 	private final TranslatorDriver translatorDriver;
 	private final PropertyRegistry propertyRegistry;
@@ -48,8 +48,8 @@ public class OzContext {
 		}
 
 		this.language = language;
-		this.env = env;
 		this.home = language.getHome();
+		this.env = env;
 
 		this.translatorDriver = new TranslatorDriver(language);
 
@@ -83,8 +83,8 @@ public class OzContext {
 	}
 
 	public boolean patchContext(Env newEnv) {
-		this.env = newEnv;
 		this.home = language.getHome();
+		this.env = newEnv;
 
 		OzThread.setCurrentOzThread(mainThread);
 
@@ -115,7 +115,7 @@ public class OzContext {
 		Metrics.tick("start loading Main");
 		String initFunctorPath = home + "/lib/main/init/Init.oz";
 
-		if (Options.SERIALIZER && mainImage.exists()) {
+		if (env.getOptions().get(Options.SERIALIZER) && mainImage.exists()) {
 			try (OzSerializer serializer = new OzSerializer(env, language, initFunctorPath)) {
 				main = serializer.deserialize(mainImage.getPath(), OzProc.class);
 			} catch (Throwable t) {
@@ -131,7 +131,7 @@ public class OzContext {
 			Object applied = applyInitFunctor(initFunctor);
 			main = (OzProc) ((DynamicObject) applied).get("main");
 
-			if (Options.SERIALIZER) {
+			if (env.getOptions().get(Options.SERIALIZER)) {
 				try (OzSerializer serializer = new OzSerializer(env, language, initFunctorPath)) {
 					serializer.serialize(main, mainImage.getPath());
 				}
