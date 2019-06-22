@@ -11,6 +11,7 @@ import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.mozartoz.truffle.runtime.OzLanguage;
 
 public abstract class BootBuiltins {
 
@@ -50,7 +51,7 @@ public abstract class BootBuiltins {
 
 		@Specialization
 		Object registerBase(DynamicObject base) {
-			OzContext.getInstance().registerBase(base);
+			OzLanguage.getContext().registerBase(base);
 			return unit;
 		}
 

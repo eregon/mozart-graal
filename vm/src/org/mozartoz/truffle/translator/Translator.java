@@ -415,7 +415,7 @@ public class Translator {
 			if (isSelfTailRec) { // Set when translating a self tail call
 				procBody = SelfTailCallCatcherNode.create(procBody, environment.frameDescriptor);
 			}
-			boolean forceSplitting = OzContext.getInstance().isLoadingBase();
+			boolean forceSplitting = OzLanguage.getContext().isLoadingBase();
 			OzRootNode rootNode = new OzRootNode(language, sourceSection, identifier, environment.frameDescriptor, procBody, arity, forceSplitting);
 
 			if (Options.FRAME_FILTERING) {

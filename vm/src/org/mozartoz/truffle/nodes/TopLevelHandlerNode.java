@@ -3,6 +3,7 @@ package org.mozartoz.truffle.nodes;
 import org.mozartoz.truffle.runtime.OzBacktrace;
 import org.mozartoz.truffle.runtime.OzContext;
 import org.mozartoz.truffle.runtime.OzException;
+import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.PropertyRegistry;
 
@@ -33,7 +34,7 @@ public class TopLevelHandlerNode extends OzNode {
 			errorProfile.enter();
 			handleJavaException(exception);
 		}
-		OzContext.getInstance().shutdown(1);
+		OzLanguage.getContext().shutdown(1);
 		return unit;
 	}
 

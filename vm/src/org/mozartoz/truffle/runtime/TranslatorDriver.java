@@ -45,7 +45,7 @@ public class TranslatorDriver {
 	}
 
 	public RootCallTarget parseFunctor(Source source, boolean eagerLoad) {
-		DynamicObject base = OzContext.getInstance().getBase();
+		DynamicObject base = OzLanguage.getContext().getBase();
 
 		String fileName = new File(source.getPath()).getName();
 		System.out.println("Loading " + fileName);

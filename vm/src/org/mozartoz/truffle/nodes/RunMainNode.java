@@ -5,6 +5,7 @@ import org.mozartoz.truffle.runtime.OzContext;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.Source;
+import org.mozartoz.truffle.runtime.OzLanguage;
 
 public class RunMainNode extends OzNode {
 
@@ -16,7 +17,7 @@ public class RunMainNode extends OzNode {
 
 	@Override
 	public Object execute(VirtualFrame frame) {
-		OzContext.getInstance().run(source);
+		OzLanguage.getContext().run(source);
 		return unit;
 	}
 

@@ -19,8 +19,6 @@ import com.oracle.truffle.api.source.Source;
 
 public class OzContext {
 
-	static OzContext instance = null;
-
 	public static OzContext getInstance() {
 		return OzLanguage.getContext();
 	}
@@ -41,12 +39,6 @@ public class OzContext {
 	private OzProc main;
 
 	public OzContext(OzLanguage language, Env env) {
-		if (OzContext.instance != null) {
-			throw new Error("More than 1 context");
-		} else {
-			OzContext.instance = this;
-		}
-
 		this.language = language;
 		this.home = language.getHome();
 		this.env = env;

@@ -29,7 +29,7 @@ public abstract class ThreadBuiltins {
 		@Specialization
 		OzThread createThread(OzProc target,
 				@Cached("createStartThreadCallTarget()") CallTarget startThread) {
-			return new OzThread(target, startThread, OzContext.getInstance().getEnv());
+			return new OzThread(target, startThread, OzLanguage.getContext().getEnv());
 		}
 
 		protected CallTarget createStartThreadCallTarget() {

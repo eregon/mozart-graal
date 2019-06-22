@@ -77,7 +77,7 @@ public abstract class OSBuiltins {
 			}
 
 			if (new File(path).exists()) {
-				OzContext context = OzContext.getInstance();
+				OzContext context = OzLanguage.getContext();
 				Source source = Loader.createSource(context.getEnv(), path);
 				return context.execute(context.getTranslatorDriver().parseFunctor(source, context.isLoadingMain()));
 			} else {
@@ -86,7 +86,7 @@ public abstract class OSBuiltins {
 		}
 
 		private String findSystemFunctor(String url, String name) {
-			String home = OzContext.getInstance().getHome();
+			String home = OzLanguage.getContext().getHome();
 			for (String loadPath : SYSTEM_LOAD_PATH) {
 				File file = new File(home + "/" + loadPath, name);
 				if (file.exists()) {
@@ -533,7 +533,7 @@ public abstract class OSBuiltins {
 		@Specialization
 		Object pipe(String executable, OzCons argv, OzVar outPid) {
 			if (executable.endsWith("/ozwish")) {
-				executable = OzContext.getInstance().getHome() + "/wish/ozwish";
+				executable = OzLanguage.getContext().getHome() + "/wish/ozwish";
 				argv = new OzCons(executable, argv.getTail());
 			}
 
@@ -546,7 +546,7 @@ public abstract class OSBuiltins {
 			try {
 				Process process = builder.start();
 				outPid.bind(process);
-				OzContext.getInstance().registerChildProcess(process);
+				OzLanguage.getContext().registerChildProcess(process);
 				InputStream input = process.getInputStream();
 				OutputStream output = process.getOutputStream();
 				return new OzCons(input, output);

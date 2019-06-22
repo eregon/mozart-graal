@@ -15,7 +15,7 @@ public class ParserToVMImpl implements ParserToVM {
 
 	@Override
 	public SourceInterface createSource(String path) {
-		return new SourceWrapper(Loader.createSource(OzContext.getInstance().getEnv(), path));
+		return new SourceWrapper(Loader.createSource(OzLanguage.getContext().getEnv(), path));
 	}
 
 	@Override

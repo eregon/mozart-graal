@@ -8,6 +8,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.SystemBuiltinsFactory.GetReprNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
 import org.mozartoz.truffle.runtime.OzContext;
+import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.runtime.Variable;
 
@@ -167,7 +168,7 @@ public abstract class SystemBuiltins {
 		@TruffleBoundary
 		@Specialization(guards = "isInt(exitCode)")
 		Object exit(long exitCode) {
-			OzContext.getInstance().shutdown((int) exitCode);
+			OzLanguage.getContext().shutdown((int) exitCode);
 			return unit;
 		}
 
