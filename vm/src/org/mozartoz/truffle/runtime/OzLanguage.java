@@ -1,5 +1,8 @@
 package org.mozartoz.truffle.runtime;
 
+import org.graalvm.options.OptionDescriptors;
+import org.graalvm.options.OptionValues;
+import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.OzRootNode;
 import org.mozartoz.truffle.nodes.RunMainNode;
 import org.mozartoz.truffle.translator.Loader;
@@ -28,6 +31,10 @@ public class OzLanguage extends TruffleLanguage<OzContext> {
 		return getCurrentLanguage(OzLanguage.class);
 	}
 
+	public static OptionValues getOptions() {
+		return getContext().getEnv().getOptions();
+	}
+
 	public String getHome() {
 		return getLanguageHome();
 	}
@@ -50,6 +57,11 @@ public class OzLanguage extends TruffleLanguage<OzContext> {
 	@Override
 	protected boolean patchContext(OzContext context, Env newEnv) {
 		return context.patchContext(newEnv);
+	}
+
+	@Override
+	protected OptionDescriptors getOptionDescriptors() {
+		return Options.DESCRIPTORS;
 	}
 
 	@Override

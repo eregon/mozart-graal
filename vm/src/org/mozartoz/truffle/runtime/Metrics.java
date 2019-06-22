@@ -7,7 +7,7 @@ public class Metrics {
 	private static long last = System.currentTimeMillis();
 
 	public static void tick(String desc) {
-		if (Options.MEASURE_STARTUP) {
+		if (OzLanguage.getOptions().get(Options.MEASURE_STARTUP)) {
 			long now = System.currentTimeMillis();
 			long duration = now - last;
 			if (duration > 5) {

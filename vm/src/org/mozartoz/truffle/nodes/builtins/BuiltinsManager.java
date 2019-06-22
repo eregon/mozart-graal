@@ -1,12 +1,9 @@
 package org.mozartoz.truffle.nodes.builtins;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.graalvm.collections.Pair;
-import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;

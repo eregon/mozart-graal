@@ -1,6 +1,5 @@
 package org.mozartoz.truffle.nodes.call;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import com.oracle.truffle.api.TruffleOptions;

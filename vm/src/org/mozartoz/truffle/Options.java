@@ -1,10 +1,20 @@
 package org.mozartoz.truffle;
 
+import com.oracle.truffle.api.Option;
 import com.oracle.truffle.api.TruffleOptions;
+import org.graalvm.options.OptionDescriptors;
+import org.graalvm.options.OptionKey;
 
+import static org.graalvm.options.OptionCategory.USER;
+import static org.graalvm.options.OptionStability.STABLE;
+
+@Option.Group("oz")
 public abstract class Options {
 
-	public static final boolean MEASURE_STARTUP = bool("oz.measure.startup", false);
+	public static final OptionDescriptors DESCRIPTORS = new OptionsOptionDescriptors();
+
+	@Option(name = "measure-startup", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> MEASURE_STARTUP = new OptionKey<>(false);
 
 	public static final String SHOW_PROC_AST = System.getProperty("oz.show.ast");
 
