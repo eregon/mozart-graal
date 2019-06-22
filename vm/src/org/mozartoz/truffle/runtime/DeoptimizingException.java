@@ -1,7 +1,8 @@
 package org.mozartoz.truffle.runtime;
 
 /**
- * Stacktraceless exception for triggering deoptimization manually
+ * Stacktraceless exception for triggering deoptimization manually.
+ * SlowPathException cannot be used because it is a checked Exception.
  */
 public final class DeoptimizingException extends RuntimeException {
 
@@ -10,7 +11,6 @@ public final class DeoptimizingException extends RuntimeException {
 	public static final DeoptimizingException INSTANCE = new DeoptimizingException();
 
 	private DeoptimizingException() {
-		super(null, null);
 	}
 
 	@SuppressWarnings("sync-override")
