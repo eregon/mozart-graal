@@ -16,16 +16,14 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     support_distributions=[
         "mozart-graal:MOZART_GRAAL_GRAALVM_SUPPORT",
     ],
-    provided_executables=[],
+    provided_executables=["bin/oz"],
     launcher_configs=[
         mx_sdk.LanguageLauncherConfig(
             destination="bin/<exe:oz>",
-            jar_distributions=[
-                "mozart-graal:MOZART_GRAAL_LAUNCHER",
-            ],
+            jar_distributions=["mozart-graal:MOZART_GRAAL_LAUNCHER"],
             main_class="org.mozartoz.truffle.OzLauncher",
             build_args=["--language:oz"],
-            links=[],
+            language='oz',
         )
     ]
 ))
