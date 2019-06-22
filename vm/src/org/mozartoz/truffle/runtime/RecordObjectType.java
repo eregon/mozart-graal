@@ -1,6 +1,5 @@
 package org.mozartoz.truffle.runtime;
 
-import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.Property;
@@ -8,11 +7,6 @@ import com.oracle.truffle.api.object.Property;
 public class RecordObjectType extends ObjectType {
 
 	public static final RecordObjectType INSTANCE = new RecordObjectType();
-
-	@Override
-	public ForeignAccess getForeignAccessFactory(DynamicObject object) {
-		return RecordMessageResolutionForeign.ACCESS;
-	}
 
 	@Override
 	public boolean equals(DynamicObject object, Object other) {
