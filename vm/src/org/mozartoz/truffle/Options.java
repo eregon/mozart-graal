@@ -4,6 +4,7 @@ import com.oracle.truffle.api.Option;
 import com.oracle.truffle.api.TruffleOptions;
 import org.graalvm.options.OptionDescriptors;
 import org.graalvm.options.OptionKey;
+import org.graalvm.options.OptionType;
 
 import static org.graalvm.options.OptionCategory.USER;
 import static org.graalvm.options.OptionStability.STABLE;
@@ -16,7 +17,8 @@ public abstract class Options {
 	@Option(name = "measure-startup", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> MEASURE_STARTUP = new OptionKey<>(false);
 
-	public static final String SHOW_PROC_AST = System.getProperty("oz.show.ast");
+	@Option(name = "show-ast", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<String> SHOW_AST = new OptionKey<>(null, OptionType.defaultType(""));
 
 	public static final boolean SERIALIZER = bool("oz.serializer", !TruffleOptions.AOT);
 

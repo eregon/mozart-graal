@@ -389,7 +389,8 @@ public class Translator {
 		if (procExpression.name().isDefined()) {
 			identifier = procExpression.name().get().name();
 		}
-		if (Options.SHOW_PROC_AST != null && identifier.endsWith(Options.SHOW_PROC_AST)) {
+		String showAST = OzLanguage.getOptions().get(Options.SHOW_AST);
+		if (showAST != null && identifier.endsWith(showAST)) {
 			System.out.println(procExpression);
 		}
 		pushEnvironment(new FrameDescriptor(), identifier);
