@@ -23,8 +23,11 @@ public abstract class Options {
 	@Option(name = "serializer", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> SERIALIZER = new OptionKey<>(!TruffleOptions.AOT);
 
-	public static final boolean TAIL_CALLS = bool("oz.tail.calls", true);
-	public static final boolean TAIL_CALLS_OSR = bool("oz.tail.calls.osr", true);
+	@Option(name = "tail-calls", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> TAIL_CALLS = new OptionKey<>(true);
+
+	@Option(name = "tail-calls-osr", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> TAIL_CALLS_OSR = new OptionKey<>(true);
 
 	public static final boolean SELF_TAIL_CALLS = bool("oz.tail.selfcalls", true);
 	public static final boolean SELF_TAIL_CALLS_OSR = bool("oz.tail.selfcalls.osr", true);

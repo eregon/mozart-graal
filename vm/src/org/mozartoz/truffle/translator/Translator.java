@@ -441,7 +441,7 @@ public class Translator {
 		if (Options.SELF_TAIL_CALLS && call.isSelfTail()) {
 			isSelfTailRec = true;
 			return t(call, new SelfTailCallThrowerNode(argsNodes));
-		} else if (Options.TAIL_CALLS && call.isTail()) {
+		} else if (OzLanguage.getOptions().get(Options.TAIL_CALLS) && call.isTail()) {
 			return t(call, new TailCallThrowerNode(receiver, new ExecuteValuesNode(argsNodes)));
 		} else {
 			return t(call, CallNode.create(receiver, new ExecuteValuesNode(argsNodes)));

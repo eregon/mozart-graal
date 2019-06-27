@@ -29,8 +29,11 @@ public class TailCallCatcherNode extends CallableNode {
 	private final BranchProfile normalCallProfile = BranchProfile.create();
 	private final BranchProfile tailCallProfile = BranchProfile.create();
 
+	private final boolean tailCallOSR;
+
 	public TailCallCatcherNode(CallNode callNode) {
 		this.callNode = callNode;
+		this.tailCallOSR = OzLanguage.getOptions().get(Options.TAIL_CALLS_OSR);
 	}
 
 	public Object execute(VirtualFrame frame) {
@@ -66,7 +69,7 @@ public class TailCallCatcherNode extends CallableNode {
 
 		TailCallLoopNode tailCallLoop = (TailCallLoopNode) loopNode.getRepeatingNode();
 		tailCallLoop.setTailCallException(frame, tailCall);
-		if (Options.TAIL_CALLS_OSR) {
+		if (tailCallOSR) {
 			loopNode.executeLoop(frame);
 		} else {
 			tailCallLoop.execute(frame);

@@ -4,6 +4,7 @@ import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzProc;
 
@@ -30,7 +31,7 @@ public abstract class CallNode extends CallableNode {
 	}
 
 	public static CallableNode create(OzNode receiver, OzNode arguments) {
-		if (Options.TAIL_CALLS) {
+		if (OzLanguage.getOptions().get(Options.TAIL_CALLS)) {
 			// Always create a TailCallCatcherNode to ensure a TailCallException
 			// never goes back further than the current call.
 			return new TailCallCatcherNode(CallNodeGen.create(receiver, arguments));
