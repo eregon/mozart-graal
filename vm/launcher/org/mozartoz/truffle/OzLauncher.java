@@ -36,16 +36,8 @@ public class OzLauncher extends AbstractLanguageLauncher {
 
 	@Override
 	protected void launch(Context.Builder contextBuilder) {
-		final boolean runTests = args.length == 0;
-		final Source source;
-		final String[] appArgs;
-		if (runTests) {
-			source = Source.create("oz", "RUN_TESTS");
-			appArgs = new String[0];
-		} else {
-			source = createSource(args[0]);
-			appArgs = Arrays.copyOfRange(args, 1, args.length);
-		}
+		final Source source = createSource(args[0]);
+		final String[] appArgs = Arrays.copyOfRange(args, 1, args.length);
 
 		try (Context context = contextBuilder.arguments("oz", appArgs).build()) {
 			context.eval(source);
