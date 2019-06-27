@@ -15,7 +15,7 @@ public class OzLauncher extends AbstractLanguageLauncher {
 		new OzLauncher().launch(args);
 	}
 
-	private String[] args = new String[0];
+	private String[] args;
 
 	@Override
 	protected List<String> preprocessArguments(List<String> arguments, Map<String, String> polyglotOptions) {
