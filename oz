@@ -37,6 +37,7 @@ java_opts = %w[-ea -esa]
 java_opts << "-Doz.home=#{dir}"
 
 argv = ARGV.dup
+oz_options = []
 rest = []
 
 while arg = argv.shift
@@ -76,6 +77,8 @@ while arg = argv.shift
     java_opts << "-agentlib:jdwp=transport=dt_socket,server=y,address=51819,suspend=y"
   when /^-[DX](.+)/
     java_opts << arg
+  when /^--/
+    oz_options << arg
   else
     rest = [arg, *argv]
     break
@@ -92,7 +95,7 @@ cmd = [
   "-Xbootclasspath/p:" + oz_bootclasspath.join(':'),
   '-cp', classpath.join(':'),
   'org.mozartoz.truffle.OzLauncher'
-] + rest
+] + oz_options + rest
 
 puts "$ #{cmd.join(' ')}"
 exec(*cmd)
