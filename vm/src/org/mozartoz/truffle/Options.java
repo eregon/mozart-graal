@@ -38,7 +38,6 @@ public abstract class Options {
 	@Option(name = "stacktrace-on-interrupt", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> STACKTRACE_ON_INTERRUPT = new OptionKey<>(false);
 
-	public static final boolean FREE_LINKS = bool("oz.free.links", true);
 	public static final boolean FREE_SLOTS = bool("oz.free.slots", true);
 	public static final boolean DIRECT_PATTERN_VARS = bool("oz.patvars.direct", true);
 	public static final boolean DIRECT_VARS = bool("oz.vars.direct", true);

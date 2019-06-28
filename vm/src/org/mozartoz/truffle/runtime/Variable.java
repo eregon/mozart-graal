@@ -70,9 +70,7 @@ public abstract class Variable extends OzValue {
 		assert !(value instanceof Variable);
 		assert !(this instanceof OzFuture) || from instanceof OzFuture;
 		this.value = value;
-		if (Options.FREE_LINKS) {
-			this.next = null; // null to catch wrong usages
-		}
+		this.next = null; // null to catch wrong usages
 	}
 
 	public void bind(Object value) {
