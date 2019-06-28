@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
+import org.graalvm.options.OptionValues;
 import org.mozartoz.bootcompiler.ast.BinaryOp;
 import org.mozartoz.bootcompiler.ast.BindCommon;
 import org.mozartoz.bootcompiler.ast.CallCommon;
@@ -183,12 +184,14 @@ public class Translator {
 	private Environment environment = new Environment(null, new FrameDescriptor());
 	private final Environment rootEnvironment = environment;
 	private final OzLanguage language;
+	private final OptionValues options;
 	private final DynamicObject base;
 
 	private boolean isSelfTailRec = false;
 
-	public Translator(OzLanguage language, DynamicObject base) {
+	public Translator(OzLanguage language, OptionValues optionValues, DynamicObject base) {
 		this.language = language;
+		this.options = optionValues;
 		this.base = base;
 	}
 
@@ -389,7 +392,7 @@ public class Translator {
 		if (procExpression.name().isDefined()) {
 			identifier = procExpression.name().get().name();
 		}
-		String showAST = OzLanguage.getOptions().get(Options.SHOW_AST);
+		String showAST = options.get(Options.SHOW_AST);
 		if (showAST != null && identifier.endsWith(showAST)) {
 			System.out.println(procExpression);
 		}
@@ -438,10 +441,10 @@ public class Translator {
 	private OzNode translateCall(CallCommon call) {
 		OzNode receiver = translate(call.callable());
 		OzNode[] argsNodes = translate(call.args());
-		if (OzLanguage.getOptions().get(Options.SELF_TAIL_CALLS) && call.isSelfTail()) {
+		if (options.get(Options.SELF_TAIL_CALLS) && call.isSelfTail()) {
 			isSelfTailRec = true;
 			return t(call, new SelfTailCallThrowerNode(argsNodes));
-		} else if (OzLanguage.getOptions().get(Options.TAIL_CALLS) && call.isTail()) {
+		} else if (options.get(Options.TAIL_CALLS) && call.isTail()) {
 			return t(call, new TailCallThrowerNode(receiver, new ExecuteValuesNode(argsNodes)));
 		} else {
 			return t(call, CallNode.create(receiver, new ExecuteValuesNode(argsNodes)));

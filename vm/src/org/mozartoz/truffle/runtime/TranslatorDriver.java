@@ -25,11 +25,13 @@ import com.oracle.truffle.api.source.Source;
 public class TranslatorDriver {
 
 	private final OzLanguage language;
+	private final OptionValues optionValues;
 	private final BootCompilerOptions options;
 
 	public TranslatorDriver(OzLanguage language, OptionValues optionValues) {
 		this.language = language;
 		BootCompiler.registerParserToVM(ParserToVMImpl.INSTANCE);
+		this.optionValues = optionValues;
 		this.options = new BootCompilerOptions(optionValues.get(Options.SELF_TAIL_CALLS), Options.FRAME_FILTERING);
 	}
 
@@ -39,7 +41,7 @@ public class TranslatorDriver {
 		Metrics.tick("parse Base");
 		Statement ast = CompilerPipeline.compile(program, "the base environment");
 
-		Translator translator = new Translator(language, null);
+		Translator translator = new Translator(language, optionValues, null);
 		FrameSlot topLevelResultSlot = translator.addRootSymbol(program.topLevelResultSymbol());
 		return translator.translateAST("<Base>", ast, node -> {
 			return SequenceNode.sequence(
@@ -60,7 +62,7 @@ public class TranslatorDriver {
 		Statement ast = CompilerPipeline.compile(program, fileName);
 		Metrics.tick("compiled functor " + fileName);
 
-		Translator translator = new Translator(language, base);
+		Translator translator = new Translator(language, optionValues, base);
 		FrameSlot baseSlot = translator.addRootSymbol(program.baseEnvSymbol());
 		FrameSlot topLevelResultSlot = translator.addRootSymbol(program.topLevelResultSymbol());
 		RootCallTarget callTarget = translator.translateAST(fileName, ast, node -> {
