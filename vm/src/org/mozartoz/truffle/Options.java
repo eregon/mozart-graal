@@ -50,7 +50,9 @@ public abstract class Options {
 	@Option(name = "vars.filtering", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> FRAME_FILTERING = new OptionKey<>(true);
 
-	public static final boolean CACHE_READ = bool("oz.reads.cache", false);
+	@Option(name = "reads-cache", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> CACHE_READ = new OptionKey<>(false);
+
 	public static final boolean PRINT_NLINKS = bool("oz.print.nlinks", false);
 	public static final boolean PRINT_NVARS = bool("oz.print.nvars", false);
 

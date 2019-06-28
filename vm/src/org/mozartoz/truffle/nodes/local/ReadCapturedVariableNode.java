@@ -9,9 +9,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.mozartoz.truffle.runtime.OzLanguage;
 
 public abstract class ReadCapturedVariableNode extends OzNode {
-	protected static final boolean CACHE_READ = Options.CACHE_READ;
 
 	public abstract Object executeRead(VirtualFrame frame);
 
@@ -23,18 +23,22 @@ public abstract class ReadCapturedVariableNode extends OzNode {
 		this.depth = depth;
 	}
 
-	@Specialization(guards = "CACHE_READ")
+	@Specialization(guards = "shouldCacheRead()")
 	protected Object readWithCache(VirtualFrame frame,
 			@Cached("createCachingReadNode(slot)") CachingReadFrameSlotNode readNode) {
 		Frame parentFrame = OzArguments.getParentFrame(frame, depth);
 		return readNode.executeRead(parentFrame);
 	}
 
-	@Specialization(guards = "!CACHE_READ")
+	@Specialization(guards = "!shouldCacheRead()")
 	protected Object readWithoutCache(VirtualFrame frame,
 			@Cached("createReadNode(slot)") ReadFrameSlotNode readNode) {
 		Frame parentFrame = OzArguments.getParentFrame(frame, depth);
 		return readNode.executeRead(parentFrame);
+	}
+
+	protected boolean shouldCacheRead() {
+		return OzLanguage.getOptions().get(Options.CACHE_READ);
 	}
 
 	protected ReadFrameSlotNode createReadNode(FrameSlot slot) {
