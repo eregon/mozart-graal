@@ -49,11 +49,11 @@ public class OzContext {
 
 		propertyRegistry = PropertyRegistry.INSTANCE;
 		propertyRegistry.initialize(home);
-		mainThread = new OzThread();
+		mainThread = new OzThread(env);
 
 		mainImage = new File(home, "Main.image");
 
-		if (Options.STACKTRACE_ON_INTERRUPT) {
+		if (env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT)) {
 			this.shutdownHook = new StacktraceThread();
 			Runtime.getRuntime().addShutdownHook(shutdownHook);
 		} else {
@@ -86,7 +86,7 @@ public class OzContext {
 	public void finalizeContext() {
 		waitThreads();
 
-		if (Options.STACKTRACE_ON_INTERRUPT) {
+		if (env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT)) {
 			Runtime.getRuntime().removeShutdownHook(shutdownHook);
 		}
 	}

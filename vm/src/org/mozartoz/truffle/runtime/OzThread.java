@@ -17,7 +17,7 @@ public class OzThread extends OzValue implements Runnable {
 
 	private static final CoroutineLocal<OzThread> CURRENT_OZ_THREAD = new CoroutineLocal<>();
 
-	public static final Map<OzThread, OzBacktrace> BACKTRACES = Options.STACKTRACE_ON_INTERRUPT ? new ConcurrentHashMap<>() : null;
+	public static final Map<OzThread, OzBacktrace> BACKTRACES = new ConcurrentHashMap<>();
 
 	private static long threadsCreated = 1L;
 	private static long threadsRunnable = 1L;
@@ -45,8 +45,8 @@ public class OzThread extends OzValue implements Runnable {
 	private String status = "runnable";
 	private boolean raiseOnBlock = false;
 
-	public OzThread() {
-		env = null;
+	public OzThread(Env env) {
+		this.env = env;
 		original = null;
 		coroutine = (Coroutine) Coroutine.current();
 		proc = null;
@@ -116,7 +116,7 @@ public class OzThread extends OzValue implements Runnable {
 			truffleContext.leave(prev);
 			threadsRunnable--;
 			status = "terminated";
-			if (Options.STACKTRACE_ON_INTERRUPT) {
+			if (env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT)) {
 				BACKTRACES.remove(this);
 			}
 		}
@@ -125,7 +125,7 @@ public class OzThread extends OzValue implements Runnable {
 	@TruffleBoundary
 	public void yield(Node currentNode) {
 		status = "blocked";
-		if (Options.STACKTRACE_ON_INTERRUPT) {
+		if (env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT)) {
 			BACKTRACES.put(this, OzBacktrace.capture(currentNode));
 		}
 		Coroutine.yield();

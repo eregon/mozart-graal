@@ -35,7 +35,8 @@ public abstract class Options {
 	@Option(name = "tail-selfcalls-osr", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> SELF_TAIL_CALLS_OSR = new OptionKey<>(true);
 
-	public static final boolean STACKTRACE_ON_INTERRUPT = bool("oz.stacktrace.on_interrupt", false);
+	@Option(name = "stacktrace-on-interrupt", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> STACKTRACE_ON_INTERRUPT = new OptionKey<>(false);
 
 	public static final boolean FREE_LINKS = bool("oz.free.links", true);
 	public static final boolean FREE_SLOTS = bool("oz.free.slots", true);
