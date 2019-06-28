@@ -3,6 +3,7 @@ package org.mozartoz.truffle.nodes.call;
 import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzBacktrace;
+import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.SelfTailCallException;
 
 import com.oracle.truffle.api.Truffle;
@@ -28,10 +29,11 @@ public class SelfTailCallCatcherNode extends OzNode {
 	}
 
 	public static OzNode create(OzNode body, FrameDescriptor frameDescriptor) {
-		if (!Options.SELF_TAIL_CALLS_OSR) {
+		if (OzLanguage.getOptions().get(Options.SELF_TAIL_CALLS_OSR)) {
+			return new SelfTailCallCatcherNode(body, frameDescriptor);
+		} else {
 			return new SelfTailCallLoopNode(body, frameDescriptor);
 		}
-		return new SelfTailCallCatcherNode(body, frameDescriptor);
 	}
 
 	@Override

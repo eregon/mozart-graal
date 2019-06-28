@@ -27,10 +27,10 @@ public class TranslatorDriver {
 	private final OzLanguage language;
 	private final BootCompilerOptions options;
 
-	public TranslatorDriver(OzLanguage language) {
+	public TranslatorDriver(OzLanguage language, OptionValues optionValues) {
 		this.language = language;
 		BootCompiler.registerParserToVM(ParserToVMImpl.INSTANCE);
-		this.options = new BootCompilerOptions(Options.SELF_TAIL_CALLS, Options.FRAME_FILTERING);
+		this.options = new BootCompilerOptions(optionValues.get(Options.SELF_TAIL_CALLS), Options.FRAME_FILTERING);
 	}
 
 	public RootCallTarget parseBase(Source source) {

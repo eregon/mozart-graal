@@ -43,7 +43,7 @@ public class OzContext {
 		this.home = language.getHome();
 		this.env = env;
 
-		this.translatorDriver = new TranslatorDriver(language);
+		this.translatorDriver = new TranslatorDriver(language, env.getOptions());
 
 		BuiltinsManager.defineBuiltins(language);
 

@@ -438,7 +438,7 @@ public class Translator {
 	private OzNode translateCall(CallCommon call) {
 		OzNode receiver = translate(call.callable());
 		OzNode[] argsNodes = translate(call.args());
-		if (Options.SELF_TAIL_CALLS && call.isSelfTail()) {
+		if (OzLanguage.getOptions().get(Options.SELF_TAIL_CALLS) && call.isSelfTail()) {
 			isSelfTailRec = true;
 			return t(call, new SelfTailCallThrowerNode(argsNodes));
 		} else if (OzLanguage.getOptions().get(Options.TAIL_CALLS) && call.isTail()) {

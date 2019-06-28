@@ -29,8 +29,11 @@ public abstract class Options {
 	@Option(name = "tail-calls-osr", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> TAIL_CALLS_OSR = new OptionKey<>(true);
 
-	public static final boolean SELF_TAIL_CALLS = bool("oz.tail.selfcalls", true);
-	public static final boolean SELF_TAIL_CALLS_OSR = bool("oz.tail.selfcalls.osr", true);
+	@Option(name = "tail-selfcalls", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> SELF_TAIL_CALLS = new OptionKey<>(true);
+
+	@Option(name = "tail-selfcalls-osr", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> SELF_TAIL_CALLS_OSR = new OptionKey<>(true);
 
 	public static final boolean STACKTRACE_ON_INTERRUPT = bool("oz.stacktrace.on_interrupt", false);
 
