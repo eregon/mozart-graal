@@ -19,11 +19,11 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 public abstract class CallProcNode extends OzNode {
 
 	public static int procIdentityLimit() {
-		return Options.INLINE_FRAMES;
+		return OzLanguage.getOptions().get(Options.INLINE_CACHE_IDENTITY);
 	}
 
 	public static int callTargetLimit() {
-		return Options.INLINE_CALLTARGET;
+		return OzLanguage.getOptions().get(Options.INLINE_CACHE_CALLTARGET);
 	}
 
 	/** Must only be used by CallNode */
@@ -56,7 +56,7 @@ public abstract class CallProcNode extends OzNode {
 	protected static DirectCallNode createDirectCallNode(RootCallTarget callTarget) {
 		DirectCallNode callNode = DirectCallNode.create(callTarget);
 		OzRootNode rootNode = (OzRootNode) callTarget.getRootNode();
-		if (Options.SPLIT_BUILTINS && rootNode.isForceSplitting()) {
+		if (OzLanguage.getOptions().get(Options.SPLIT_BUILTINS) && rootNode.isForceSplitting()) {
 			boolean cloned = callNode.cloneCallTarget();
 			callNode.forceInlining();
 			assert OzLanguage.ON_GRAAL == cloned;

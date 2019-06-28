@@ -9,6 +9,7 @@ import org.mozartoz.truffle.nodes.call.CallMethodNodeGen.MethodDispatchNodeGen;
 import org.mozartoz.truffle.nodes.call.CallMethodNodeGen.MethodLookupNodeGen;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzArguments;
+import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzProc;
 import org.mozartoz.truffle.runtime.OzUniqueName;
@@ -28,8 +29,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 @NodeChildren({ @NodeChild("object"), @NodeChild("arguments") })
 public abstract class CallMethodNode extends OzNode {
 
-	public static int methodCache(int l) {
-		return Options.OPTIMIZE_METHODS ? l : 0;
+	public static int methodCache() {
+		return OzLanguage.getOptions().get(Options.INLINE_CACHE_METHOD);
 	}
 
 	/** Must only be used by CallNode */
@@ -69,7 +70,7 @@ public abstract class CallMethodNode extends OzNode {
 		@Specialization(guards = {
 				"self.getClazz() == cachedClazz",
 				"name == cachedName",
-		}, limit = "methodCache(3)")
+		}, limit = "methodCache()")
 		protected OzProc cachedLookup(OzObject self, Object name,
 				@Cached("self.getClazz()") DynamicObject cachedClazz,
 				@Cached("name") Object cachedName,
@@ -106,7 +107,7 @@ public abstract class CallMethodNode extends OzNode {
 		@Specialization(guards = {
 				"method == cachedMethod",
 				"cachedMethod != null",
-		}, limit = "methodCache(3)")
+		}, limit = "methodCache()")
 		protected Object dispatchCached(OzObject self, OzProc method, Object message,
 				@Cached("method") OzProc cachedMethod,
 				@Cached("createDirectCallNode(cachedMethod.callTarget)") DirectCallNode callNode) {

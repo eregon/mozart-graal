@@ -53,11 +53,17 @@ public abstract class Options {
 	@Option(name = "reads-cache", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> CACHE_READ = new OptionKey<>(false);
 
-	public static final boolean SPLIT_BUILTINS = bool("oz.builtins.split", true);
+	@Option(name = "split-builtins", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> SPLIT_BUILTINS = new OptionKey<>(true);
 
-	public static final int INLINE_FRAMES = integer("oz.frames.cache", 1);
-	public static final int INLINE_CALLTARGET = integer("oz.calltargets.cache", 3);
-	public static final boolean OPTIMIZE_METHODS = bool("oz.methods.cache", true);
+	@Option(name = "inline-cache-identity", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Integer> INLINE_CACHE_IDENTITY = new OptionKey<>(1);
+
+	@Option(name = "inline-cache-calltarget", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Integer> INLINE_CACHE_CALLTARGET = new OptionKey<>(3);
+
+	@Option(name = "inline-cache-method", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Integer> INLINE_CACHE_METHOD = new OptionKey<>(3);
 
 	public static final boolean CYCLE_DETECTION = bool("oz.cycles", true);
 	public static final int CYCLE_THRESHOLD = integer("oz.cycles.threshold", 20);
