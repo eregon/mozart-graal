@@ -53,8 +53,6 @@ public abstract class Options {
 	@Option(name = "reads-cache", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> CACHE_READ = new OptionKey<>(false);
 
-	public static final boolean PRINT_NVARS = bool("oz.print.nvars", false);
-
 	public static final boolean SPLIT_BUILTINS = bool("oz.builtins.split", true);
 
 	public static final int INLINE_FRAMES = integer("oz.frames.cache", 1);

@@ -1,6 +1,5 @@
 package org.mozartoz.truffle.runtime;
 
-import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -11,14 +10,6 @@ public abstract class Variable extends OzValue {
 
 	private @CompilationFinal Object value = null;
 	private boolean needed = false;
-
-	public static long variableCount = 0;
-
-	public Variable() {
-		if (Options.PRINT_NVARS) {
-			Variable.variableCount++;
-		}
-	}
 
 	/** A circular list of linked Variable */
 	private Variable next = this;

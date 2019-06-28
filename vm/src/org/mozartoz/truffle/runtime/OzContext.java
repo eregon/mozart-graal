@@ -199,9 +199,6 @@ public class OzContext {
 		for (Process process : childProcesses) {
 			process.destroyForcibly();
 		}
-		if (Options.PRINT_NVARS) {
-			System.out.println("nvars --- " + Variable.variableCount);
-		}
 		System.exit(exitCode);
 	}
 
