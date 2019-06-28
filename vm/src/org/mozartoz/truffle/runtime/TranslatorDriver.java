@@ -2,9 +2,12 @@ package org.mozartoz.truffle.runtime;
 
 import java.io.File;
 
+import org.graalvm.options.OptionValues;
 import org.mozartoz.bootcompiler.BootCompiler;
+import org.mozartoz.bootcompiler.BootCompilerOptions;
 import org.mozartoz.bootcompiler.ast.Statement;
 import org.mozartoz.bootcompiler.symtab.Program;
+import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.control.SequenceNode;
 import org.mozartoz.truffle.nodes.literal.LiteralNode;
@@ -22,15 +25,17 @@ import com.oracle.truffle.api.source.Source;
 public class TranslatorDriver {
 
 	private final OzLanguage language;
+	private final BootCompilerOptions options;
 
 	public TranslatorDriver(OzLanguage language) {
 		this.language = language;
 		BootCompiler.registerParserToVM(ParserToVMImpl.INSTANCE);
+		this.options = new BootCompilerOptions(Options.SELF_TAIL_CALLS, Options.FRAME_FILTERING);
 	}
 
 	public RootCallTarget parseBase(Source source) {
 		Metrics.tick("enter parseBase");
-		Program program = BootCompiler.buildBaseEnvProgram(new SourceWrapper(source), BuiltinsRegistry.getBuiltins());
+		Program program = BootCompiler.buildBaseEnvProgram(new SourceWrapper(source), BuiltinsRegistry.getBuiltins(), options);
 		Metrics.tick("parse Base");
 		Statement ast = CompilerPipeline.compile(program, "the base environment");
 
@@ -50,7 +55,7 @@ public class TranslatorDriver {
 		String fileName = new File(source.getPath()).getName();
 		System.out.println("Loading " + fileName);
 		Metrics.tick("start parse");
-		Program program = BootCompiler.buildProgram(new SourceWrapper(source), false, eagerLoad, BuiltinsRegistry.getBuiltins());
+		Program program = BootCompiler.buildProgram(new SourceWrapper(source), false, eagerLoad, BuiltinsRegistry.getBuiltins(), options);
 		Metrics.tick("parse functor " + fileName);
 		Statement ast = CompilerPipeline.compile(program, fileName);
 		Metrics.tick("compiled functor " + fileName);

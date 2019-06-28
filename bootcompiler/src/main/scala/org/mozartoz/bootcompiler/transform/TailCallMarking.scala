@@ -18,7 +18,7 @@ object TailCallMarking extends Transformer {
   
   def markTailCalls(statement: Statement): Statement = statement match {
     case call @ CallStatement(callable, args) =>
-      if (Options.SELF_TAIL_CALLS && Some(callable) == procExpr.name) {
+      if (program.options.selfTailCalls && Some(callable) == procExpr.name) {
         call.kind = CallKind.SelfTail
       } else {
         call.kind = CallKind.Tail

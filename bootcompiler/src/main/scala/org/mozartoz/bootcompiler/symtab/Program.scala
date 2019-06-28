@@ -11,7 +11,9 @@ class Program(
     val eagerLoad: Boolean = false,
 
     /** Builtin manager */
-    val builtins: Builtins = new Builtins) {
+    val builtins: Builtins = new Builtins,
+
+    val options: BootCompilerOptions) {
 
   /** Before flattening, abstract syntax tree of the whole program */
   var rawCode: Statement = null

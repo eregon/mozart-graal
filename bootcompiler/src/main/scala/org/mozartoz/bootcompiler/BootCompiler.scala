@@ -1,10 +1,5 @@
 package org.mozartoz.bootcompiler
 
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileReader
-import scala.collection.immutable.PagedSeq
-import scala.collection.mutable.Buffer
 import org.mozartoz.bootcompiler.symtab.Builtins
 import org.mozartoz.bootcompiler.symtab.Program
 import org.mozartoz.bootcompiler.fastparse.Parser
@@ -22,19 +17,19 @@ object BootCompiler {
     BootCompiler.parserToVM = parserToVM
   }
 
-  def buildMainProgram(source: Source, builtins: Builtins) = {
-    val program = new Program(false, false, builtins)
+  def buildMainProgram(source: Source, builtins: Builtins, options: BootCompilerOptions) = {
+    val program = new Program(false, false, builtins, options)
     val statement = parseStatement(source, Set.empty)
     program.rawCode = statement
     program
   }
 
-  def buildBaseEnvProgram(source: Source, builtins: Builtins) = {
-    buildProgram(source, true, true, builtins)
+  def buildBaseEnvProgram(source: Source, builtins: Builtins, options: BootCompilerOptions) = {
+    buildProgram(source, true, true, builtins, options)
   }
 
-  def buildProgram(source: Source, isBase: Boolean, eagerLoad: Boolean, builtins: Builtins) = {
-    val program = new Program(isBase, eagerLoad, builtins)
+  def buildProgram(source: Source, isBase: Boolean, eagerLoad: Boolean, builtins: Builtins, options: BootCompilerOptions) = {
+    val program = new Program(isBase, eagerLoad, builtins, options)
     val functor = parseExpression(source, Set.empty)
     ProgramBuilder.buildModuleProgram(program, functor)
     program

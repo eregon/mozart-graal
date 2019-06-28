@@ -22,17 +22,17 @@ import scala.collection._
  * ToInstantiate is of course the state of a variable that cannot be put on the stack whatever happens in the
  *   next instructions. This is the privileged state to provide in case of doubt.
  */
-sealed class VarState(val onStack: Boolean, val locked: Boolean) {
+sealed class VarState(val onStack: Boolean, val locked: Program => Boolean) {
   def merge(other: VarState) = (this, other) match {
     case _ if this == other                          => this
     case (Declared, Captured) | (Captured, Declared) => Captured
     case _                                           => ToInstantiate
   }
 }
-object Declared      extends VarState(true, false)
-object Captured      extends VarState(false, Options.FRAME_FILTERING)
-object BoundFirst    extends VarState(true, true)
-object ToInstantiate extends VarState(false, true)
+object Declared      extends VarState(true,  _ => false)
+object Captured      extends VarState(false, p => p.options.frameFiltering)
+object BoundFirst    extends VarState(true,  _ => true)
+object ToInstantiate extends VarState(false, _ => true)
 
 case class VarAndState(v: Variable, state: VarState)
 
@@ -75,6 +75,7 @@ class OnStackMarking(
       // do nothing when encountering a "bond on stack" node. Bound and Used variables will get the same treatment
       override def onStackBind(bind: BindCommon, v: Variable) = {}
     }
+    marker.program = program
     marking(marker)
     affected
   }
@@ -93,6 +94,7 @@ class OnStackMarking(
         override def onStackBind(bind: BindCommon, v: Variable) =
           bindNodes.put(v.symbol, bindNodes.getOrElse(v.symbol, Seq()) :+ bind)
       }
+      marker.program = program
       branch(marker)
       if (i != 0) {
         for (v <- modified) {
@@ -127,7 +129,7 @@ class OnStackMarking(
   def bindBindCommon(bind: BindCommon, sym: Symbol, right: Expression) = {
     walkExpr(right)
     // If we bind and it has not been used, put it on stack
-    for (decl <- declVars.get(sym) if !decl.state.locked) {
+    for (decl <- declVars.get(sym) if !decl.state.locked(program)) {
       tagVariable(decl.v, BoundFirst)
       onStackBind(bind, decl.v)
     }
@@ -170,7 +172,7 @@ class OnStackMarking(
       bindBindCommon(bind, sym, right)
 
     case Variable(sym) =>
-      for (decl <- declVars.get(sym) if !decl.state.locked) {
+      for (decl <- declVars.get(sym) if !decl.state.locked(program)) {
         tagVariable(decl.v, ToInstantiate)
       }
 
