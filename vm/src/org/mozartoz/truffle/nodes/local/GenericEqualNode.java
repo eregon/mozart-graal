@@ -8,6 +8,7 @@ import org.mozartoz.truffle.runtime.DeoptimizingException;
 import org.mozartoz.truffle.runtime.IdentityPair;
 import org.mozartoz.truffle.runtime.MutableInt;
 import org.mozartoz.truffle.runtime.OnHeapSearchState;
+import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.Variable;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -20,7 +21,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 @NodeChildren({ @NodeChild("left"), @NodeChild("right") })
 public abstract class GenericEqualNode extends OzNode {
 
-	protected static final boolean CYCLE_DETECTION = Options.CYCLE_DETECTION;
+	protected static boolean useCycleDetection() {
+		return OzLanguage.getOptions().get(Options.CYCLE_DETECTION);
+	}
 
 	public static GenericEqualNode create() {
 		return GenericEqualNodeGen.create(null, null);
@@ -28,19 +31,19 @@ public abstract class GenericEqualNode extends OzNode {
 
 	public abstract boolean executeEqual(Object a, Object b);
 
-	@Specialization(guards = "!CYCLE_DETECTION")
+	@Specialization(guards = "!useCycleDetection()")
 	protected boolean dfsEqual(Object a, Object b,
 			@Cached("create()") DFSEqualNode equalNode) {
 		return equalNode.executeEqual(a, b, null);
 	}
 
-	@Specialization(guards = "CYCLE_DETECTION", rewriteOn = DeoptimizingException.class)
+	@Specialization(guards = "useCycleDetection()", rewriteOn = DeoptimizingException.class)
 	protected boolean depthLimitedEqual(Object a, Object b,
 			@Cached("create()") DepthLimitedEqualNode equalNode) {
 		return equalNode.executeEqual(a, b, null);
 	}
 
-	@Specialization(guards = "CYCLE_DETECTION", replaces = "depthLimitedEqual")
+	@Specialization(guards = "useCycleDetection()", replaces = "depthLimitedEqual")
 	protected boolean cycleDetectingEqual(Object a, Object b,
 			@Cached("create()") OnHeapEqualNode equalNode) {
 		return equalNode.executeEqual(a, b, null);

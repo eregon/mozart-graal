@@ -65,7 +65,9 @@ public abstract class Options {
 	@Option(name = "inline-cache-method", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Integer> INLINE_CACHE_METHOD = new OptionKey<>(3);
 
-	public static final boolean CYCLE_DETECTION = bool("oz.cycles", true);
+	@Option(name = "cycles", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> CYCLE_DETECTION = new OptionKey<>(true);
+
 	public static final int CYCLE_THRESHOLD = integer("oz.cycles.threshold", 20);
 
 	// Truffle options
