@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
+import org.graalvm.options.OptionValues;
 import org.mozartoz.bootcompiler.BootCompiler;
 import org.mozartoz.bootcompiler.ast.Statement;
 import org.mozartoz.bootcompiler.symtab.Program;
@@ -17,13 +18,13 @@ import org.mozartoz.truffle.Options;
 
 public class CompilerPipeline {
 
-	public static Statement compile(Program program, String fileName) {
-		Statement ast = applyTransformations(program);
+	public static Statement compile(Program program, OptionValues options, String fileName) {
+		Statement ast = applyTransformations(program, options);
 		BootCompiler.checkCompileErrors(program, fileName);
 		return ast;
 	}
 
-	private static Statement applyTransformations(Program program) {
+	private static Statement applyTransformations(Program program, OptionValues options) {
 		Namer.apply(program);
 		DesugarFunctor.apply(program);
 		DesugarClass.apply(program);
@@ -32,12 +33,12 @@ public class CompilerPipeline {
 		ConstantFolding.apply(program);
 		Unnester.apply(program);
 
-		if (Options.DIRECT_VARS) {
+		if (options.get(Options.DIRECT_VARS)) {
 			new OnStackMarking().apply(program);
 		}
 		TailCallMarking.apply(program);
-		if (Options.FREE_SLOTS) {
-			assert Options.FRAME_FILTERING : "";
+		if (options.get(Options.FREE_SLOTS)) {
+			assert options.get(Options.FRAME_FILTERING) : "";
 			VariableDeduplication.apply(program);
 			VariableClearing.apply(program);
 		}

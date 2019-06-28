@@ -47,6 +47,7 @@ public class SelfTailCallCatcherNode extends OzNode {
 		@Child OzNode body;
 
 		final FrameDescriptor frameDescriptor;
+		final boolean frameFiltering;
 		final BranchProfile returnProfile = BranchProfile.create();
 		final BranchProfile tailCallProfile = BranchProfile.create();
 		final LoopConditionProfile loopProfile = LoopConditionProfile.createCountingProfile();
@@ -54,6 +55,7 @@ public class SelfTailCallCatcherNode extends OzNode {
 		public SelfTailCallLoopNode(OzNode body, FrameDescriptor frameDescriptor) {
 			this.frameDescriptor = frameDescriptor;
 			this.body = body;
+			this.frameFiltering = OzLanguage.getOptions().get(Options.FRAME_FILTERING);
 		}
 
 		// normal
@@ -73,7 +75,7 @@ public class SelfTailCallCatcherNode extends OzNode {
 		private boolean loopBody(VirtualFrame frame) {
 			try {
 				// Create a new frame as we don't want to override slots in the frame (if they are captured by a proc)
-				body.execute(Options.FRAME_FILTERING ? frame : Truffle.getRuntime().createVirtualFrame(frame.getArguments(), frameDescriptor));
+				body.execute(frameFiltering ? frame : Truffle.getRuntime().createVirtualFrame(frame.getArguments(), frameDescriptor));
 				returnProfile.enter();
 				return false;
 			} catch (SelfTailCallException e) {

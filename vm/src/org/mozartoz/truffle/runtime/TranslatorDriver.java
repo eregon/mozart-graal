@@ -32,14 +32,16 @@ public class TranslatorDriver {
 		this.language = language;
 		BootCompiler.registerParserToVM(ParserToVMImpl.INSTANCE);
 		this.optionValues = optionValues;
-		this.options = new BootCompilerOptions(optionValues.get(Options.SELF_TAIL_CALLS), Options.FRAME_FILTERING);
+		this.options = new BootCompilerOptions(
+				optionValues.get(Options.SELF_TAIL_CALLS),
+				optionValues.get(Options.FRAME_FILTERING));
 	}
 
 	public RootCallTarget parseBase(Source source) {
 		Metrics.tick("enter parseBase");
 		Program program = BootCompiler.buildBaseEnvProgram(new SourceWrapper(source), BuiltinsRegistry.getBuiltins(), options);
 		Metrics.tick("parse Base");
-		Statement ast = CompilerPipeline.compile(program, "the base environment");
+		Statement ast = CompilerPipeline.compile(program, optionValues, "the base environment");
 
 		Translator translator = new Translator(language, optionValues, null);
 		FrameSlot topLevelResultSlot = translator.addRootSymbol(program.topLevelResultSymbol());
@@ -59,7 +61,7 @@ public class TranslatorDriver {
 		Metrics.tick("start parse");
 		Program program = BootCompiler.buildProgram(new SourceWrapper(source), false, eagerLoad, BuiltinsRegistry.getBuiltins(), options);
 		Metrics.tick("parse functor " + fileName);
-		Statement ast = CompilerPipeline.compile(program, fileName);
+		Statement ast = CompilerPipeline.compile(program, optionValues, fileName);
 		Metrics.tick("compiled functor " + fileName);
 
 		Translator translator = new Translator(language, optionValues, base);

@@ -236,7 +236,7 @@ public class Translator {
 	}
 
 	public FrameSlotAndDepth findAndExtractVariable(String identifier) {
-		if (!Options.FRAME_FILTERING) {
+		if (!options.get(Options.FRAME_FILTERING)) {
 			return findVariable(identifier);
 		}
 		return this.environment.findAndExtractVariable(identifier);
@@ -326,7 +326,7 @@ public class Translator {
 				Symbol symbol = var.symbol();
 				FrameSlot slot = environment.addLocalVariable(symbol2identifier(symbol));
 				// No need to initialize captures, the slot will be set directly
-				if (!((symbol.isCapture() && Options.DIRECT_PATTERN_VARS) || (var.onStack() && Options.DIRECT_VARS))) {
+				if (!((symbol.isCapture() && options.get(Options.DIRECT_PATTERN_VARS)) || (var.onStack() && options.get(Options.DIRECT_VARS)))) {
 					decls.add(t(variable, new InitializeVarNode(slot)));
 				}
 			}
@@ -421,7 +421,7 @@ public class Translator {
 			boolean forceSplitting = OzLanguage.getContext().isLoadingBase();
 			OzRootNode rootNode = new OzRootNode(language, sourceSection, identifier, environment.frameDescriptor, procBody, arity, forceSplitting);
 
-			if (Options.FRAME_FILTERING) {
+			if (options.get(Options.FRAME_FILTERING)) {
 				CopyVariableToFrameNode[] captureNodes = new CopyVariableToFrameNode[environment.capturedVariables.getSize()];
 				int j = 0;
 				for (FrameSlot dst : environment.capturedVariables.getSlots()) {

@@ -38,10 +38,18 @@ public abstract class Options {
 	@Option(name = "stacktrace-on-interrupt", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> STACKTRACE_ON_INTERRUPT = new OptionKey<>(false);
 
-	public static final boolean FREE_SLOTS = bool("oz.free.slots", true);
-	public static final boolean DIRECT_PATTERN_VARS = bool("oz.patvars.direct", true);
-	public static final boolean DIRECT_VARS = bool("oz.vars.direct", true);
-	public static final boolean FRAME_FILTERING = bool("oz.vars.filtering", true);
+	@Option(name = "free-slots", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> FREE_SLOTS = new OptionKey<>(true);
+
+	@Option(name = "patvars-direct", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> DIRECT_PATTERN_VARS = new OptionKey<>(true);
+
+	@Option(name = "vars.direct", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> DIRECT_VARS = new OptionKey<>(true);
+
+	@Option(name = "vars.filtering", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Boolean> FRAME_FILTERING = new OptionKey<>(true);
+
 	public static final boolean CACHE_READ = bool("oz.reads.cache", false);
 	public static final boolean PRINT_NLINKS = bool("oz.print.nlinks", false);
 	public static final boolean PRINT_NVARS = bool("oz.print.nvars", false);
