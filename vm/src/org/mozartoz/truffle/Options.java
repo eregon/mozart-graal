@@ -29,10 +29,10 @@ public abstract class Options {
 	@Option(name = "tail-calls-osr", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> TAIL_CALLS_OSR = new OptionKey<>(true);
 
-	@Option(name = "tail-selfcalls", help = "", category = USER, stability = STABLE)
+	@Option(name = "self-tail-calls", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> SELF_TAIL_CALLS = new OptionKey<>(true);
 
-	@Option(name = "tail-selfcalls-osr", help = "", category = USER, stability = STABLE)
+	@Option(name = "self-tail-calls-osr", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> SELF_TAIL_CALLS_OSR = new OptionKey<>(true);
 
 	@Option(name = "stacktrace-on-interrupt", help = "", category = USER, stability = STABLE)
@@ -41,13 +41,13 @@ public abstract class Options {
 	@Option(name = "free-slots", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> FREE_SLOTS = new OptionKey<>(true);
 
-	@Option(name = "patvars-direct", help = "", category = USER, stability = STABLE)
+	@Option(name = "pattern-vars-direct", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> DIRECT_PATTERN_VARS = new OptionKey<>(true);
 
-	@Option(name = "vars.direct", help = "", category = USER, stability = STABLE)
+	@Option(name = "vars-direct", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> DIRECT_VARS = new OptionKey<>(true);
 
-	@Option(name = "vars.filtering", help = "", category = USER, stability = STABLE)
+	@Option(name = "vars-filtering", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> FRAME_FILTERING = new OptionKey<>(true);
 
 	@Option(name = "reads-cache", help = "", category = USER, stability = STABLE)
@@ -65,7 +65,7 @@ public abstract class Options {
 	@Option(name = "inline-cache-method", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Integer> INLINE_CACHE_METHOD = new OptionKey<>(3);
 
-	@Option(name = "cycles", help = "", category = USER, stability = STABLE)
+	@Option(name = "cycles-detection", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> CYCLE_DETECTION = new OptionKey<>(true);
 
 	@Option(name = "cycles-threshold", help = "", category = USER, stability = STABLE)
