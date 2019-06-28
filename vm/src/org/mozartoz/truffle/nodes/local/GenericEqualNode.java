@@ -55,6 +55,12 @@ public abstract class GenericEqualNode extends OzNode {
 			return DepthLimitedEqualNodeGen.create(null, null, null);
 		}
 
+		private final int cycleThreshold;
+
+		DepthLimitedEqualNode() {
+			this.cycleThreshold = OzLanguage.getOptions().get(Options.CYCLE_THRESHOLD);
+		}
+
 		@Override
 		protected Object initState() {
 			return new MutableInt(0);
@@ -64,7 +70,7 @@ public abstract class GenericEqualNode extends OzNode {
 		@TruffleBoundary
 		protected boolean equalRec(Object a, Object b, Object state) {
 			MutableInt n = (MutableInt) state;
-			if (++n.value > Options.CYCLE_THRESHOLD) {
+			if (++n.value > cycleThreshold) {
 				CompilerDirectives.transferToInterpreterAndInvalidate();
 				throw DeoptimizingException.INSTANCE;
 			}

@@ -68,25 +68,14 @@ public abstract class Options {
 	@Option(name = "cycles", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> CYCLE_DETECTION = new OptionKey<>(true);
 
-	public static final int CYCLE_THRESHOLD = integer("oz.cycles.threshold", 20);
+	@Option(name = "cycles-threshold", help = "", category = USER, stability = STABLE)
+	public static final OptionKey<Integer> CYCLE_THRESHOLD = new OptionKey<>(20);
 
 	// Truffle options
 	public static final int TruffleInvalidationReprofileCount = integer("graal.TruffleInvalidationReprofileCount", 3);
 	public static final int TruffleOSRCompilationThreshold = integer("graal.TruffleOSRCompilationThreshold", 100_000);
 
 	public static final boolean PRE_INITIALIZE_CONTEXTS = System.getProperty("polyglot.engine.PreinitializeContexts") != null;
-
-	private static boolean bool(String property, boolean defaultValue) {
-		String value = System.getProperty(property, Boolean.toString(defaultValue));
-		if (value.equalsIgnoreCase("true")) {
-			return true;
-		} else if (value.equalsIgnoreCase("false")) {
-			return false;
-		}
-		System.err.println(property + " was expected to be true or false, got '" + value + "'");
-		System.exit(1);
-		return false;
-	}
 
 	private static int integer(String property, int defaultValue) {
 		return Integer.valueOf(System.getProperty(property, Integer.toString(defaultValue)));
