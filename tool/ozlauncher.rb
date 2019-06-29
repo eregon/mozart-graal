@@ -73,7 +73,7 @@ while arg = argv.shift
     java_opts << "-XX:+UnlockDiagnosticVMOptions" << "-XX:+DebugNonSafepoints"
     java_opts << "-Dgraal.TruffleEnableInfopoints=true"
   when '--jdebug'
-    java_opts << "-agentlib:jdwp=transport=dt_socket,server=y,address=51819,suspend=y"
+    java_opts << "-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y"
   when /^-[DX](.+)/
     java_opts << arg
   when /^--/
