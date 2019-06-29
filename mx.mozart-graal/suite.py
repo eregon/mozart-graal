@@ -108,8 +108,8 @@ suite = {
         },
 
         "org.mozartoz.truffle.launcher": {
-            "dir": "vm",
-            "sourceDirs": ["launcher"],
+            "dir": "vm/launcher",
+            "sourceDirs": ["."],
             "dependencies": [
                 "sdk:LAUNCHER_COMMON",
             ],
