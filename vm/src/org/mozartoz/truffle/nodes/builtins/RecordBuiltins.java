@@ -10,7 +10,6 @@ import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.IsRecordNodeFac
 import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.LabelNodeFactory;
 import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.OzCons;
-import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzFailedValue;
 import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzRecord;
@@ -196,7 +195,7 @@ public abstract class RecordBuiltins {
 				for (Property property : properties) {
 					Object value = tryDeref(property.get(record, record.getShape()));
 					if (OzGuards.isFailedValue(value)) {
-						throw new OzException(this, ((OzFailedValue) value).getData());
+						throw ((OzFailedValue) value).getException(this);
 					} else if (OzGuards.isVariable(value)) {
 						// Need to wait
 						((Variable) value).makeNeeded();

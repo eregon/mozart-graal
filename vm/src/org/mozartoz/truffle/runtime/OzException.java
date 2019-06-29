@@ -1,6 +1,7 @@
 package org.mozartoz.truffle.runtime;
 
 import com.oracle.truffle.api.TruffleException;
+import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -23,6 +24,23 @@ public final class OzException extends RuntimeException implements TruffleExcept
 		return FAILURE_ARITY.newRecord(Unit.INSTANCE);
 	}
 
+	private static Object getDebugValue(Object data) {
+		if (data instanceof DynamicObject && ((DynamicObject) data).containsKey("debug")) {
+			return ((DynamicObject) data).get("debug");
+		} else {
+			return null;
+		}
+	}
+
+	public static OzException getExceptionFromObject(Object data) {
+		Object debug = getDebugValue(data);
+		if (debug instanceof OzException) {
+			return (OzException) debug;
+		} else {
+			return null;
+		}
+	}
+
 	private final Node currentNode;
 	private final Object data;
 
@@ -32,19 +50,18 @@ public final class OzException extends RuntimeException implements TruffleExcept
 
 	public OzException(Node currentNode, Object data) {
 		super();
+		assert currentNode != null;
 		this.currentNode = currentNode;
 
-
 		Object storedData = data;
-		if (data instanceof DynamicObject) {
+		Object debug = getDebugValue(data);
+		if (debug == Unit.INSTANCE) {
 			DynamicObject dataRecord = (DynamicObject) data;
-			boolean hasDebug = dataRecord.containsKey("debug");
-			if (hasDebug && dataRecord.get("debug") == Unit.INSTANCE) {
-				DynamicObject dataWithDebug = dataRecord.copy(dataRecord.getShape());
-				OzBacktrace backtrace = OzBacktrace.capture(this);
-				dataWithDebug.getShape().getProperty("debug").setInternal(dataWithDebug, backtrace);
-				storedData = dataWithDebug;
-			}
+			DynamicObject dataWithDebug = dataRecord.copy(dataRecord.getShape());
+			dataWithDebug.getShape().getProperty("debug").setInternal(dataWithDebug, this);
+			storedData = dataWithDebug;
+		} else {
+			assert getExceptionFromObject(data) == null || getExceptionFromObject(data) == this;
 		}
 
 		this.data = storedData;
@@ -60,18 +77,8 @@ public final class OzException extends RuntimeException implements TruffleExcept
 		return data;
 	}
 
-	@Override
-	public String getMessage() {
-		return data.toString();
-	}
-
 	public OzBacktrace getBacktrace() {
-		if (data instanceof DynamicObject) {
-			Object debug = ((DynamicObject) data).get("debug");
-			return (OzBacktrace) debug;
-		} else {
-			return null;
-		}
+		return new OzBacktrace(TruffleStackTrace.getStackTrace(this));
 	}
 
 	@SuppressWarnings("sync-override")
@@ -80,4 +87,8 @@ public final class OzException extends RuntimeException implements TruffleExcept
 		return this;
 	}
 
+	@Override
+	public String toString() {
+		return "<OzException>";
+	}
 }

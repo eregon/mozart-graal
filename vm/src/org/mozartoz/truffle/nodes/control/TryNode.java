@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes.control;
 
+import com.oracle.truffle.api.TruffleStackTrace;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.local.WriteNode;
 import org.mozartoz.truffle.runtime.OzException;
@@ -27,6 +28,8 @@ public class TryNode extends OzNode {
 			return body.execute(frame);
 		} catch (OzException exception) {
 			exceptionProfile.enter();
+			// The exception and its backtrace escapes as a user object
+			TruffleStackTrace.fillIn(exception);
 			writeExceptionVarNode.write(frame, exception.getExceptionObject());
 			return catchBody.execute(frame);
 		}

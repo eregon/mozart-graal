@@ -12,7 +12,7 @@ public class OzBacktrace {
 
 	private final List<TruffleStackTraceElement> stackTrace;
 
-	private OzBacktrace(List<TruffleStackTraceElement> stackTrace) {
+	public OzBacktrace(List<TruffleStackTraceElement> stackTrace) {
 		this.stackTrace = stackTrace;
 	}
 
@@ -37,6 +37,10 @@ public class OzBacktrace {
 
 	@TruffleBoundary
 	public static String formatNode(Node node) {
+		if (node == null) {
+			return "<null node>";
+		}
+
 		SourceSection section = node.getEncapsulatingSourceSection();
 		String identifier = node.getRootNode().getName();
 		if (section == null) {
@@ -60,11 +64,6 @@ public class OzBacktrace {
 			builder.append('\n');
 		}
 		return builder.toString();
-	}
-
-	@TruffleBoundary
-	public static OzBacktrace capture(Throwable throwable) {
-		return new OzBacktrace(TruffleStackTrace.getStackTrace(throwable));
 	}
 
 }

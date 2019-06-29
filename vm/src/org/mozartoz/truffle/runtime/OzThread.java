@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleLanguage.Env;
+import com.oracle.truffle.api.TruffleStackTrace;
 import org.mozartoz.truffle.Options;
 
 import com.oracle.truffle.api.CallTarget;
@@ -126,7 +127,8 @@ public class OzThread extends OzValue implements Runnable {
 	public void yield(Node currentNode) {
 		status = "blocked";
 		if (env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT)) {
-			BACKTRACES.put(this, OzBacktrace.capture(new OzException(currentNode, (Object) null)));
+			OzException backtraceException = new OzException(currentNode, (Object) null);
+			BACKTRACES.put(this, new OzBacktrace(TruffleStackTrace.getStackTrace(backtraceException)));
 		}
 		Coroutine.yield();
 		status = "runnable";

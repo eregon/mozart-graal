@@ -2,6 +2,8 @@ package org.mozartoz.truffle.nodes.builtins;
 
 import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzException;
 
@@ -29,10 +31,16 @@ public abstract class ExceptionBuiltins {
 	@NodeChild("value")
 	public static abstract class RaiseNode extends OzNode {
 
-		@TruffleBoundary
 		@Specialization
-		Object raise(Object data) {
-			throw new OzException(this, data);
+		Object raise(Object data,
+				@Cached("createBinaryProfile()") ConditionProfile reRaiseProfile) {
+			OzException exception = OzException.getExceptionFromObject(data);
+			if (reRaiseProfile.profile(exception != null)) {
+				throw exception;
+			} else {
+				// No backtrace attached
+				throw new OzException(this, data);
+			}
 		}
 
 	}

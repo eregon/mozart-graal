@@ -220,7 +220,7 @@ public abstract class ValueBuiltins {
 		}
 
 		private OzException noFieldError(DynamicObject record, Object feature) {
-			throw kernelError(".", record, feature);
+			return kernelError(".", record, feature);
 		}
 
 	}
@@ -416,7 +416,7 @@ public abstract class ValueBuiltins {
 
 		private Object check(Object value) {
 			if (value instanceof OzFailedValue) {
-				throw new OzException(this, ((OzFailedValue) value).getData());
+				throw ((OzFailedValue) value).getException(this);
 			}
 			return unit;
 		}
@@ -628,8 +628,8 @@ public abstract class ValueBuiltins {
 		}
 
 		@Specialization
-		String type(OzBacktrace backtrace) {
-			// Pretend OzBacktrace is a cons list for the error handler
+		String type(OzException backtrace) {
+			// Pretend OzException is a cons list for the error handler
 			return "tuple";
 		}
 

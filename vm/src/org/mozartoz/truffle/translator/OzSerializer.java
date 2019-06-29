@@ -563,6 +563,7 @@ public class OzSerializer implements AutoCloseable {
 				if (!name.equals("state_")
 						&& !name.startsWith("exclude_")
 						&& !name.endsWith("_cache")
+						&& !name.endsWith("Profile_")
 						&& !name.startsWith("$")
 						&& !CACHE_FIELD_PATTERN.matcher(name).find()) {
 					toSave.add(field);

@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes;
 
+import com.oracle.truffle.api.TruffleStackTrace;
 import org.mozartoz.truffle.runtime.OzBacktrace;
 import org.mozartoz.truffle.runtime.OzContext;
 import org.mozartoz.truffle.runtime.OzException;
@@ -29,6 +30,8 @@ public class TopLevelHandlerNode extends OzNode {
 			return body.execute(frame);
 		} catch (OzException ozException) {
 			errorProfile.enter();
+			// The exception and its backtrace escapes as a user object
+			TruffleStackTrace.fillIn(ozException);
 			handleOzException(ozException);
 		} catch (Throwable exception) {
 			errorProfile.enter();
