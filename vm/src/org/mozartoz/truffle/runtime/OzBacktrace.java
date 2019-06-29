@@ -1,39 +1,38 @@
 package org.mozartoz.truffle.runtime;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleStackTrace;
+import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class OzBacktrace {
 
-	private Node[] backtrace;
+	private final List<TruffleStackTraceElement> stackTrace;
 
-	private OzBacktrace(Node[] backtrace) {
-		this.backtrace = backtrace;
+	private OzBacktrace(List<TruffleStackTraceElement> stackTrace) {
+		this.stackTrace = stackTrace;
 	}
 
 	@TruffleBoundary
 	public void showUserBacktrace() {
-		for (Node node : backtrace) {
-			System.out.println(formatFrom(node));
+		for (TruffleStackTraceElement element : stackTrace) {
+			System.out.println(formatFrom(element));
 
 		}
 	}
 
 	public String getFirst() {
-		if (backtrace.length == 0) {
+		if (stackTrace.isEmpty()) {
 			return "";
 		}
-		return formatFrom(backtrace[0]);
+		return formatFrom(stackTrace.get(0));
 	}
 
-	private static String formatFrom(Node node) {
-		return "from " + formatNode(node);
+	private static String formatFrom(TruffleStackTraceElement element) {
+		return "from " + formatNode(element.getLocation());
 	}
 
 	@TruffleBoundary
@@ -56,27 +55,16 @@ public class OzBacktrace {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		for (Node node : backtrace) {
-			builder.append(formatFrom(node));
+		for (TruffleStackTraceElement element : stackTrace) {
+			builder.append(formatFrom(element));
 			builder.append('\n');
 		}
 		return builder.toString();
 	}
 
 	@TruffleBoundary
-	public static OzBacktrace capture(Node currentNode) {
-		List<Node> backtrace = new ArrayList<>();
-		if (currentNode != null) {
-			backtrace.add(currentNode);
-		}
-		Truffle.getRuntime().iterateFrames(frame -> {
-			if (frame.getCallNode() != null) {
-				backtrace.add(frame.getCallNode());
-			}
-			return null;
-		});
-
-		return new OzBacktrace(backtrace.toArray(new Node[backtrace.size()]));
+	public static OzBacktrace capture(Throwable throwable) {
+		return new OzBacktrace(TruffleStackTrace.getStackTrace(throwable));
 	}
 
 }

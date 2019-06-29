@@ -126,7 +126,7 @@ public class OzThread extends OzValue implements Runnable {
 	public void yield(Node currentNode) {
 		status = "blocked";
 		if (env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT)) {
-			BACKTRACES.put(this, OzBacktrace.capture(currentNode));
+			BACKTRACES.put(this, OzBacktrace.capture(new OzException(currentNode, (Object) null)));
 		}
 		Coroutine.yield();
 		status = "runnable";

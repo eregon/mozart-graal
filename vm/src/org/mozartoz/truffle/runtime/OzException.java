@@ -41,7 +41,7 @@ public final class OzException extends RuntimeException implements TruffleExcept
 			boolean hasDebug = dataRecord.containsKey("debug");
 			if (hasDebug && dataRecord.get("debug") == Unit.INSTANCE) {
 				DynamicObject dataWithDebug = dataRecord.copy(dataRecord.getShape());
-				OzBacktrace backtrace = OzBacktrace.capture(currentNode);
+				OzBacktrace backtrace = OzBacktrace.capture(this);
 				dataWithDebug.getShape().getProperty("debug").setInternal(dataWithDebug, backtrace);
 				storedData = dataWithDebug;
 			}
