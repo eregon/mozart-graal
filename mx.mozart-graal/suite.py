@@ -97,6 +97,7 @@ suite = {
                 "sdk:LAUNCHER_COMMON",
             ],
             "javaCompliance": "1.8",
+            "checkPackagePrefix": "false",
         },
     },
 
