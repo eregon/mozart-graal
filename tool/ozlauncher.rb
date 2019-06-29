@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 
-require_relative 'tool/common'
+require_relative 'common'
 
 dir = File.expand_path('..', __FILE__)
 
-OZ_MAIN_SOURCES = Dir["lib/main/**/*.oz"]
+OZ_MAIN_SOURCES = Dir["#{PROJECT_DIR}/lib/main/**/*.oz"]
 ALL_SOURCES = JAVA_SOURCES + SCALA_SOURCES + OZ_MAIN_SOURCES
 
 PASSING_TESTS = %w[
