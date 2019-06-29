@@ -123,6 +123,16 @@ end
 desc "Build the project and dependencies"
 task :build => "build:all"
 
+desc "Generate config files for IntelliJ"
+task :ideinit => MX do
+  # Remove SBT dependencies to avoid mx wondering if they are unused
+  rm_f Dir.glob(".idea/libraries/sbt_*.xml")
+  sh "#{MX} intellijinit"
+  # Restore SBT dependencies
+  sh "git checkout .idea/libraries"
+  sh "ruby tool/intellijinit.rb"
+end
+
 task :clean do
   rm_rf BOOTCOMPILER / 'target'
 

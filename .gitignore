@@ -1,6 +1,5 @@
 /vm/jvmci/jdk-8u*-linux-x64.tar.gz
 /vm/src/org/mozartoz/truffle/reflection.json
-/.idea/workspace.xml
 /mxbuild
 /graalvm
 
@@ -11,3 +10,6 @@
 
 /*.oz
 /Main.image
+
+/.idea
+*.iml
