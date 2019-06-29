@@ -1,6 +1,7 @@
 require_relative 'common'
 require 'tempfile'
 require 'json'
+require 'rake'
 
 TRUFFLE_RELEASE = "1.0.0-rc10"
 JVMCI_BASE = "1.8.0_121"
