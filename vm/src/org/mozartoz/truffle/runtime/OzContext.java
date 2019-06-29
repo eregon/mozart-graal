@@ -76,6 +76,8 @@ public class OzContext {
 	}
 
 	public boolean patchContext(Env newEnv) {
+		Metrics.reset();
+
 		this.home = language.getHome();
 		this.env = newEnv;
 
