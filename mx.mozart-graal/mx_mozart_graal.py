@@ -11,12 +11,12 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     license_files=["LICENSE_MOZART_GRAAL.txt"],
     third_party_license_files=[],
     truffle_jars=[
+        "mozart-graal:CORO",
         "mozart-graal:MOZART_GRAAL",
     ],
     support_distributions=[
         "mozart-graal:MOZART_GRAAL_GRAALVM_SUPPORT",
     ],
-    provided_executables=["bin/oz"],
     launcher_configs=[
         mx_sdk.LanguageLauncherConfig(
             destination="bin/<exe:oz>",

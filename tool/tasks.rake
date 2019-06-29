@@ -100,15 +100,9 @@ namespace :build do
 
   desc "Build a GraalVM with a Mozart-Graal native image"
   file "graalvm" => [:project, OPENJDK_JVMCI_HOME] do
-    build = [
-      MX,
-      "--java-home", OPENJDK_JVMCI_HOME,
-      "--disable-polyglot", "--disable-libpolyglot",
-      "--force-bash-launchers=native-image",
-      "--dynamicimports", "mozart-graal,/substratevm",
-      "build"
-    ]
-    sh "cd #{GRAAL_REPO}/vm && #{build.join(' ')}"
+    args = [MX, "--env", "oz-native", "--java-home", OPENJDK_JVMCI_HOME, "--dy", "/vm"]
+    sh [*args, "graalvm-show"].join(' ')
+    sh [*args, "build"].join(' ')
 
     graalvm = "../graal/vm/latest_graalvm_home/jre/languages/oz"
     rm_f "graalvm"

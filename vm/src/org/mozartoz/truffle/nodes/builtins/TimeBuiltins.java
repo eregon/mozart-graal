@@ -2,6 +2,7 @@ package org.mozartoz.truffle.nodes.builtins;
 
 import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.OzThread;
 
@@ -36,6 +37,7 @@ public abstract class TimeBuiltins {
 			return System.currentTimeMillis();
 		}
 
+		@TruffleBoundary
 		private void sleep() {
 			try {
 				Thread.sleep(1);

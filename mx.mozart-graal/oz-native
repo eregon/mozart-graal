@@ -1,0 +1,5 @@
+DYNAMIC_IMPORTS=/substratevm,/tools
+DISABLE_INSTALLABLES=true
+DISABLE_LIBPOLYGLOT=true
+DISABLE_POLYGLOT=true
+EXCLUDE_COMPONENTS=nju,ni,nil,gu,rgx,polynative,svml,vvm

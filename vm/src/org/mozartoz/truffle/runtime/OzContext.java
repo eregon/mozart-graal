@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.coro.CoroutineSupport;
 import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
@@ -107,7 +108,7 @@ public class OzContext {
 		Metrics.tick("start loading Main");
 		String initFunctorPath = home + "/lib/main/init/Init.oz";
 
-		if (env.getOptions().get(Options.SERIALIZER) && mainImage.exists()) {
+		if (!TruffleOptions.AOT && env.getOptions().get(Options.SERIALIZER) && mainImage.exists()) {
 			try (OzSerializer serializer = new OzSerializer(env, language, initFunctorPath)) {
 				main = serializer.deserialize(mainImage.getPath(), OzProc.class);
 			} catch (Throwable t) {
@@ -123,7 +124,7 @@ public class OzContext {
 			Object applied = applyInitFunctor(initFunctor);
 			main = (OzProc) ((DynamicObject) applied).get("main");
 
-			if (env.getOptions().get(Options.SERIALIZER)) {
+			if (!TruffleOptions.AOT && env.getOptions().get(Options.SERIALIZER)) {
 				try (OzSerializer serializer = new OzSerializer(env, language, initFunctorPath)) {
 					serializer.serialize(main, mainImage.getPath());
 				}
