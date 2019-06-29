@@ -71,6 +71,21 @@ suite = {
         },
     },
 
+    "externalProjects": {
+        "ruby-files": {
+            "type": "ruby",
+            "path": "tool",
+            "source": ["."],
+            "excluded": [
+                "bootcompiler",
+                "coro",
+                "examples",
+                "mxbuild",
+                "vm",
+            ],
+        },
+    },
+
     "projects": {
         "com.oracle.truffle.coro": {
             "dir": "coro/com.oracle.truffle.coro",
