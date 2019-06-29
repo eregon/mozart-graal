@@ -52,25 +52,25 @@ public abstract class DerefNode extends OzNode {
 
 	@Specialization(guards = "isBound(var)")
 	Object deref(OzVar var,
-			@Cached("create()") DerefNode derefNode) {
+			@Cached DerefNode derefNode) {
 		return derefNode.executeDeref(var.getBoundValue(this));
 	}
 
 	@Specialization(guards = "isBound(future)")
 	Object deref(OzFuture future,
-			@Cached("create()") DerefNode derefNode) {
+			@Cached DerefNode derefNode) {
 		return derefNode.executeDeref(future.getBoundValue(this));
 	}
 
 	@Specialization(guards = "!isBound(var)")
 	Object derefUnbound(OzVar var,
-			@Cached("create()") DerefNode derefNode) {
+			@Cached DerefNode derefNode) {
 		return derefNode.executeDeref(var.waitValue(this));
 	}
 
 	@Specialization(guards = "!isBound(future)")
 	Object derefUnbound(OzFuture future,
-			@Cached("create()") DerefNode derefNode) {
+			@Cached DerefNode derefNode) {
 		return derefNode.executeDeref(future.waitValue(this));
 	}
 

@@ -20,7 +20,7 @@ public abstract class BrowserBuiltins {
 
 		@Specialization(guards = "!isVariable(value)")
 		boolean isRecordCVar(Object value,
-				@Cached("create()") IsRecordNode isRecordNode) {
+				@Cached IsRecordNode isRecordNode) {
 			return isRecordNode.executeIsRecord(value);
 		}
 

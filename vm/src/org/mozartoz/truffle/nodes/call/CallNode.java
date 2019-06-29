@@ -44,13 +44,13 @@ public abstract class CallNode extends CallableNode {
 
 	@Specialization
 	protected Object callProc(OzProc proc, Object[] arguments,
-			@Cached("create()") CallProcNode callProcNode) {
+			@Cached CallProcNode callProcNode) {
 		return callProcNode.executeCall(proc, arguments);
 	}
 
 	@Specialization
 	protected Object callObject(OzObject object, Object[] arguments,
-			@Cached("create()") CallMethodNode callMethodNode) {
+			@Cached CallMethodNode callMethodNode) {
 		return callMethodNode.executeCall(object, arguments);
 	}
 

@@ -49,7 +49,7 @@ public abstract class CallProcNode extends OzNode {
 
 	@Specialization(replaces = "callDirect")
 	protected Object callIndirect(OzProc proc, Object[] arguments,
-			@Cached("create()") IndirectCallNode callNode) {
+			@Cached IndirectCallNode callNode) {
 		return callNode.call(proc.callTarget, OzArguments.pack(proc.declarationFrame, arguments));
 	}
 

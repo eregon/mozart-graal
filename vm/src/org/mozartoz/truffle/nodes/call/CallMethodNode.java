@@ -42,10 +42,10 @@ public abstract class CallMethodNode extends OzNode {
 
 	@Specialization
 	public Object callMethod(OzObject self, Object[] args,
-			@Cached("create()") DerefNode derefNode,
-			@Cached("create()") LabelNode labelNode,
-			@Cached("create()") MethodLookupNode lookupNode,
-			@Cached("create()") MethodDispatchNode dispatchNode) {
+			@Cached DerefNode derefNode,
+			@Cached LabelNode labelNode,
+			@Cached MethodLookupNode lookupNode,
+			@Cached MethodDispatchNode dispatchNode) {
 		assert args.length == 1;
 		Object message = derefNode.executeDeref(args[0]);
 		Object name = labelNode.executeLabel(message);
@@ -117,7 +117,7 @@ public abstract class CallMethodNode extends OzNode {
 
 		@Specialization(guards = "method != null", replaces = "dispatchCached")
 		protected Object dispatchUncached(OzObject self, OzProc method, Object message,
-				@Cached("create()") IndirectCallNode callNode) {
+				@Cached IndirectCallNode callNode) {
 			Object[] arguments = new Object[] { self, message };
 			return callNode.call(method.callTarget,
 					OzArguments.pack(method.declarationFrame, arguments));
@@ -125,8 +125,8 @@ public abstract class CallMethodNode extends OzNode {
 
 		@Specialization(guards = "method == null")
 		protected Object dispatchOtherwise(OzObject self, Object method, Object message,
-				@Cached("create()") MethodLookupNode otherwiseLookupNode,
-				@Cached("create()") MethodDispatchNode otherwiseDispatchNode) {
+				@Cached MethodLookupNode otherwiseLookupNode,
+				@Cached MethodDispatchNode otherwiseDispatchNode) {
 			Object otherwiseMessage = OTHERWISE_MESSAGE_FACTORY.newRecord(message);
 			OzProc otherwiseMethod = otherwiseLookupNode.executeLookup(self, OTHERWISE);
 			return otherwiseDispatchNode.executeDispatch(self, otherwiseMethod, otherwiseMessage);

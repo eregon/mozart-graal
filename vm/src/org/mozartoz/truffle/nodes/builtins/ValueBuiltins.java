@@ -209,13 +209,13 @@ public abstract class ValueBuiltins {
 
 		@Specialization
 		protected Object getDictionary(OzDict dict, Object feature,
-				@Cached("create()") DictionaryBuiltins.GetNode getNode) {
+				@Cached DictionaryBuiltins.GetNode getNode) {
 			return getNode.executeGet(dict, feature);
 		}
 
 		@Specialization
 		protected Object getArray(OzArray array, long feature,
-				@Cached("create()") ArrayGetNode getNode) {
+				@Cached ArrayGetNode getNode) {
 			return getNode.executeGet(array, feature);
 		}
 
@@ -232,13 +232,13 @@ public abstract class ValueBuiltins {
 
 		@Specialization
 		Object dotAssign(OzDict dict, Object feature, Object newValue,
-				@Cached("create()") DictionaryBuiltins.PutNode putNode) {
+				@Cached DictionaryBuiltins.PutNode putNode) {
 			return putNode.executePut(dict, feature, newValue);
 		}
 
 		@Specialization
 		Object dotAssign(OzArray array, long feature, Object newValue,
-				@Cached("create()") ArrayPutNode putNode) {
+				@Cached ArrayPutNode putNode) {
 			return putNode.executePut(array, feature, newValue);
 		}
 
@@ -251,7 +251,7 @@ public abstract class ValueBuiltins {
 
 		@Specialization
 		Object dotExchange(OzDict dict, Object feature, Object newValue,
-				@Cached("create()") DictionaryBuiltins.ExchangeFunNode exchangeFunNode) {
+				@Cached DictionaryBuiltins.ExchangeFunNode exchangeFunNode) {
 			return exchangeFunNode.executeExchangeFun(dict, feature, newValue);
 		}
 
@@ -270,7 +270,7 @@ public abstract class ValueBuiltins {
 
 		@Specialization(guards = "PAIR_ARITY.matches(pair)")
 		Object catAccess(DynamicObject pair,
-				@Cached("create()") DictionaryBuiltins.GetNode getNode) {
+				@Cached DictionaryBuiltins.GetNode getNode) {
 			OzDict dict = (OzDict) pair.get(1L);
 			Object feature = pair.get(2L);
 			return getNode.executeGet(dict, feature);
@@ -317,7 +317,7 @@ public abstract class ValueBuiltins {
 
 		@Specialization(guards = "PAIR_ARITY.matches(pair)")
 		Object catAccessOO(OzObject self, DynamicObject pair,
-				@Cached("create()") DictionaryBuiltins.GetNode getNode) {
+				@Cached DictionaryBuiltins.GetNode getNode) {
 			OzDict dict = (OzDict) pair.get(1L);
 			Object feature = pair.get(2L);
 			return getNode.executeGet(dict, feature);
@@ -330,13 +330,13 @@ public abstract class ValueBuiltins {
 
 		@Specialization
 		Object catAccessOO(OzObject self, String attr,
-				@Cached("create()") AttrGetNode attrGetNode) {
+				@Cached AttrGetNode attrGetNode) {
 			return attrGetNode.executeAttrGet(self, attr);
 		}
 
 		@Specialization
 		Object catAccessOO(OzObject self, OzName name,
-				@Cached("create()") AttrGetNode attrGetNode) {
+				@Cached AttrGetNode attrGetNode) {
 			return attrGetNode.executeAttrGet(self, name);
 		}
 
@@ -356,7 +356,7 @@ public abstract class ValueBuiltins {
 
 		@Specialization(guards = "PAIR_ARITY.matches(pair)")
 		Object catAssignOO(OzObject self, DynamicObject pair, Object newValue,
-				@Cached("create()") DictionaryBuiltins.PutNode putNode) {
+				@Cached DictionaryBuiltins.PutNode putNode) {
 			OzDict dict = (OzDict) pair.get(1L);
 			Object feature = pair.get(2L);
 			return putNode.executePut(dict, feature, newValue);
@@ -370,7 +370,7 @@ public abstract class ValueBuiltins {
 
 		@Specialization
 		Object catAssignOO(OzObject self, String attr, Object newValue,
-				@Cached("create()") AttrPutNode attrPutNode) {
+				@Cached AttrPutNode attrPutNode) {
 			return attrPutNode.executeAttrPut(self, attr, newValue);
 		}
 
@@ -383,8 +383,8 @@ public abstract class ValueBuiltins {
 
 		@Specialization
 		Object catExchangeOO(OzObject self, Object reference, Object newValue,
-				@Cached("create()") CatAccessOONode catAccessOONode,
-				@Cached("create()") CatAssignOONode catAssignOONode) {
+				@Cached CatAccessOONode catAccessOONode,
+				@Cached CatAssignOONode catAssignOONode) {
 			Object oldValue = catAccessOONode.executeCatAccessOO(self, reference);
 			catAssignOONode.executeCatAssignOO(self, reference, newValue);
 			return oldValue;
@@ -566,7 +566,7 @@ public abstract class ValueBuiltins {
 
 		@Specialization(guards = { "!isVariable(value)", "!isFailedValue(value)" })
 		Object status(Object value,
-				@Cached("create()") TypeNode typeNode) {
+				@Cached TypeNode typeNode) {
 			return DET_FACTORY.newRecord(typeNode.executeType(value));
 		}
 

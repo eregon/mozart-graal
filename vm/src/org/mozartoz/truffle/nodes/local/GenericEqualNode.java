@@ -33,19 +33,19 @@ public abstract class GenericEqualNode extends OzNode {
 
 	@Specialization(guards = "!useCycleDetection()")
 	protected boolean dfsEqual(Object a, Object b,
-			@Cached("create()") DFSEqualNode equalNode) {
+			@Cached DFSEqualNode equalNode) {
 		return equalNode.executeEqual(a, b, null);
 	}
 
 	@Specialization(guards = "useCycleDetection()", rewriteOn = DeoptimizingException.class)
 	protected boolean depthLimitedEqual(Object a, Object b,
-			@Cached("create()") DepthLimitedEqualNode equalNode) {
+			@Cached DepthLimitedEqualNode equalNode) {
 		return equalNode.executeEqual(a, b, null);
 	}
 
 	@Specialization(guards = "useCycleDetection()", replaces = "depthLimitedEqual")
 	protected boolean cycleDetectingEqual(Object a, Object b,
-			@Cached("create()") OnHeapEqualNode equalNode) {
+			@Cached OnHeapEqualNode equalNode) {
 		return equalNode.executeEqual(a, b, null);
 	}
 

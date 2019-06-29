@@ -72,7 +72,7 @@ public abstract class NumberBuiltins {
 		@ExplodeLoop
 		Object pow(Object base, long exponent,
 				@Cached("exponent") long cachedExponent,
-				@Cached("create()") MulNode mulNode) {
+				@Cached MulNode mulNode) {
 			Object result = 1L;
 			while (cachedExponent > 0) {
 				if (cachedExponent % 2 == 0) {
@@ -88,7 +88,7 @@ public abstract class NumberBuiltins {
 
 		@Specialization(guards = { "isInteger(base)" })
 		Object pow(Object base, long exponent,
-				@Cached("create()") MulNode mulNode) {
+				@Cached MulNode mulNode) {
 			Object result = 1L;
 			while (exponent > 0) {
 				if (exponent % 2 == 0) {

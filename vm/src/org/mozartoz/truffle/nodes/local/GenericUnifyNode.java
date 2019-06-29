@@ -33,19 +33,19 @@ public abstract class GenericUnifyNode extends OzNode {
 
 	@Specialization(guards = "!useCycleDetection()")
 	protected Object dfsUnify(Object a, Object b,
-			@Cached("create()") DFSUnifyNode unifyNode) {
+			@Cached DFSUnifyNode unifyNode) {
 		return unifyNode.executeUnify(a, b, null);
 	}
 
 	@Specialization(guards = "useCycleDetection()", rewriteOn = DeoptimizingException.class)
 	protected Object depthLimitedUnify(Object a, Object b,
-			@Cached("create()") DepthLimitedUnifyNode unifyNode) {
+			@Cached DepthLimitedUnifyNode unifyNode) {
 		return unifyNode.executeUnify(a, b, null);
 	}
 
 	@Specialization(guards = "useCycleDetection()", replaces = "depthLimitedUnify")
 	protected Object cycleDetectingUnify(Object a, Object b,
-			@Cached("create()") OnHeapUnifyNode unifyNode) {
+			@Cached OnHeapUnifyNode unifyNode) {
 		return unifyNode.executeUnify(a, b, null);
 	}
 
