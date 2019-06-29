@@ -42,7 +42,7 @@ public class TopLevelHandlerNode extends OzNode {
 	private void handleOzException(OzException ozException) {
 		Object errorHandler = PropertyRegistry.INSTANCE.get("errors.handler");
 		if (errorHandler instanceof OzProc && ((OzProc) errorHandler).arity == 1) {
-			((OzProc) errorHandler).rootCall("error handler", ozException.getData());
+			((OzProc) errorHandler).rootCall("error handler", ozException.getExceptionObject());
 		} else {
 			System.err.println(ozException.getMessage());
 		}

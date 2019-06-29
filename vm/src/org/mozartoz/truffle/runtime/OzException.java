@@ -1,10 +1,11 @@
 package org.mozartoz.truffle.runtime;
 
+import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @SuppressWarnings("serial")
-public class OzException extends RuntimeException {
+public final class OzException extends RuntimeException implements TruffleException {
 
 	static final RecordFactory ERROR_ARITY = Arity.build("error", 1L, "debug").createFactory();
 	static final RecordFactory SYSTEM_ARITY = Arity.build("system", 1L, "debug").createFactory();
@@ -22,6 +23,7 @@ public class OzException extends RuntimeException {
 		return FAILURE_ARITY.newRecord(Unit.INSTANCE);
 	}
 
+	private final Node currentNode;
 	private final Object data;
 
 	public OzException(Node currentNode, String message) {
@@ -29,8 +31,9 @@ public class OzException extends RuntimeException {
 	}
 
 	public OzException(Node currentNode, Object data) {
-		super(data.toString());
-		OzBacktrace backtrace = OzBacktrace.capture(currentNode);
+		super();
+		this.currentNode = currentNode;
+
 
 		Object storedData = data;
 		if (data instanceof DynamicObject) {
@@ -38,6 +41,7 @@ public class OzException extends RuntimeException {
 			boolean hasDebug = dataRecord.containsKey("debug");
 			if (hasDebug && dataRecord.get("debug") == Unit.INSTANCE) {
 				DynamicObject dataWithDebug = dataRecord.copy(dataRecord.getShape());
+				OzBacktrace backtrace = OzBacktrace.capture(currentNode);
 				dataWithDebug.getShape().getProperty("debug").setInternal(dataWithDebug, backtrace);
 				storedData = dataWithDebug;
 			}
@@ -46,8 +50,19 @@ public class OzException extends RuntimeException {
 		this.data = storedData;
 	}
 
-	public Object getData() {
+	@Override
+	public Node getLocation() {
+		return currentNode;
+	}
+
+	@Override
+	public Object getExceptionObject() {
 		return data;
+	}
+
+	@Override
+	public String getMessage() {
+		return data.toString();
 	}
 
 	public OzBacktrace getBacktrace() {
@@ -57,6 +72,12 @@ public class OzException extends RuntimeException {
 		} else {
 			return null;
 		}
+	}
+
+	@SuppressWarnings("sync-override")
+	@Override
+	public final Throwable fillInStackTrace() {
+		return this;
 	}
 
 }
