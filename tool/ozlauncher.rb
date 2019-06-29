@@ -49,8 +49,7 @@ while arg = argv.shift
     java_opts << "-Dgraal.PrintFlags=true"
     argv << "--graal"
   when '--graal'
-    jvmci_home = (GRAAL / "mx.graal-core/env").read.scan(/^JAVA_HOME=(.+)/)[0][0]
-    java = File.expand_path("#{jvmci_home}/bin/java")
+    java = "#{OPENJDK_JVMCI_HOME}/bin/java"
     java_opts += %w[-server -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -d64]
     java_opts << "-Djvmci.class.path.append=#{GRAAL_JAR}"
     java_opts << "-Djvmci.Compiler=graal"

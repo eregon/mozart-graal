@@ -6,6 +6,11 @@ end
 
 PROJECT_DIR = dir = Pathname(File.expand_path('../..', __FILE__))
 
+v = "20-b04"
+OPENJDK_JVMCI_URL = "https://github.com/graalvm/openjdk8-jvmci-builder/releases/download/jvmci-#{v}/openjdk-8u212-jvmci-#{v}-linux-amd64.tar.gz"
+OPENJDK_JVMCI_ARCHIVE = PROJECT_DIR / ".." / File.basename(OPENJDK_JVMCI_URL)
+OPENJDK_JVMCI_HOME = PROJECT_DIR / ".." / "openjdk1.8.0_212-jvmci-#{v}"
+
 BOOTCOMPILER = PROJECT_DIR / "bootcompiler"
 BOOTCOMPILER_JAR = BOOTCOMPILER / "target/scala-2.11/bootcompiler-assembly-2.0-SNAPSHOT.jar"
 SCALA_SOURCES = Dir[BOOTCOMPILER / "src/**/*.scala"]
