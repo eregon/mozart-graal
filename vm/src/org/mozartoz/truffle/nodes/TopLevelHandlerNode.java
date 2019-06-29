@@ -30,9 +30,8 @@ public class TopLevelHandlerNode extends OzNode {
 			return body.execute(frame);
 		} catch (OzException ozException) {
 			errorProfile.enter();
-			// The exception and its backtrace escapes as a user object
-			TruffleStackTrace.fillIn(ozException);
-			handleOzException(ozException);
+			OzBacktrace backtrace = new OzBacktrace(TruffleStackTrace.getStackTrace(ozException));
+			handleOzException(ozException, backtrace);
 		} catch (Throwable exception) {
 			errorProfile.enter();
 			handleJavaException(exception);
@@ -42,7 +41,7 @@ public class TopLevelHandlerNode extends OzNode {
 	}
 
 	@TruffleBoundary
-	private void handleOzException(OzException ozException) {
+	private void handleOzException(OzException ozException, OzBacktrace backtrace) {
 		Object errorHandler = PropertyRegistry.INSTANCE.get("errors.handler");
 		if (errorHandler instanceof OzProc && ((OzProc) errorHandler).arity == 1) {
 			((OzProc) errorHandler).rootCall("error handler", ozException.getExceptionObject());
@@ -50,10 +49,7 @@ public class TopLevelHandlerNode extends OzNode {
 			System.err.println(ozException.getMessage());
 		}
 
-		OzBacktrace backtrace = ozException.getBacktrace();
-		if (backtrace != null) {
-			backtrace.showUserBacktrace();
-		}
+		backtrace.showUserBacktrace();
 	}
 
 	@TruffleBoundary

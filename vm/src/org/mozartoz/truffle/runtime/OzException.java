@@ -77,10 +77,6 @@ public final class OzException extends RuntimeException implements TruffleExcept
 		return data;
 	}
 
-	public OzBacktrace getBacktrace() {
-		return new OzBacktrace(TruffleStackTrace.getStackTrace(this));
-	}
-
 	@SuppressWarnings("sync-override")
 	@Override
 	public final Throwable fillInStackTrace() {
