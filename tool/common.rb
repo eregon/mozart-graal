@@ -39,9 +39,9 @@ TOOLS = GRAAL_REPO / "tools"
 PROFILER_JAR = TOOLS / "#{dists}/truffle-profiler.jar"
 INSPECTOR_JAR = TOOLS / "#{dists}/chromeinspector.jar"
 
-VM = PROJECT_DIR / "vm"
-JAVA_SOURCES = Dir["#{VM}/**/*.java"]
-REFLECTION_JSON = "#{VM}/src/org/mozartoz/truffle/reflection.json"
+VM_DIR = PROJECT_DIR / "vm"
+JAVA_SOURCES = Dir["#{VM_DIR}/**/*.java"]
+REFLECTION_JSON = "#{VM_DIR}/src/org/mozartoz/truffle/reflection.json"
 
 CORO_JAR = PROJECT_DIR / "#{dists}/coro.jar"
 PROJECT_JAR = PROJECT_DIR / "#{dists}/mozart-graal.jar"
