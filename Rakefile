@@ -8,10 +8,10 @@ MX_TAG = "5.224.1"
 
 JDK8_ARCHIVE = "http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase8-2177648.html"
 
-v = "0.49"
-OPENJDK_JVMCI_URL = "https://github.com/graalvm/openjdk8-jvmci-builder/releases/download/jvmci-#{v}/openjdk-8u192-jvmci-#{v}-linux-amd64.tar.gz"
+v = "20-b04"
+OPENJDK_JVMCI_URL = "https://github.com/graalvm/openjdk8-jvmci-builder/releases/download/jvmci-#{v}/openjdk-8u212-jvmci-#{v}-linux-amd64.tar.gz"
 OPENJDK_JVMCI_ARCHIVE = PROJECT_DIR / ".." / File.basename(OPENJDK_JVMCI_URL)
-OPENJDK_JVMCI_DIR = PROJECT_DIR / ".." / "openjdk1.8.0_192-jvmci-#{v}"
+OPENJDK_JVMCI_DIR = PROJECT_DIR / ".." / "openjdk1.8.0_212-jvmci-#{v}"
 
 OZWISH = PROJECT_DIR / "wish/ozwish"
 OZWISH_SRC = PROJECT_DIR / "wish/unixmain.cc"
