@@ -7,7 +7,7 @@ suite = {
             {
                 "name": "tools",
                 "subdir": True,
-                "version": "abbc2f80a4405090b54bc088fcfbd0b1183611d9",
+                "version": "786daeaf4060d1360957ddcd5c86d383a202cefa",
                 "urls": [
                     {"url": "https://github.com/eregon/graal.git", "kind": "git"},
                 ],
@@ -72,12 +72,29 @@ suite = {
     },
 
     "projects": {
+        "com.oracle.truffle.coro": {
+            "dir": "coro/com.oracle.truffle.coro",
+            "sourceDirs": ["src"],
+            "javaCompliance": "8+",
+        },
+
+        "com.oracle.truffle.coro.test": {
+            "dir": "coro/com.oracle.truffle.coro.test",
+            "sourceDirs": ["src"],
+            "dependencies": [
+                "com.oracle.truffle.coro",
+                "mx:JUNIT",
+            ],
+            "javaCompliance": "8+",
+        },
+
         "org.mozartoz.truffle": {
             "dir": "vm",
             "sourceDirs": ["src"],
             "dependencies": [
                 "BOOTCOMPILER",
                 "truffle:TRUFFLE_API",
+                "CORO",
                 "KRYO",
                 "REFLECTASM",
                 "ASM",
@@ -102,12 +119,31 @@ suite = {
     },
 
     "distributions": {
+        "CORO": {
+            "dependencies": [
+                "com.oracle.truffle.coro",
+            ],
+        },
+
+        "CORO_TEST": {
+            "dependencies": [
+                "com.oracle.truffle.coro.test",
+            ],
+            "exclude": [
+                "mx:JUNIT",
+            ],
+            "distDependencies": [
+                "CORO",
+            ],
+        },
+
         "MOZART_GRAAL": {
             "dependencies": [
                 "org.mozartoz.truffle",
             ],
             "distDependencies": [
                 "truffle:TRUFFLE_API",
+                "CORO",
             ],
         },
 

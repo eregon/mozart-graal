@@ -43,6 +43,7 @@ VM = PROJECT_DIR / "vm"
 JAVA_SOURCES = Dir["#{VM}/**/*.java"]
 REFLECTION_JSON = "#{VM}/src/org/mozartoz/truffle/reflection.json"
 
+CORO_JAR = PROJECT_DIR / "#{dists}/coro.jar"
 PROJECT_JAR = PROJECT_DIR / "#{dists}/mozart-graal.jar"
 LAUNCHER_JAR = PROJECT_DIR / "#{dists}/mozart-graal-launcher.jar"
 
@@ -58,6 +59,7 @@ end
 
 def oz_classpath
   [
+    CORO_JAR,
     PROJECT_JAR,
     LAUNCHER_JAR,
     PROFILER_JAR,
