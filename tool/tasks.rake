@@ -1,4 +1,4 @@
-require_relative 'tool/common'
+require_relative 'common'
 require 'tempfile'
 require 'json'
 
