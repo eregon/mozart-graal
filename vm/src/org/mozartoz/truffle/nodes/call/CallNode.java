@@ -1,5 +1,6 @@
 package org.mozartoz.truffle.nodes.call;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
@@ -55,8 +56,8 @@ public abstract class CallNode extends CallableNode {
 		return callMethodNode.executeCall(object, arguments);
 	}
 
-	@Specialization
-	protected Object callOther(VirtualFrame frame, Object object, Object[] arguments) {
+	@Fallback
+	protected Object callOther(Object object, Object arguments) {
 		throw Errors.kernelError(this, "type", unit, new OzCons(object, "nil"), "Callable", 1L, "nil");
 	}
 
