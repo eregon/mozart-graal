@@ -158,6 +158,7 @@ public abstract class DictionaryBuiltins {
 	@NodeChildren({ @NodeChild("dict"), @NodeChild("feature"), @NodeChild("defaultValue"), @NodeChild("newValue") })
 	public static abstract class CondExchangeFunNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		Object condExchangeFun(OzDict dict, Object feature, Object defaultValue, Object newValue) {
 			Object oldValue = dict.put(feature, newValue);
@@ -189,6 +190,7 @@ public abstract class DictionaryBuiltins {
 	@NodeChild("dict")
 	public static abstract class RemoveAllNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		Object removeAll(OzDict dict) {
 			dict.clear();
@@ -237,6 +239,7 @@ public abstract class DictionaryBuiltins {
 	@NodeChild("dict")
 	public static abstract class ItemsNode extends OzNode {
 
+		@TruffleBoundary
 		@Specialization
 		Object items(OzDict dict) {
 			Object list = "nil";
