@@ -32,7 +32,6 @@ import org.mozartoz.truffle.runtime.RecordFactory;
 import org.mozartoz.truffle.runtime.Unit;
 import org.mozartoz.truffle.runtime.Variable;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
@@ -181,7 +180,6 @@ public abstract class ValueBuiltins {
 			if (property != null) {
 				return property.get(record, cachedShape);
 			} else {
-				CompilerDirectives.transferToInterpreter();
 				throw noFieldError(record, cachedFeature);
 			}
 		}
@@ -191,7 +189,6 @@ public abstract class ValueBuiltins {
 		protected Object getRecord(DynamicObject record, Object feature) {
 			Object value = record.get(feature);
 			if (value == null) {
-				CompilerDirectives.transferToInterpreter();
 				throw noFieldError(record, feature);
 			}
 			return value;

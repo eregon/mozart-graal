@@ -1,12 +1,12 @@
 package org.mozartoz.truffle.nodes;
 
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.mozartoz.truffle.runtime.OzArguments;
 import org.mozartoz.truffle.runtime.OzBacktrace;
 import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.translator.Loader;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -25,6 +25,7 @@ public class OzRootNode extends RootNode {
 	private final int arity;
 	private final SourceSection sourceSection;
 	private final boolean forceSplitting;
+	private final BranchProfile errorProfile = BranchProfile.create();
 
 	@Child OzNode body;
 
@@ -90,7 +91,7 @@ public class OzRootNode extends RootNode {
 	private void checkArity(VirtualFrame frame) {
 		int given = OzArguments.getArgumentCount(frame);
 		if (given != arity) {
-			CompilerDirectives.transferToInterpreter();
+			errorProfile.enter();
 			throw new OzException(this, "arity mismatch: " + given + " VS " + arity);
 		}
 	}

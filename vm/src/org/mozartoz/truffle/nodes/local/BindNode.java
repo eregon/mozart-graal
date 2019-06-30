@@ -83,7 +83,7 @@ public abstract class BindNode extends OzNode {
 
 	private Object bindVarValue(OzVar var, Object value) {
 		if (bindVarValueNode == null) {
-			CompilerDirectives.transferToInterpreter();
+			CompilerDirectives.transferToInterpreterAndInvalidate();
 			bindVarValueNode = insert(BindVarValueNode.create());
 		}
 		return bindVarValueNode.executeBindVarValue(var, value);
@@ -91,7 +91,7 @@ public abstract class BindNode extends OzNode {
 
 	private Object unify(Object a, Object b) {
 		if (unifyNode == null) {
-			CompilerDirectives.transferToInterpreter();
+			CompilerDirectives.transferToInterpreterAndInvalidate();
 			unifyNode = insert(GenericUnifyNode.create());
 		}
 		return unifyNode.executeUnify(a, b);

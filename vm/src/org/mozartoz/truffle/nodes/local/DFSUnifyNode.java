@@ -1,5 +1,7 @@
 package org.mozartoz.truffle.nodes.local;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.OzNode;
@@ -105,9 +107,10 @@ public abstract class DFSUnifyNode extends OzNode {
 	@Specialization(guards = { "!isVariable(a)", "!isVariable(b)",
 			"!isCons(a) || !isCons(b)", // not to conflict with other specializations
 			"!isRecord(a) || !isRecord(b)" })
-	Object unifyValues(Object a, Object b, Object state) {
+	Object unifyValues(Object a, Object b, Object state,
+			@Cached BranchProfile failureProfile) {
 		if (!equal(a, b)) {
-			CompilerDirectives.transferToInterpreter();
+			failureProfile.enter();
 			failUnification(a, b);
 		}
 		return a;
@@ -119,7 +122,7 @@ public abstract class DFSUnifyNode extends OzNode {
 
 	private boolean equal(Object a, Object b) {
 		if (equalNode == null) {
-			CompilerDirectives.transferToInterpreter();
+			CompilerDirectives.transferToInterpreterAndInvalidate();
 			equalNode = insert(DFSEqualNode.create());
 		}
 		return equalNode.executeEqual(a, b, null);
