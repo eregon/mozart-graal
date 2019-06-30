@@ -7,6 +7,7 @@ import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.NodeHelpers;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.Errors;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzRecord;
 
@@ -42,7 +43,7 @@ public class MakeDynamicRecordNode extends OzNode {
 		for (int i = 0; i < features.length; i++) {
 			Object feature = features[i];
 			if (map.containsKey(feature)) {
-				throw kernelError("recordConstruction", label, buildPairs(features, values));
+				throw Errors.kernelError(this, "recordConstruction", label, buildPairs(features, values));
 			}
 			map.put(feature, values[i]);
 		}

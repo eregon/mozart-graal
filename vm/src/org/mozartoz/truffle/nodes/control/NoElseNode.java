@@ -5,6 +5,7 @@ import org.mozartoz.truffle.nodes.OzNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
+import org.mozartoz.truffle.runtime.Errors;
 
 public class NoElseNode extends OzNode {
 
@@ -18,10 +19,7 @@ public class NoElseNode extends OzNode {
 	public Object execute(VirtualFrame frame) {
 		Object value = valueNode.execute(frame);
 		SourceSection sourceSection = getSourceSection();
-		throw kernelError("noElse",
-				sourceSection.getSource().getName(),
-				(long) getStartLine(sourceSection),
-				value);
+		throw Errors.kernelError(this, "noElse", sourceSection.getSource().getName(), (long) getStartLine(sourceSection), value);
 	}
 
 	@TruffleBoundary

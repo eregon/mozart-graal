@@ -14,8 +14,8 @@ import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.CatAssignOONodeF
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.TypeNodeFactory;
 import org.mozartoz.truffle.nodes.local.GenericEqualNode;
 import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.Errors;
 import org.mozartoz.truffle.runtime.OzArray;
-import org.mozartoz.truffle.runtime.OzBacktrace;
 import org.mozartoz.truffle.runtime.OzCell;
 import org.mozartoz.truffle.runtime.OzChunk;
 import org.mozartoz.truffle.runtime.OzCons;
@@ -220,7 +220,7 @@ public abstract class ValueBuiltins {
 		}
 
 		private OzException noFieldError(DynamicObject record, Object feature) {
-			return kernelError(".", record, feature);
+			return Errors.kernelError(this, ".", record, feature);
 		}
 
 	}

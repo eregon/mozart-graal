@@ -7,6 +7,7 @@ import org.mozartoz.truffle.nodes.OzGuards;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.VirtualStringBuiltinsFactory.ToAtomNodeFactory;
 import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.Errors;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzObject;
 import org.mozartoz.truffle.runtime.OzRecord;
@@ -309,7 +310,7 @@ public abstract class VirtualStringBuiltins {
 			try {
 				return Double.valueOf(atom.replace('~', '-'));
 			} catch (Exception e) {
-				throw kernelError("stringNoFloat", atom);
+				throw Errors.kernelError(this, "stringNoFloat", atom);
 			}
 		}
 

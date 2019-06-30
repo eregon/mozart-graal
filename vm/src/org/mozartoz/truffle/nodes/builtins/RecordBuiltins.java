@@ -9,6 +9,7 @@ import org.mozartoz.truffle.nodes.*;
 import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.IsRecordNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.LabelNodeFactory;
 import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.Errors;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzFailedValue;
 import org.mozartoz.truffle.runtime.OzName;
@@ -244,7 +245,7 @@ public abstract class RecordBuiltins {
 				Object feature = derefNode.executeDeref(contents.get((long) i * 2 + 1));
 				Object value = derefIfBoundNode.executeDerefIfBound(contents.get((long) i * 2 + 2));
 				if (!OzGuards.isFeature(feature) || map.containsKey(feature)) {
-					throw kernelError("recordConstruction", label, buildPairs(contents));
+					throw Errors.kernelError(this, "recordConstruction", label, buildPairs(contents));
 				}
 				map.put(feature, value);
 			}

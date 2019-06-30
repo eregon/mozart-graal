@@ -3,6 +3,7 @@ package org.mozartoz.truffle.nodes.call;
 import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.DerefNode;
 import org.mozartoz.truffle.nodes.OzNode;
+import org.mozartoz.truffle.runtime.Errors;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzObject;
@@ -56,7 +57,7 @@ public abstract class CallNode extends CallableNode {
 
 	@Specialization
 	protected Object callOther(VirtualFrame frame, Object object, Object[] arguments) {
-		throw kernelError("type", unit, new OzCons(object, "nil"), "Callable", 1L, "nil");
+		throw Errors.kernelError(this, "type", unit, new OzCons(object, "nil"), "Callable", 1L, "nil");
 	}
 
 }
