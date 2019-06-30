@@ -1,7 +1,6 @@
 package org.mozartoz.truffle.runtime;
 
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
 import org.mozartoz.bootcompiler.SourceInterface;
 
 public class SourceWrapper implements SourceInterface {

@@ -120,6 +120,7 @@ suite = {
                 "truffle:TRUFFLE_DSL_PROCESSOR",
             ],
             "javaCompliance": "1.8",
+            "checkstyle": "org.mozartoz.truffle",
         },
 
         "org.mozartoz.truffle.launcher": {
@@ -129,6 +130,7 @@ suite = {
                 "sdk:LAUNCHER_COMMON",
             ],
             "javaCompliance": "1.8",
+            "checkstyle": "org.mozartoz.truffle",
             "checkPackagePrefix": "false",
         },
     },

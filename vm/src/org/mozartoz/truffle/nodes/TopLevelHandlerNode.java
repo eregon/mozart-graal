@@ -2,7 +2,6 @@ package org.mozartoz.truffle.nodes;
 
 import com.oracle.truffle.api.TruffleStackTrace;
 import org.mozartoz.truffle.runtime.OzBacktrace;
-import org.mozartoz.truffle.runtime.OzContext;
 import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzLanguage;
 import org.mozartoz.truffle.runtime.OzProc;

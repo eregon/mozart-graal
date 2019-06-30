@@ -5,7 +5,11 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.mozartoz.truffle.nodes.*;
+import org.mozartoz.truffle.nodes.DerefIfBoundNode;
+import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
+import org.mozartoz.truffle.nodes.DerefNode;
+import org.mozartoz.truffle.nodes.OzGuards;
+import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.IsRecordNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.RecordBuiltinsFactory.LabelNodeFactory;
 import org.mozartoz.truffle.runtime.Arity;

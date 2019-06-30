@@ -123,6 +123,11 @@ task :ideinit => MX do
   sh "ruby tool/intellijinit.rb"
 end
 
+desc "Run CheckStyle"
+task :checkstyle do
+  sh "#{MX} checkstyle -f --primary"
+end
+
 task :clean do
   rm_rf BOOTCOMPILER / 'target'
 

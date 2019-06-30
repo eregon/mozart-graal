@@ -8,6 +8,7 @@ install:
   - rake build
 script:
   - ./oz
+  - rake checkstyle
 cache:
   directories:
     - $HOME/.mx/cache

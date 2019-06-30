@@ -120,7 +120,6 @@ import org.mozartoz.truffle.nodes.pattern.PatternMatchDynamicArityNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchEqualNode;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchOpenRecordNodeGen;
 import org.mozartoz.truffle.nodes.pattern.PatternMatchRecordNodeGen;
-import org.mozartoz.truffle.runtime.*;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.NodeFactory;
@@ -130,6 +129,11 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
+import org.mozartoz.truffle.runtime.Arity;
+import org.mozartoz.truffle.runtime.OzCons;
+import org.mozartoz.truffle.runtime.OzLanguage;
+import org.mozartoz.truffle.runtime.SourceWrapper;
+import org.mozartoz.truffle.runtime.Unit;
 import scala.collection.JavaConversions;
 
 public class Translator {
