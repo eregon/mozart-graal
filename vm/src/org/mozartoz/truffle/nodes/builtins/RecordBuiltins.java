@@ -25,7 +25,6 @@ import org.mozartoz.truffle.runtime.RecordLibrary;
 import org.mozartoz.truffle.runtime.Variable;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;

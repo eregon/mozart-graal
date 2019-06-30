@@ -2,7 +2,6 @@ package org.mozartoz.truffle.runtime;
 
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.nodes.Node;
 
 @ExportLibrary(RecordLibrary.class)
 public class OzName extends OzValue implements Comparable<OzName> {
@@ -16,28 +15,8 @@ public class OzName extends OzValue implements Comparable<OzName> {
 	}
 
 	@ExportMessage
-	boolean isRecord() {
+	boolean isLiteral() {
 		return true;
-	}
-
-	@ExportMessage
-	Object label() {
-		return this;
-	}
-
-	@ExportMessage
-	Arity arity() {
-		return Arity.forLiteral(this);
-	}
-
-	@ExportMessage
-	Object arityList() {
-		return "nil";
-	}
-
-	@ExportMessage
-	Object read(Object feature, Node node) {
-		throw Errors.noFieldError(node, this, feature);
 	}
 
 	@Override
