@@ -155,8 +155,9 @@ public class Arity {
 		return new Arity(label, shape);
 	}
 
-	public static Arity forAtom(String atom) {
-		return new Arity(atom, BASE);
+	public static Arity forLiteral(Object literal) {
+		assert OzGuards.isLiteral(literal);
+		return new Arity(literal, BASE);
 	}
 
 	public static Arity forRecord(DynamicObject record) {

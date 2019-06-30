@@ -180,7 +180,7 @@ public abstract class ValueBuiltins {
 			if (property != null) {
 				return property.get(record, cachedShape);
 			} else {
-				throw noFieldError(record, cachedFeature);
+				throw Errors.noFieldError(this, record, cachedFeature);
 			}
 		}
 
@@ -189,7 +189,7 @@ public abstract class ValueBuiltins {
 		protected Object getRecord(DynamicObject record, Object feature) {
 			Object value = record.get(feature);
 			if (value == null) {
-				throw noFieldError(record, feature);
+				throw Errors.noFieldError(this, record, feature);
 			}
 			return value;
 		}
@@ -214,10 +214,6 @@ public abstract class ValueBuiltins {
 		protected Object getArray(OzArray array, long feature,
 				@Cached ArrayGetNode getNode) {
 			return getNode.executeGet(array, feature);
-		}
-
-		private OzException noFieldError(DynamicObject record, Object feature) {
-			return Errors.kernelError(this, ".", record, feature);
 		}
 
 	}

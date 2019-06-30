@@ -72,6 +72,7 @@ public class OzGuards {
 		return value instanceof OzUniqueName;
 	}
 
+	/** String, boolean, Unit, OzName, OzUniqueName */
 	public static boolean isLiteral(Object value) {
 		return isAtom(value) || isNameLike(value);
 	}

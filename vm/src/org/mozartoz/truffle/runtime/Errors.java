@@ -37,4 +37,8 @@ public class Errors {
 		return new OzException(node, data);
 	}
 
+	public static OzException noFieldError(Node node, Object record, Object feature) {
+		return kernelError(node, ".", record, feature);
+	}
+
 }

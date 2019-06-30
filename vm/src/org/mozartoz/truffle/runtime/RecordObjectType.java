@@ -1,12 +1,71 @@
 package org.mozartoz.truffle.runtime;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.Property;
+import com.oracle.truffle.api.object.Shape;
 
+@ExportLibrary(value = RecordLibrary.class, receiverType = DynamicObject.class)
 public class RecordObjectType extends ObjectType {
 
 	public static final RecordObjectType INSTANCE = new RecordObjectType();
+
+	@ExportMessage
+	static boolean isRecord(DynamicObject record) {
+		return true;
+	}
+
+	@ExportMessage
+	static Object label(DynamicObject record) {
+		return OzRecord.getLabel(record);
+	}
+
+	@ExportMessage
+	static Arity arity(DynamicObject record) {
+		return OzRecord.getArity(record);
+	}
+
+	@ExportMessage
+	static Object arityList(DynamicObject record) {
+		return OzRecord.getArity(record).asOzList();
+	}
+
+	@ExportMessage static class Read {
+		@Specialization(guards = {
+				"feature == cachedFeature",
+				"record.getShape() == cachedShape"
+		})
+		static Object cached(DynamicObject record, Object feature, Node node,
+				@Cached("feature") Object cachedFeature,
+				@Cached("record.getShape()") Shape cachedShape,
+				@Cached("cachedShape.getProperty(cachedFeature)") Property property) {
+			if (property != null) {
+				return property.get(record, cachedShape);
+			} else {
+				throw Errors.noFieldError(node, record, cachedFeature);
+			}
+		}
+
+		@Specialization(replaces = "cached")
+		static Object uncached(DynamicObject record, Object feature, Node node) {
+			Object value = record.get(feature);
+			if (value == null) {
+				assert !record.containsKey(feature);
+				throw Errors.noFieldError(node, record, feature);
+			}
+			return value;
+		}
+	}
+
+	@Override
+	public Class<?> dispatch() {
+		return RecordObjectType.class;
+	}
 
 	@Override
 	public boolean equals(DynamicObject object, Object other) {
@@ -15,7 +74,7 @@ public class RecordObjectType extends ObjectType {
 
 	@Override
 	public String toString(DynamicObject record) {
-		Object label = Arity.LABEL_LOCATION.get(record);
+		Object label = OzRecord.getLabel(record);
 		StringBuilder builder = new StringBuilder();
 		Arity arity = OzRecord.getArity(record);
 

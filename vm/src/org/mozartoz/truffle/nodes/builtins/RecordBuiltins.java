@@ -5,6 +5,7 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.mozartoz.truffle.nodes.DerefIfBoundNode;
 import org.mozartoz.truffle.nodes.DerefIfBoundNodeGen;
 import org.mozartoz.truffle.nodes.DerefNode;
@@ -20,6 +21,7 @@ import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzVar;
+import org.mozartoz.truffle.runtime.RecordLibrary;
 import org.mozartoz.truffle.runtime.Variable;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -44,29 +46,10 @@ public abstract class RecordBuiltins {
 
 		public abstract boolean executeIsRecord(Object record);
 
-		@Specialization
-		boolean isRecord(String atom) {
-			return true;
-		}
-
-		@Specialization(guards = "isLiteral(value)")
-		boolean isRecordLiteral(Object value) {
-			return true;
-		}
-
-		@Specialization
-		boolean isRecord(OzCons value) {
-			return true;
-		}
-
-		@Specialization
-		boolean isRecord(DynamicObject value) {
-			return true;
-		}
-
-		@Fallback
-		boolean isRecord(Object value) {
-			return false;
+		@Specialization(limit = "RECORDS_LIMIT")
+		protected Object label(Object value,
+				@CachedLibrary("value") RecordLibrary records) {
+			return records.isRecord(value);
 		}
 
 	}
@@ -82,24 +65,10 @@ public abstract class RecordBuiltins {
 
 		public abstract Object executeLabel(Object record);
 
-		@Specialization
-		protected Object label(String atom) {
-			return atom;
-		}
-
-		@Specialization
-		protected Object label(OzName name) {
-			return name;
-		}
-
-		@Specialization
-		protected Object label(OzCons cons) {
-			return "|";
-		}
-
-		@Specialization
-		protected Object label(DynamicObject record) {
-			return Arity.LABEL_LOCATION.get(record);
+		@Specialization(guards = "records.isRecord(record)", limit = "RECORDS_LIMIT")
+		protected Object label(Object record,
+				@CachedLibrary("record") RecordLibrary records) {
+			return records.label(record);
 		}
 
 	}
@@ -136,24 +105,10 @@ public abstract class RecordBuiltins {
 	@NodeChild("record")
 	public static abstract class ArityNode extends OzNode {
 
-		@Specialization
-		Object arity(String atom) {
-			return "nil";
-		}
-
-		@Specialization
-		Object arity(OzName name) {
-			return "nil";
-		}
-
-		@Specialization
-		Object arity(OzCons cons) {
-			return Arity.CONS_ARITY.asOzList();
-		}
-
-		@Specialization
-		Object arity(DynamicObject record) {
-			return OzRecord.getArity(record).asOzList();
+		@Specialization(guards = "records.isRecord(record)", limit = "RECORDS_LIMIT")
+		protected Object label(Object record,
+				@CachedLibrary("record") RecordLibrary records) {
+			return records.arityList(record);
 		}
 
 	}

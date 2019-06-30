@@ -2,6 +2,7 @@ package org.mozartoz.truffle.nodes;
 
 import com.oracle.truffle.api.instrumentation.Tag;
 import org.mozartoz.truffle.runtime.OzException;
+import org.mozartoz.truffle.runtime.RecordLibrary;
 import org.mozartoz.truffle.runtime.Unit;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -20,6 +21,8 @@ import com.oracle.truffle.api.source.SourceSection;
 @ImportStatic(OzGuards.class)
 @GenerateWrapper
 public abstract class OzNode extends Node implements InstrumentableNode {
+
+	protected static final int RECORDS_LIMIT = RecordLibrary.LIMIT;
 
 	boolean hasRootTag = false;
 
