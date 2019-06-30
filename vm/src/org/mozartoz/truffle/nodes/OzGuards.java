@@ -57,7 +57,7 @@ public class OzGuards {
 	}
 
 	public static boolean isUnit(Object value) {
-		return value instanceof Unit;
+		return value == Unit.INSTANCE;
 	}
 
 	public static boolean isName(Object value) {
