@@ -41,6 +41,11 @@
       <property name="format" value="^  "/>
       <property name="message" value="Indent with tabs."/>
     </module>
+    <module name="Regexp">
+      <property name="format" value="[ \t]+$"/>
+      <property name="illegalPattern" value="true"/>
+      <property name="message" value="Trailing whitespace"/>
+    </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value="[^\x00-\x7F]"/>
       <property name="message" value="Only use ASCII characters."/>

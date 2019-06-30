@@ -50,7 +50,7 @@ public abstract class GenericEqualNode extends OzNode {
 	}
 
 	public static abstract class DepthLimitedEqualNode extends DFSEqualNode {
-		
+
 		public static DepthLimitedEqualNode create() {
 			return DepthLimitedEqualNodeGen.create(null, null, null);
 		}

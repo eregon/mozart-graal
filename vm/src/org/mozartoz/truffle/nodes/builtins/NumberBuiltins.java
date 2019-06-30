@@ -106,7 +106,7 @@ public abstract class NumberBuiltins {
 		double pow(double left, double right) {
 			return Math.pow(left, right);
 		}
-		
+
 	}
 
 	@Builtin(name = "abs", deref = ALL)
