@@ -113,7 +113,7 @@ class ThreadCoroutineSupport extends CoroutineSupport {
     }
 
     public static void shutdownThreadPool() {
-        THREAD_POOL.shutdownNow();
+        THREAD_POOL.shutdown();
     }
 
     @SuppressWarnings("unused")
