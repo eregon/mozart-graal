@@ -112,6 +112,10 @@ class ThreadCoroutineSupport extends CoroutineSupport {
         THREAD_POOL = Executors.newCachedThreadPool(new CoroutineThreadFactory());
     }
 
+    public static void shutdownThreadPool() {
+        THREAD_POOL.shutdownNow();
+    }
+
     @SuppressWarnings("unused")
     ThreadCoroutineSupport(Thread thread) {
         super(thread);

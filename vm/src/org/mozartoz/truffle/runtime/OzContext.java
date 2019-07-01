@@ -34,6 +34,7 @@ public class OzContext {
 	private final File mainImage;
 
 	private final List<Process> childProcesses = new LinkedList<>();
+	private final List<Thread> coroutineThreads = new LinkedList<>();
 	private final StacktraceThread shutdownHook;
 
 	private DynamicObject base;
@@ -52,7 +53,11 @@ public class OzContext {
 		propertyRegistry.initialize(home);
 
 		mainThread = new OzThread(env);
-		CoroutineSupport.setThreadFactory(runnable -> this.env.createThread(runnable));
+		CoroutineSupport.setThreadFactory(runnable -> {
+			Thread thread = this.env.createThread(runnable);
+			coroutineThreads.add(thread);
+			return thread;
+		});
 
 		mainImage = new File(home, "Main.image");
 
@@ -74,6 +79,7 @@ public class OzContext {
 
 		if (Options.PRE_INITIALIZE_CONTEXTS) {
 			CoroutineSupport.resetThreadPool();
+			coroutineThreads.clear();
 		}
 	}
 
@@ -90,6 +96,15 @@ public class OzContext {
 
 	public void finalizeContext() {
 		waitThreads();
+		CoroutineSupport.shutdownThreadPool();
+		// Wait all threads we created, required by Truffle
+		for (Thread thread : coroutineThreads) {
+			try {
+				thread.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 
 		if (env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT)) {
 			Runtime.getRuntime().removeShutdownHook(shutdownHook);

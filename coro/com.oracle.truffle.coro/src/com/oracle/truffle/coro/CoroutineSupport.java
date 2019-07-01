@@ -105,6 +105,12 @@ public abstract class CoroutineSupport {
 
     // Controls debugging and tracing, for maximum performance the actual if(DEBUG/TRACE) code needs
     // to be commented out
+
+    public static void shutdownThreadPool() {
+        if (!NATIVE) {
+            ThreadCoroutineSupport.shutdownThreadPool();
+        }
+    }
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
