@@ -78,8 +78,8 @@ public class OzContext {
 		waitThreads();
 
 		if (Options.PRE_INITIALIZE_CONTEXTS) {
+			terminateThreadPool();
 			CoroutineSupport.resetThreadPool();
-			coroutineThreads.clear();
 		}
 	}
 
@@ -96,15 +96,7 @@ public class OzContext {
 
 	public void finalizeContext() {
 		waitThreads();
-		CoroutineSupport.shutdownThreadPool();
-		// Wait all threads we created, required by Truffle
-		for (Thread thread : coroutineThreads) {
-			try {
-				thread.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+		terminateThreadPool();
 
 		if (env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT)) {
 			Runtime.getRuntime().removeShutdownHook(shutdownHook);
@@ -115,6 +107,19 @@ public class OzContext {
 		while (OzThread.getNumberOfThreadsRunnable() > 1) {
 			OzThread.getCurrent().yield(null);
 		}
+	}
+
+	private void terminateThreadPool() {
+		CoroutineSupport.shutdownThreadPool();
+		// Wait all threads we created, required by Truffle
+		for (Thread thread : coroutineThreads) {
+			try {
+				thread.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		coroutineThreads.clear();
 	}
 
 	// Main
