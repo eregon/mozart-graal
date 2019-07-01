@@ -27,6 +27,8 @@ package com.oracle.truffle.coro;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.util.concurrent.ThreadFactory;
+
 public abstract class CoroutineSupport {
 
     private static final String NATIVE_ENABLED = System.getProperty("com.oracle.truffle.coro.native");
@@ -74,6 +76,13 @@ public abstract class CoroutineSupport {
 
     public static void setCoroutineFactory(CoroutineFactory factory) {
         COROUTINE_FACTORY.set(factory);
+    }
+
+    static final ThreadFactory DEFAULT_THREAD_FACTORY = runnable -> new Thread(runnable);
+    static ThreadFactory THREAD_FACTORY = DEFAULT_THREAD_FACTORY;
+
+    public static void setThreadFactory(ThreadFactory factory) {
+        THREAD_FACTORY = factory;
     }
 
     static final ThreadLocal<CoroutineSupport> COROUTINE_SUPPORT = new ThreadLocal<CoroutineSupport>() {

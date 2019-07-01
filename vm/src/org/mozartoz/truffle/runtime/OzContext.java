@@ -50,7 +50,9 @@ public class OzContext {
 
 		propertyRegistry = PropertyRegistry.INSTANCE;
 		propertyRegistry.initialize(home);
+
 		mainThread = new OzThread(env);
+		CoroutineSupport.setThreadFactory(runnable -> this.env.createThread(runnable));
 
 		mainImage = new File(home, "Main.image");
 

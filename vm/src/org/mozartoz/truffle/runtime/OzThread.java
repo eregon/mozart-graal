@@ -3,7 +3,6 @@ package org.mozartoz.truffle.runtime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.TruffleStackTrace;
 import org.mozartoz.truffle.Options;
@@ -107,14 +106,11 @@ public class OzThread extends OzValue implements Runnable {
 		assert original != null;
 		Coroutine.yieldTo(original);
 
-		final TruffleContext truffleContext = env.getContext();
 		setCurrentOzThread(this);
 		threadsRunnable++;
-		final Object prev = truffleContext.enter();
 		try {
 			initialCall.call(OzArguments.pack(null, ArrayUtils.EMPTY));
 		} finally {
-			truffleContext.leave(prev);
 			threadsRunnable--;
 			status = "terminated";
 			if (env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT)) {

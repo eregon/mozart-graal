@@ -96,7 +96,8 @@ class ThreadCoroutineSupport extends CoroutineSupport {
         @Override
         public Thread newThread(Runnable target) {
             String name = "Coroutine-" + coroutineNumber.getAndIncrement();
-            Thread thread = new Thread(target, name);
+            Thread thread = CoroutineSupport.THREAD_FACTORY.newThread(target);
+            thread.setName(name);
             // Let coroutines threads die when System.exit() is called since they are blocked on
             // waitForResume() anyway.
             thread.setDaemon(true);
