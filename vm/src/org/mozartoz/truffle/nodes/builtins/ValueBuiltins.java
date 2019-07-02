@@ -4,6 +4,7 @@ import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ArrayBuiltins.ArrayGetNode;
 import org.mozartoz.truffle.nodes.builtins.ArrayBuiltins.ArrayPutNode;
@@ -14,7 +15,6 @@ import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.CatAssignOONodeF
 import org.mozartoz.truffle.nodes.builtins.ValueBuiltinsFactory.TypeNodeFactory;
 import org.mozartoz.truffle.nodes.local.GenericEqualNode;
 import org.mozartoz.truffle.runtime.Arity;
-import org.mozartoz.truffle.runtime.Errors;
 import org.mozartoz.truffle.runtime.OzArray;
 import org.mozartoz.truffle.runtime.OzCell;
 import org.mozartoz.truffle.runtime.OzChunk;
@@ -29,6 +29,7 @@ import org.mozartoz.truffle.runtime.OzReadOnly;
 import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzVar;
 import org.mozartoz.truffle.runtime.RecordFactory;
+import org.mozartoz.truffle.runtime.RecordLibrary;
 import org.mozartoz.truffle.runtime.Unit;
 import org.mozartoz.truffle.runtime.Variable;
 
@@ -40,8 +41,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Property;
-import com.oracle.truffle.api.object.Shape;
 
 public abstract class ValueBuiltins {
 
@@ -159,39 +158,10 @@ public abstract class ValueBuiltins {
 
 		public abstract Object executeDot(Object record, Object feature);
 
-		@Specialization(guards = "feature == 1")
-		protected Object getHead(OzCons cons, long feature) {
-			return cons.getHead();
-		}
-
-		@Specialization(guards = "feature == 2")
-		protected Object getTail(OzCons cons, long feature) {
-			return cons.getTail();
-		}
-
-		@Specialization(guards = {
-				"feature == cachedFeature",
-				"record.getShape() == cachedShape"
-		})
-		protected Object getRecord(DynamicObject record, Object feature,
-				@Cached("feature") Object cachedFeature,
-				@Cached("record.getShape()") Shape cachedShape,
-				@Cached("cachedShape.getProperty(cachedFeature)") Property property) {
-			if (property != null) {
-				return property.get(record, cachedShape);
-			} else {
-				throw Errors.noFieldError(this, record, cachedFeature);
-			}
-		}
-
-		@TruffleBoundary
-		@Specialization
-		protected Object getRecord(DynamicObject record, Object feature) {
-			Object value = record.get(feature);
-			if (value == null) {
-				throw Errors.noFieldError(this, record, feature);
-			}
-			return value;
+		@Specialization(guards = "records.isRecord(record)", limit = "RECORDS_LIMIT")
+		protected Object dot(Object record, Object feature,
+				@CachedLibrary("record") RecordLibrary records) {
+			return records.read(record, feature, this);
 		}
 
 		@Specialization
