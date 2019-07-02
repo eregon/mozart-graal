@@ -2,6 +2,7 @@ package org.mozartoz.truffle.nodes.builtins;
 
 import static org.mozartoz.truffle.nodes.builtins.Builtin.ALL;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.mozartoz.truffle.nodes.OzNode;
 import org.mozartoz.truffle.nodes.builtins.ArrayBuiltinsFactory.ArrayGetNodeFactory;
 import org.mozartoz.truffle.nodes.builtins.ArrayBuiltinsFactory.ArrayPutNodeFactory;
@@ -15,9 +16,11 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class ArrayBuiltins {
 
 	public static int long2int(long value) {
-		if (Integer.MIN_VALUE <= value && value <= Integer.MAX_VALUE) {
-			return (int) value;
+		int intValue = (int) value;
+		if (intValue == value) {
+			return intValue;
 		} else {
+			CompilerDirectives.transferToInterpreterAndInvalidate();
 			throw new Error();
 		}
 	}
