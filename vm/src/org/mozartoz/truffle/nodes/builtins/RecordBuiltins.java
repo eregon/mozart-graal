@@ -77,24 +77,10 @@ public abstract class RecordBuiltins {
 	@NodeChild("record")
 	public static abstract class WidthNode extends OzNode {
 
-		@Specialization
-		long width(String atom) {
-			return 0;
-		}
-
-		@Specialization
-		long width(OzName name) {
-			return 0;
-		}
-
-		@Specialization
-		long width(OzCons cons) {
-			return 2;
-		}
-
-		@Specialization
-		long width(DynamicObject record) {
-			return OzRecord.getArity(record).getWidth();
+		@Specialization(guards = "records.isRecord(record)", limit = "RECORDS_LIMIT")
+		protected long width(Object record,
+				@CachedLibrary("record") RecordLibrary records) {
+			return records.arity(record).getWidth();
 		}
 
 	}
@@ -105,7 +91,7 @@ public abstract class RecordBuiltins {
 	public static abstract class ArityNode extends OzNode {
 
 		@Specialization(guards = "records.isRecord(record)", limit = "RECORDS_LIMIT")
-		protected Object label(Object record,
+		protected Object arity(Object record,
 				@CachedLibrary("record") RecordLibrary records) {
 			return records.arityList(record);
 		}
