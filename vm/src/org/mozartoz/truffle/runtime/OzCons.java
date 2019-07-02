@@ -74,6 +74,23 @@ public class OzCons extends OzValue {
 		return CONS_ARITY_LIST;
 	}
 
+	@ExportMessage static class HasFeature {
+		@Specialization(guards = "feature == HEAD")
+		static boolean getHead(OzCons cons, long feature) {
+			return true;
+		}
+
+		@Specialization(guards = "feature == TAIL")
+		static boolean getTail(OzCons cons, long feature) {
+			return true;
+		}
+
+		@Fallback
+		static boolean getOther(OzCons cons, Object feature) {
+			return false;
+		}
+	}
+
 	@ExportMessage static class Read {
 		@Specialization(guards = "feature == HEAD")
 		static Object getHead(OzCons cons, long feature, Node node) {
@@ -88,6 +105,23 @@ public class OzCons extends OzValue {
 		@Fallback
 		static Object getOther(OzCons cons, Object feature, Node node) {
 			throw Errors.noFieldError(node, cons, feature);
+		}
+	}
+
+	@ExportMessage static class ReadOrDefault {
+		@Specialization(guards = "feature == HEAD")
+		static Object getHead(OzCons cons, long feature, Object defaultValue) {
+			return cons.getHead();
+		}
+
+		@Specialization(guards = "feature == TAIL")
+		static Object getTail(OzCons cons, long feature, Object defaultValue) {
+			return cons.getTail();
+		}
+
+		@Fallback
+		static Object getOther(OzCons cons, Object feature, Object defaultValue) {
+			return defaultValue;
 		}
 	}
 

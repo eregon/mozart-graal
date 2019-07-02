@@ -35,6 +35,24 @@ public class RecordObjectType extends ObjectType {
 		return OzRecord.getArity(record).asOzList();
 	}
 
+	@ExportMessage static class HasFeature {
+		@Specialization(guards = {
+				"feature == cachedFeature",
+				"record.getShape() == cachedShape"
+		})
+		static boolean cached(DynamicObject record, Object feature,
+							 @Cached("feature") Object cachedFeature,
+							 @Cached("record.getShape()") Shape cachedShape,
+							 @Cached("cachedShape.hasProperty(cachedFeature)") boolean hasProperty) {
+			return hasProperty;
+		}
+
+		@Specialization(replaces = "cached")
+		static boolean uncached(DynamicObject record, Object feature) {
+			return record.containsKey(feature);
+		}
+	}
+
 	@ExportMessage static class Read {
 		@Specialization(guards = {
 				"feature == cachedFeature",
@@ -59,6 +77,28 @@ public class RecordObjectType extends ObjectType {
 				throw Errors.noFieldError(node, record, feature);
 			}
 			return value;
+		}
+	}
+
+	@ExportMessage static class ReadOrDefault {
+		@Specialization(guards = {
+				"feature == cachedFeature",
+				"record.getShape() == cachedShape"
+		})
+		static Object cached(DynamicObject record, Object feature, Object defaultValue,
+							 @Cached("feature") Object cachedFeature,
+							 @Cached("record.getShape()") Shape cachedShape,
+							 @Cached("cachedShape.getProperty(cachedFeature)") Property property) {
+			if (property != null) {
+				return property.get(record, cachedShape);
+			} else {
+				return defaultValue;
+			}
+		}
+
+		@Specialization(replaces = "cached")
+		static Object uncached(DynamicObject record, Object feature, Object defaultValue) {
+			return record.get(feature, defaultValue);
 		}
 	}
 

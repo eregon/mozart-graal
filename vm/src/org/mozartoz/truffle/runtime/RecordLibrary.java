@@ -48,9 +48,21 @@ public abstract class RecordLibrary extends Library {
 	}
 
 	@Abstract(ifExported = "isRecord")
+	public boolean hasFeature(Object receiver, Object feature) {
+		assert OzGuards.isLiteral(receiver);
+		return false;
+	}
+
+	@Abstract(ifExported = "isRecord")
 	public Object read(Object receiver, Object feature, Node node) {
 		assert OzGuards.isLiteral(receiver);
 		throw Errors.noFieldError(node, receiver, feature);
+	}
+
+	@Abstract(ifExported = "isRecord")
+	public Object readOrDefault(Object receiver, Object feature, Object defaultValue) {
+		assert OzGuards.isLiteral(receiver);
+		return defaultValue;
 	}
 
 }

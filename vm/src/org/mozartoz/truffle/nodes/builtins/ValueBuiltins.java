@@ -620,44 +620,22 @@ public abstract class ValueBuiltins {
 	@NodeChildren({ @NodeChild("record"), @NodeChild("feature") })
 	public static abstract class HasFeatureNode extends OzNode {
 
-		@Specialization
-		boolean hasFeature(String atom, Object feature) {
-			return false;
-		}
+		public abstract boolean executeHasFeature(Object record, Object feature);
 
-		@Specialization
-		boolean hasFeature(OzName name, Object feature) {
-			return false;
-		}
-
-		@Specialization
-		boolean hasFeature(Unit unit, Object feature) {
-			return false;
-		}
-
-		@Specialization
-		boolean hasFeature(OzCons cons, long feature) {
-			return feature == 1 || feature == 2;
-		}
-
-		@Specialization(guards = "!isLong(feature)")
-		boolean hasFeature(OzCons cons, Object feature) {
-			return false;
-		}
-
-		@Specialization
-		boolean hasFeature(DynamicObject record, Object feature) {
-			return record.getShape().hasProperty(feature);
+		@Specialization(guards = "records.isRecord(record)", limit = "RECORDS_LIMIT")
+		boolean hasFeature(Object record, Object feature,
+				@CachedLibrary("record") RecordLibrary records) {
+			return records.hasFeature(record, feature);
 		}
 
 		@Specialization
 		boolean hasFeature(OzChunk chunk, Object feature) {
-			return chunk.getUnderlying().getShape().hasProperty(feature);
+			return executeHasFeature(chunk.getUnderlying(), feature);
 		}
 
 		@Specialization
 		boolean hasFeature(OzObject object, Object feature) {
-			return object.getFeatures().getShape().hasProperty(feature);
+			return executeHasFeature(object.getFeatures(), feature);
 		}
 
 	}
@@ -667,29 +645,17 @@ public abstract class ValueBuiltins {
 	@NodeChildren({ @NodeChild("record"), @NodeChild("feature"), @NodeChild("def") })
 	public static abstract class CondSelectNode extends OzNode {
 
-		@Specialization
-		Object condSelect(boolean bool, Object feature, Object def) {
-			return def;
-		}
+		public abstract Object executeCondSelect(Object record, Object feature, Object def);
 
-		@Specialization
-		Object condSelect(String atom, Object feature, Object def) {
-			return def;
-		}
-
-		@Specialization(guards = "isLiteral(literal)")
-		Object condSelect(Object literal, Object feature, Object def) {
-			return def;
-		}
-
-		@Specialization
-		Object condSelect(DynamicObject record, Object feature, Object def) {
-			return record.get(feature, def);
+		@Specialization(guards = "records.isRecord(record)", limit = "RECORDS_LIMIT")
+		Object condSelect(Object record, Object feature, Object def,
+				@CachedLibrary("record") RecordLibrary records) {
+			return records.readOrDefault(record, feature, def);
 		}
 
 		@Specialization
 		Object condSelect(OzObject object, Object feature, Object def) {
-			return object.getFeatures().get(feature, def);
+			return executeCondSelect(object.getFeatures(), feature, def);
 		}
 
 	}
