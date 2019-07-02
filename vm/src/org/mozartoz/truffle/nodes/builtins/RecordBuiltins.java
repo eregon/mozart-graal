@@ -17,7 +17,6 @@ import org.mozartoz.truffle.runtime.Arity;
 import org.mozartoz.truffle.runtime.Errors;
 import org.mozartoz.truffle.runtime.OzCons;
 import org.mozartoz.truffle.runtime.OzFailedValue;
-import org.mozartoz.truffle.runtime.OzName;
 import org.mozartoz.truffle.runtime.OzRecord;
 import org.mozartoz.truffle.runtime.OzThread;
 import org.mozartoz.truffle.runtime.OzVar;
@@ -167,13 +166,8 @@ public abstract class RecordBuiltins {
 		@Child DerefNode derefNode = DerefNode.create();
 		@Child DerefIfBoundNode derefIfBoundNode = DerefIfBoundNode.create();
 
-		@Specialization
-		protected String makeDynamic(String label, String emptyContents) {
-			return label;
-		}
-
-		@Specialization
-		protected OzName makeDynamic(OzName label, String emptyContents) {
+		@Specialization(guards = "isLiteral(label)")
+		protected Object makeDynamic(Object label, String emptyContents) {
 			return label;
 		}
 
