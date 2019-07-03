@@ -50,13 +50,18 @@ public class OzLanguage extends TruffleLanguage<OzContext> {
 	}
 
 	@Override
+	protected boolean patchContext(OzContext context, Env newEnv) {
+		return context.patchContext(newEnv);
+	}
+
+	@Override
 	protected void finalizeContext(OzContext context) {
 		context.finalizeContext();
 	}
 
 	@Override
-	protected boolean patchContext(OzContext context, Env newEnv) {
-		return context.patchContext(newEnv);
+	protected void disposeContext(OzContext context) {
+		context.disposeContext();
 	}
 
 	@Override

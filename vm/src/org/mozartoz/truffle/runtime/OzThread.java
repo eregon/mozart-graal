@@ -9,6 +9,7 @@ import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.coro.Coroutine;
+import com.oracle.truffle.coro.CoroutineExitException;
 import com.oracle.truffle.coro.CoroutineLocal;
 
 public class OzThread extends OzValue implements Runnable {
@@ -48,7 +49,7 @@ public class OzThread extends OzValue implements Runnable {
 		original = null;
 		coroutine = (Coroutine) Coroutine.current();
 		proc = null;
-		procLocation = null;
+		procLocation = "main";
 		initialCall = null;
 		setCurrentOzThread(this);
 	}
@@ -94,6 +95,8 @@ public class OzThread extends OzValue implements Runnable {
 	public void run() {
 		try {
 			runThread();
+		} catch (CoroutineExitException e) {
+			throw e;
 		} catch (Error | RuntimeException e) {
 			e.printStackTrace();
 			throw e;
@@ -125,6 +128,9 @@ public class OzThread extends OzValue implements Runnable {
 			BACKTRACES.put(this, new OzBacktrace(TruffleStackTrace.getStackTrace(backtraceException)));
 		}
 		Coroutine.yield();
+		if (context.exiting) {
+			context.exitThread(currentNode);
+		}
 		status = "runnable";
 	}
 
@@ -134,4 +140,8 @@ public class OzThread extends OzValue implements Runnable {
 		threadsRunnable++;
 	}
 
+	@Override
+	public String toString() {
+		return "<Thread " + procLocation + ">";
+	}
 }

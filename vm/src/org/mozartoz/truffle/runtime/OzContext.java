@@ -5,7 +5,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.TruffleOptions;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.coro.Coroutine;
+import com.oracle.truffle.coro.CoroutineExitException;
 import com.oracle.truffle.coro.CoroutineSupport;
 import org.mozartoz.truffle.Options;
 import org.mozartoz.truffle.nodes.builtins.BuiltinsManager;
@@ -21,9 +25,7 @@ import com.oracle.truffle.api.source.Source;
 
 public class OzContext {
 
-	public static OzContext getInstance() {
-		return OzLanguage.getContext();
-	}
+	public static final TruffleLogger LOGGER = TruffleLogger.getLogger("oz");
 
 	private final OzLanguage language;
 	private String home;
@@ -41,6 +43,9 @@ public class OzContext {
 
 	private DynamicObject base;
 	private OzProc main;
+
+	boolean exiting = false;
+	private int exitCode = 0;
 
 	public OzContext(OzLanguage language, Env env) {
 		this.language = language;
@@ -77,6 +82,8 @@ public class OzContext {
 	}
 
 	public void initialize() {
+		LOGGER.config("initializeContext");
+
 		loadMain();
 		waitThreads();
 
@@ -87,6 +94,8 @@ public class OzContext {
 	}
 
 	public boolean patchContext(Env newEnv) {
+		LOGGER.config("patchContext");
+
 		Metrics.reset();
 
 		this.home = language.getHome();
@@ -100,11 +109,26 @@ public class OzContext {
 	}
 
 	public void finalizeContext() {
+		LOGGER.config("finalizeContext");
+
 		waitThreads();
+
+		// Let each Coroutine exit, so we can join the threads
+		this.exiting = true;
+		Coroutine.yield();
+
 		terminateThreadPool();
 
 		if (stacktraceOnInterrupt) {
 			Runtime.getRuntime().removeShutdownHook(shutdownHook);
+		}
+	}
+
+	public void disposeContext() {
+		LOGGER.config("disposeContext");
+
+		for (Process process : childProcesses) {
+			process.destroyForcibly();
 		}
 	}
 
@@ -115,7 +139,9 @@ public class OzContext {
 	}
 
 	private void terminateThreadPool() {
+		// Shutdown the thread pool so it lets us join Threads
 		CoroutineSupport.shutdownThreadPool();
+
 		// Wait all threads we created, required by Truffle
 		for (Thread thread : coroutineThreads) {
 			try {
@@ -225,11 +251,24 @@ public class OzContext {
 	}
 
 	@TruffleBoundary
-	public void shutdown(int exitCode) {
-		for (Process process : childProcesses) {
-			process.destroyForcibly();
+	public void exitThread(Node location) {
+		if (OzThread.getCurrent() == mainThread) {
+			throw new ExitException(location, exitCode);
+		} else {
+			throw new CoroutineExitException();
 		}
-		System.exit(exitCode);
+	}
+
+	@TruffleBoundary
+	public void exit(Node location, int exitCode) {
+		this.exiting = true;
+		this.exitCode = exitCode;
+
+		if (OzThread.getCurrent() == mainThread) {
+			throw new ExitException(location, exitCode);
+		} else {
+			Coroutine.yield();
+		}
 	}
 
 	// Getters
@@ -242,4 +281,7 @@ public class OzContext {
 		return translatorDriver;
 	}
 
+	public OzThread getMainThread() {
+		return mainThread;
+	}
 }

@@ -167,7 +167,7 @@ public abstract class SystemBuiltins {
 		@TruffleBoundary
 		@Specialization(guards = "isInt(exitCode)")
 		Object exit(long exitCode) {
-			OzLanguage.getContext().shutdown((int) exitCode);
+			OzLanguage.getContext().exit(this, (int) exitCode);
 			return unit;
 		}
 

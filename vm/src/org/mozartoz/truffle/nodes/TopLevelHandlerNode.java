@@ -1,6 +1,8 @@
 package org.mozartoz.truffle.nodes;
 
 import com.oracle.truffle.api.TruffleStackTrace;
+import com.oracle.truffle.coro.CoroutineExitException;
+import org.mozartoz.truffle.runtime.ExitException;
 import org.mozartoz.truffle.runtime.OzBacktrace;
 import org.mozartoz.truffle.runtime.OzException;
 import org.mozartoz.truffle.runtime.OzLanguage;
@@ -31,11 +33,16 @@ public class TopLevelHandlerNode extends OzNode {
 			errorProfile.enter();
 			OzBacktrace backtrace = new OzBacktrace(TruffleStackTrace.getStackTrace(ozException));
 			handleOzException(ozException, backtrace);
+			OzLanguage.getContext().exit(this, 1);
+		} catch (CoroutineExitException | ExitException exitException) {
+			errorProfile.enter();
+			throw exitException;
 		} catch (Throwable exception) {
 			errorProfile.enter();
 			handleJavaException(exception);
+			OzLanguage.getContext().exit(this, 1);
 		}
-		OzLanguage.getContext().shutdown(1);
+
 		return unit;
 	}
 

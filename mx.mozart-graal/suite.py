@@ -7,7 +7,7 @@ suite = {
             {
                 "name": "tools",
                 "subdir": True,
-                "version": "eb37b5bce846828eb276201dff69eb1a276f87e7",
+                "version": "2bdb16997642c3f69f1ca7132d04e8a275f65fb1",
                 "urls": [
                     {"url": "https://github.com/eregon/graal.git", "kind": "git"},
                 ],
