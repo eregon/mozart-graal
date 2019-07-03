@@ -3,9 +3,7 @@ package org.mozartoz.truffle.runtime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.TruffleStackTrace;
-import org.mozartoz.truffle.Options;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -35,7 +33,7 @@ public class OzThread extends OzValue implements Runnable {
 		return CURRENT_OZ_THREAD.get();
 	}
 
-	private final Env env;
+	private final OzContext context;
 	private final Coroutine original;
 	private final Coroutine coroutine;
 	private OzProc proc;
@@ -45,8 +43,8 @@ public class OzThread extends OzValue implements Runnable {
 	private String status = "runnable";
 	private boolean raiseOnBlock = false;
 
-	public OzThread(Env env) {
-		this.env = env;
+	public OzThread(OzContext context) {
+		this.context = context;
 		original = null;
 		coroutine = (Coroutine) Coroutine.current();
 		proc = null;
@@ -55,8 +53,8 @@ public class OzThread extends OzValue implements Runnable {
 		setCurrentOzThread(this);
 	}
 
-	public OzThread(OzProc proc, CallTarget initialCall, Env env) {
-		this.env = env;
+	public OzThread(OzProc proc, CallTarget initialCall, OzContext context) {
+		this.context = context;
 		this.proc = proc;
 		this.procLocation = proc.toString();
 		this.initialCall = initialCall;
@@ -113,7 +111,7 @@ public class OzThread extends OzValue implements Runnable {
 		} finally {
 			threadsRunnable--;
 			status = "terminated";
-			if (env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT)) {
+			if (context.stacktraceOnInterrupt) {
 				BACKTRACES.remove(this);
 			}
 		}
@@ -122,7 +120,7 @@ public class OzThread extends OzValue implements Runnable {
 	@TruffleBoundary
 	public void yield(Node currentNode) {
 		status = "blocked";
-		if (env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT)) {
+		if (context.stacktraceOnInterrupt) {
 			GetBacktraceException backtraceException = new GetBacktraceException(currentNode);
 			BACKTRACES.put(this, new OzBacktrace(TruffleStackTrace.getStackTrace(backtraceException)));
 		}

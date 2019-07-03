@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.coro.CoroutineSupport;
 import org.mozartoz.truffle.Options;
@@ -27,6 +28,7 @@ public class OzContext {
 	private final OzLanguage language;
 	private String home;
 	private Env env;
+	@CompilationFinal boolean stacktraceOnInterrupt;
 
 	private final TranslatorDriver translatorDriver;
 	private final PropertyRegistry propertyRegistry;
@@ -44,6 +46,7 @@ public class OzContext {
 		this.language = language;
 		this.home = language.getHome();
 		this.env = env;
+		this.stacktraceOnInterrupt = env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT);
 
 		this.translatorDriver = new TranslatorDriver(language, env.getOptions());
 
@@ -52,7 +55,7 @@ public class OzContext {
 		propertyRegistry = PropertyRegistry.INSTANCE;
 		propertyRegistry.initialize(home);
 
-		mainThread = new OzThread(env);
+		mainThread = new OzThread(this);
 		CoroutineSupport.setThreadFactory(runnable -> {
 			Thread thread = this.env.createThread(runnable);
 			coroutineThreads.add(thread);
@@ -61,7 +64,7 @@ public class OzContext {
 
 		mainImage = new File(home, "Main.image");
 
-		if (env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT)) {
+		if (stacktraceOnInterrupt) {
 			this.shutdownHook = new StacktraceThread();
 			Runtime.getRuntime().addShutdownHook(shutdownHook);
 		} else {
@@ -89,6 +92,8 @@ public class OzContext {
 		this.home = language.getHome();
 		this.env = newEnv;
 
+		this.stacktraceOnInterrupt = newEnv.getOptions().get(Options.STACKTRACE_ON_INTERRUPT);
+
 		OzThread.setCurrentOzThread(mainThread);
 
 		return true;
@@ -98,7 +103,7 @@ public class OzContext {
 		waitThreads();
 		terminateThreadPool();
 
-		if (env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT)) {
+		if (stacktraceOnInterrupt) {
 			Runtime.getRuntime().removeShutdownHook(shutdownHook);
 		}
 	}
