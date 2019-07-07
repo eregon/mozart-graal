@@ -7,6 +7,7 @@ import org.graalvm.polyglot.Source;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,6 +41,8 @@ public class OzLauncher extends AbstractLanguageLauncher {
 
 	@Override
 	protected void launch(Context.Builder contextBuilder) {
+		debugPreInitializationOnJVM();
+
 		final Source source = createSource(args[0]);
 		final String[] appArgs = Arrays.copyOfRange(args, 1, args.length);
 
@@ -67,6 +70,19 @@ public class OzLauncher extends AbstractLanguageLauncher {
 			return Source.newBuilder("oz", file).name(file.getName()).build();
 		} catch (IOException e) {
 			throw new Error(e);
+		}
+	}
+
+	private static void debugPreInitializationOnJVM() {
+		if (!isAOT() && System.getProperty("polyglot.engine.PreinitializeContexts") != null) {
+			try {
+				final Class<?> holderClz = Class.forName("org.graalvm.polyglot.Engine$ImplHolder");
+				final Method preInitMethod = holderClz.getDeclaredMethod("preInitializeEngine");
+				preInitMethod.setAccessible(true);
+				preInitMethod.invoke(null);
+			} catch (ReflectiveOperationException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
