@@ -47,10 +47,11 @@ define
 
    Iterations=50
    proc {Bench F}
-      R
+      R={NewCell nil}
    in
       for I in 1..Iterations do
-         R={Measure F}
+         R := nil % Let last result GC
+         R := {Measure F}
       end
    end
 end
