@@ -229,9 +229,12 @@ object Lexer {
     digit.rep(1).!
       | "~" ~ digit.rep(1).! ^^ (x => "-" + x))
 
-  val integerLiteral: P[Long] = P(
+  val integerLiteralForDot: P[Long] = P( // For Record.1.1
     integerLiteralBase
-      | "~" ~ integerLiteralBase ^^ (x => -x)) ~ !("." ~ afterFloatDot) // Disallow int.X but allow int..int (for I in 1..10 do)
+      | "~" ~ integerLiteralBase ^^ (x => -x))
+
+  val integerLiteral: P[Long] = P(
+    integerLiteralForDot ~ !("." ~ afterFloatDot)) // Disallow int.X but allow int..int (for I in 1..10 do)
 
   def integerLiteralBase: P[Long] = P(
     "0" ~ CharIn("xX") ~ hexDigit.rep(1).! ^^ {
@@ -382,11 +385,17 @@ object Parser {
       case (lhs, ops, pos) => ops.foldLeft(lhs) { case (lhs, (op, rhs)) => binOp(lhs, op, rhs)(pos) }
     }
 
+  def leftAssocDot(p: P[Phrase], op: P[String], rhs: P[Phrase], binOp: (Phrase, String, Phrase) => Pos => Phrase) =
+    pos2(p ~ (op ~ rhs).rep) {
+      case (lhs, ops, pos) => ops.foldLeft(lhs) { case (lhs, (op, rhs)) => binOp(lhs, op, rhs)(pos) }
+    }
+
   def unaryOp(p: P[(String, Phrase)]) = p ^ UnaryOpPhrase.apply
 
   // Constants
 
   val integerConst = (intLit | charLit) ^^ OzInt
+  val integerConstForDot = integerLiteralForDot ^^ OzInt
 
   val floatConst: P[OzFloat] = floatLit ^^ (value => OzFloat(value))
 
@@ -417,6 +426,7 @@ object Parser {
     pos(P("$")) { pos => NestingMarker()(pos) }
 
   val integerConstExpr = integerConst ^ Constant.apply
+  val integerConstForDotExpr = integerConstForDot ^ Constant.apply
   val floatConstExpr = floatConst ^ Constant.apply
   val atomConstExpr = atomConst ^ Constant.apply
   val literalConstExpr = literalConst ^ Constant.apply
@@ -475,7 +485,7 @@ object Parser {
       | forStatement
       | skipStatement)
   val lvlD: P[Phrase] = P((("@" | "!!").! ~/ lvlD) ^ UnaryOpPhrase.apply | atPhrase)
-  val lvlC: P[Phrase] = P(leftAssoc(lvlD, `.`.!.~/, BinaryOpPhrase.apply))
+  val lvlC: P[Phrase] = P(leftAssocDot(lvlD, `.`.!.~/, (integerConstForDotExpr | lvlD), BinaryOpPhrase.apply))
   val lvlB: P[Phrase] = P(("~".! ~/ lvlB) ^ UnaryOpPhrase.apply | lvlC)
   val lvlA: P[Phrase] = P(lvlB ~ ("," ~/ lvlA).?).map {
     case (lhs, Some(rhs)) => BinaryOpPhrase(lhs, ",", rhs)(Node.extend(lhs, rhs))

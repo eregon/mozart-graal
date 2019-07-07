@@ -119,6 +119,9 @@ define
 
               {FF {Char.is ~1}}
 
+% Parse .1.1 as two accesses, not R.(1.1)
+              {Eq [[42]].1.1 42}
+
            end
            keys:[module record])
 end
