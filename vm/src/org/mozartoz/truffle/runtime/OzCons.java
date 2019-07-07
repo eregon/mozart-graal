@@ -135,9 +135,20 @@ public class OzCons extends OzValue {
 		throw new UnsupportedOperationException("OzCons has structural equality");
 	}
 
+	private static final DerefNode UNCACHED_DEREF_NODE = DerefNode.create();
+
 	@Override
 	public String toString() {
-		return head + "|" + tail;
+		StringBuilder builder = new StringBuilder();
+		Object list = this;
+		while (list instanceof OzCons) {
+			OzCons cons = (OzCons) list;
+			builder.append(cons.getHead());
+			builder.append('|');
+			list = UNCACHED_DEREF_NODE.executeDeref(cons.getTail());
+		}
+		builder.append(list);
+		return builder.toString();
 	}
 
 }
