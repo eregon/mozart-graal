@@ -218,7 +218,7 @@ object Lexer {
   val afterFloatDot = P(CharIn("eE") ~ ("~" | digit) | digit)
 
   val floatLiteralBase: P[Double] =
-    P((digit.rep(1).! ~ `.` ~ digit.rep.! ~ !(identCharPred)).map {
+    P((digit.rep(1).! ~ `.` ~ digit.rep.! ~ !identCharPred).map {
       case (int, frac) => (int + "." + frac).toDouble
     } |
       (digit.rep(1).! ~ `.` ~ digit.rep.! ~ CharIn("eE") ~ floatExponentBase).map {
