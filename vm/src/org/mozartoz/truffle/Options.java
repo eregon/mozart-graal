@@ -24,7 +24,7 @@ public abstract class Options {
 	public static final OptionKey<Boolean> SERIALIZER = new OptionKey<>(!TruffleOptions.AOT);
 
 	@Option(name = "tail-calls", help = "", category = USER, stability = STABLE)
-	public static final OptionKey<Boolean> TAIL_CALLS = new OptionKey<>(true);
+	public static final OptionKey<Boolean> TAIL_CALLS = new OptionKey<>(false);
 
 	@Option(name = "tail-calls-osr", help = "", category = USER, stability = STABLE)
 	public static final OptionKey<Boolean> TAIL_CALLS_OSR = new OptionKey<>(true);
