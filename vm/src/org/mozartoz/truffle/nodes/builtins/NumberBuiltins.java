@@ -118,7 +118,7 @@ public abstract class NumberBuiltins {
 		long abs(long operand,
 				@Cached("createBinaryProfile()") ConditionProfile negative) {
 			if (negative.profile(operand < 0)) {
-				return -operand;
+				return Math.subtractExact(0L, operand);
 			} else {
 				return operand;
 			}
