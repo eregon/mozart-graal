@@ -39,7 +39,7 @@ public class OzContext {
 
 	private final List<Process> childProcesses = new LinkedList<>();
 	private final List<Thread> coroutineThreads = new LinkedList<>();
-	private final StacktraceThread shutdownHook;
+	private StacktraceThread shutdownHook;
 
 	private DynamicObject base;
 	private OzProc main;
@@ -51,7 +51,6 @@ public class OzContext {
 		this.language = language;
 		this.home = language.getHome();
 		this.env = env;
-		this.stacktraceOnInterrupt = env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT);
 
 		this.translatorDriver = new TranslatorDriver(language, env.getOptions());
 
@@ -69,12 +68,7 @@ public class OzContext {
 
 		mainImage = new File(home, "Main.image");
 
-		if (stacktraceOnInterrupt) {
-			this.shutdownHook = new StacktraceThread();
-			Runtime.getRuntime().addShutdownHook(shutdownHook);
-		} else {
-			this.shutdownHook = null;
-		}
+		setupStacktraceOnInterrupt(env);
 	}
 
 	public String getHome() {
@@ -101,7 +95,7 @@ public class OzContext {
 		this.home = language.getHome();
 		this.env = newEnv;
 
-		this.stacktraceOnInterrupt = newEnv.getOptions().get(Options.STACKTRACE_ON_INTERRUPT);
+		setupStacktraceOnInterrupt(newEnv);
 
 		OzThread.setCurrentOzThread(mainThread);
 
@@ -151,6 +145,16 @@ public class OzContext {
 			}
 		}
 		coroutineThreads.clear();
+	}
+
+	private void setupStacktraceOnInterrupt(Env env) {
+		this.stacktraceOnInterrupt = env.getOptions().get(Options.STACKTRACE_ON_INTERRUPT);
+		if (stacktraceOnInterrupt) {
+			this.shutdownHook = new StacktraceThread();
+			Runtime.getRuntime().addShutdownHook(shutdownHook);
+		} else {
+			this.shutdownHook = null;
+		}
 	}
 
 	// Main
