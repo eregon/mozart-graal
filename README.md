@@ -8,7 +8,7 @@ The bootcompiler and Oz libraries are imported from [Mozart 2](https://github.co
 
 ## Interesting Points
 
-* A [master thesis](https://www.info.ucl.ac.be/~pvr/MemoireMaximeIstasse.pdf) was made with this project to optimize performance. It details many static and dynamic optimizations.
+* A [master thesis](https://dial.uclouvain.be/memoire/ucl/en/object/thesis%3A10657/datastream/PDF_01/view) was made with this project to optimize performance. It details many static and dynamic optimizations.
 
 * Tail calls are optimized and compiled as loops, see `TailCallCatcherNode`.
   Self-recursion is optimized further in `SelfTailCallCatcherNode`.
